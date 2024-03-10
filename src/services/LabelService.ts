@@ -1,9 +1,10 @@
-import StorageService from "./storageService";
+import StorageService from "./StorageService";
 
 interface LabelServiceType {
     addLabel:           (label: Label) => Promise<Message<Label>>,
     getAllLabels:       () => Promise<Message<Label[]>>,
     getLabelByID:       (id: string) => Promise<Message<Label>>,
+    getLabelsByName:    (name: string) => Promise<Message<Label[]>>,
     updateLabelById:    (id: string, newData: Partial<Label>) => Promise<Message<Label>>,
     deleteLabelById:    (id: string) => Promise<Message<Label>>,
 }
@@ -19,6 +20,7 @@ const LabelService : LabelServiceType = (() => {
                 throw new Error(`Label service has reached the limit of ${limitLabel} labels`);
             }
 
+            label.createdAt = new Date();
             return StorageService.addData<Label>(label, 'label', numberOfLabels);
         } catch (error) {
             numberOfLabels--;
@@ -42,8 +44,22 @@ const LabelService : LabelServiceType = (() => {
         }
     }
 
+    async function getLabelsByName(name: string) : Promise<Message<Label[]>> { 
+        try {
+            const message : Message<Label[]> = await getAllLabels();
+            if (!message.getIsSuccess()) return message;
+
+            const labels : Label[] = message.getData();
+            labels.filter(label => label.name.toLowerCase().includes( name.toLowerCase() ));
+            return Message.success(labels);
+        } catch (error) {
+            return Message.failure(error);
+        }
+    }
+
     async function updateLabelById(id: string, newData: Partial<Label>): Promise<Message<Label>> {
         try {
+            newData.updatedAt = new Date();
             return await StorageService.updateDataByTypeAndId<Label>('label', id, newData);
         } catch (error) {
             return Message.failure(error);
@@ -64,6 +80,7 @@ const LabelService : LabelServiceType = (() => {
         addLabel,
         getAllLabels,
         getLabelByID,
+        getLabelsByName,
         updateLabelById,
         deleteLabelById,
     };

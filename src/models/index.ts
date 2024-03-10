@@ -1,1 +1,1 @@
-type ModelType = 'event' | 'label' | 'note';
+type ModelType = 'task' | 'label' | 'note';

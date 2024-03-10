@@ -1,7 +1,7 @@
-interface Event {
+interface Task {
     id: string,
     title: string,
-    description: Note,
+    note: Note,
     labels: Label[],
 
     start: Date,
@@ -11,6 +11,6 @@ interface Event {
     isAnnouncement: boolean,
 
     isDeleted: boolean,
-    createdAt: string,
-    updatedAt: string,
+    createdAt: Date,
+    updatedAt: Date,
 }

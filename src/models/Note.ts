@@ -3,7 +3,7 @@ interface Note {
     title: string,
     content: string,
     labels: Label[],
-    createdAt: string,
-    updatedAt: string,
+    createdAt: Date,
+    updatedAt: Date,
     isDeleted: boolean,
 }
