@@ -1,32 +1,41 @@
+//services
 import StorageService from "./StorageService";
+import { Message } from "./models";
+
+//utils
+import { generateId } from "../utils/generator";
 import { slugInclude } from "../utils/slugUtil";
 
+
 interface NoteServiceType {
-    addNote:           (note: Note) => Promise<Message<Note>>,
+    addNote:           (note: Partial<Note>) => Promise<Message<Note>>,
 
     getAllNotes:       () => Promise<Message<Note[]>>,
-    getNoteByID:       (id: string) => Promise<Message<Note>>,
+    getNoteByID:       (_id: string) => Promise<Message<Note>>,
     getNotesByCriteria:    (searchWord?: string, label?: Label) => Promise<Message<Note[]>>,
 
-    updateNoteById:    (id: string, newData: Partial<Note>) => Promise<Message<Note>>,
+    updateNoteById:    (_id: string, newData: Partial<Note>) => Promise<Message<Note>>,
     addLabelToNote:    (label: Label, noteId: string) => Promise<Message<Note>>,
 
-    deleteNoteById:    (id: string) => Promise<Message<Note>>,
+    deleteNoteById:    (_id: string) => Promise<Message<Note>>,
 }
 
 const NoteService : NoteServiceType = (() => {
     let numberOfNotes: number = 0;  
     const limitNote: number = 500;
 
-    async function addNote(note: Note): Promise<Message<Note>> {
+    async function addNote(note: Partial<Note>): Promise<Message<Note>> {
         try {
             numberOfNotes++;
             if (numberOfNotes >= limitNote) {
                 throw new Error(`Note service has reached the limit of ${limitNote} notes`);
             }
 
+            note.isDeleted = note.isDeleted ?? false;
             note.createdAt = new Date();
-            return StorageService.addData<Note>(note, 'note', numberOfNotes);
+            note._id = generateId();
+
+            return StorageService.addData<Note>(note as Note, 'note', numberOfNotes);
         } catch (error) {
             numberOfNotes--;
             return Message.failure(error);

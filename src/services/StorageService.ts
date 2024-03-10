@@ -1,20 +1,22 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Message } from './models'
 
 interface StorageServiceType {
-    addData:                    <T extends { id: string }>  (data: T, type: ModelType, index: number) => Promise<Message<T>>,
-    getAllDataByType:           <T>                         (type: ModelType) => Promise<Message<T[]>>,
-    getDataByTypeAndId:         <T extends { id: string }>  (type: ModelType, id: string) => Promise<Message<T>>,
-    updateDataByTypeAndId:      <T extends { id: string }>  (type: ModelType, id: string, newData: Partial<T>) => Promise<Message<T>>,
-    deleteSoftDataByTypeAndId:  <T extends { id: string, isDeleted: boolean }>      (type: ModelType, id: string) => Promise<Message<T>>,
-    deleteForceDataByTypeAndId: <T extends { id: string }>  (type: ModelType, id: string) => Promise<Message<T>>,
+    addData:                    <T extends { _id: string, isDeleted: boolean }>  (data: T, type: ModelType, index: number) => Promise<Message<T>>,
+    getAllDataByType:           <T extends { isDeleted: boolean }>               (type: ModelType) => Promise<Message<T[]>>,
+    getDataByTypeAndId:         <T extends { _id: string, isDeleted: boolean }>  (type: ModelType, _id: string) => Promise<Message<T>>,
+    updateDataByTypeAndId:      <T extends { _id: string, isDeleted: boolean }>  (type: ModelType, _id: string, newData: Partial<T>) => Promise<Message<T>>,
+    deleteSoftDataByTypeAndId:  <T extends { _id: string, isDeleted: boolean }>  (type: ModelType, _id: string) => Promise<Message<T>>,
+    deleteForceDataByTypeAndId: <T extends { _id: string }>                      (type: ModelType, _id: string) => Promise<Message<T>>,
+    clearAllData:               (type: ModelType) => Promise<Message<string>>,
 }
 
 const StorageService : StorageServiceType = (() => {
     let numberOfDocuments: number = 0;
     const limitDocument: number = 2000;
 
-    async function addData<T extends {id: string}>
+    async function addData<T extends {_id: string}>
         (data: T, type: ModelType): Promise<Message<T>> {
             try {
                 numberOfDocuments++;
@@ -24,16 +26,16 @@ const StorageService : StorageServiceType = (() => {
                 }
 
                 const jsonValue = JSON.stringify(data);
-                await AsyncStorage.setItem(`@${type}:${data.id}`, jsonValue);
-                return Message.success(data);
+                await AsyncStorage.setItem(`@${type}:${data._id}`, jsonValue);
+                return Message.success<T>(data);
             }
             catch (error) {
                 numberOfDocuments--;
-                return Message.failure(error);
+                return Message.failure<T>(error);
             }
     }
 
-    async function getAllDataByType<T>
+    async function getAllDataByType<T extends {isDeleted : boolean}>
         ( type: ModelType ): Promise<Message<T[]>> {
             try {
                 const keys: string[] = (await AsyncStorage.getAllKeys()).filter(key => key.startsWith(`@${type}`));
@@ -41,11 +43,13 @@ const StorageService : StorageServiceType = (() => {
                 const dataJSONValue = await AsyncStorage.multiGet(keys);
                 if (!dataJSONValue || dataJSONValue.length === 0) return Message.success([]);
 
-                const listData : T[] = dataJSONValue.map(([ _ , value]) => {
-                    if (value === null) return;
-                    const data: T = JSON.parse(value);
-                    return data;
-                }) as T[];
+                const listData: T[] = dataJSONValue
+                    .map(([_, value]) => {
+                        if (value === null) return;
+                        const data: T = JSON.parse(value);
+                        return data;
+                    })
+                    .filter((data) => data && !data.isDeleted) as T[];
 
                 return Message.success(listData);
             }
@@ -54,7 +58,7 @@ const StorageService : StorageServiceType = (() => {
             }
     }
 
-    async function getDataByTypeAndId<T extends { id: string }>
+    async function getDataByTypeAndId<T extends { _id: string, isDeleted: boolean }>
         (type: ModelType, id: string): Promise<Message<T>> {
             try {
                 const key: string = `@${type}:${id}`;
@@ -62,6 +66,7 @@ const StorageService : StorageServiceType = (() => {
                 if (!value) return Message.failure('Data not found!');
 
                 const data: T = JSON.parse(value);
+                if (!data || data.isDeleted) return Message.failure('Data not found!');
                 return Message.success(data);
             }
             catch (error) {
@@ -69,7 +74,7 @@ const StorageService : StorageServiceType = (() => {
             }
     }
 
-    async function updateDataByTypeAndId<T extends { id: string }>
+    async function updateDataByTypeAndId<T extends { _id: string, isDeleted: boolean }>
         (type: ModelType, id: string, newData: Partial<T>): Promise<Message<T>> {
             try {
                 const key: string = `@${type}:${id}`;
@@ -77,6 +82,8 @@ const StorageService : StorageServiceType = (() => {
                 if (!value) return Message.failure('Data not found!');
 
                 const existingData: T = JSON.parse(value);
+                if (!existingData || existingData.isDeleted) return Message.failure('Data not found!');
+
                 const updatedData: T = { ...existingData, ...newData };
 
                 const jsonValue = JSON.stringify(updatedData);
@@ -88,7 +95,7 @@ const StorageService : StorageServiceType = (() => {
             }
     }
 
-    async function deleteSoftDataByTypeAndId<T extends { id: string, isDeleted: boolean }>
+    async function deleteSoftDataByTypeAndId<T extends { _id: string, isDeleted: boolean }>
         (type: ModelType, id: string): Promise<Message<T>> {
             try {
                 const key: string = `@${type}:${id}`;
@@ -106,7 +113,7 @@ const StorageService : StorageServiceType = (() => {
             }
     }
 
-    async function deleteForceDataByTypeAndId<T extends { id: string }>
+    async function deleteForceDataByTypeAndId<T extends { _id: string }>
         (type: ModelType, id: string): Promise<Message<T>> {
             try {
                 numberOfDocuments--;
@@ -124,6 +131,17 @@ const StorageService : StorageServiceType = (() => {
             }
     }
 
+    async function clearAllData(type: ModelType): Promise<Message<string>> {
+        try {
+            const keys: string[] = (await AsyncStorage.getAllKeys()).filter(key => key.startsWith(`@${type}`));
+            await AsyncStorage.multiRemove(keys);
+            return Message.success('All data has been deleted!');
+        }
+        catch (error) {
+            return Message.failure(error);
+        }
+    }
+
     return {
         addData,
         getAllDataByType,
@@ -131,6 +149,7 @@ const StorageService : StorageServiceType = (() => {
         updateDataByTypeAndId,
         deleteSoftDataByTypeAndId,
         deleteForceDataByTypeAndId,
+        clearAllData,
     };
 })();
 

@@ -1,27 +1,32 @@
 import StorageService from "./StorageService";
+import { generateId } from "../utils/generator";
+import { Message } from "./models"
 
 interface LabelServiceType {
-    addLabel:           (label: Label) => Promise<Message<Label>>,
+    addLabel:           (label: Partial<Label>) => Promise<Message<Label>>,
     getAllLabels:       () => Promise<Message<Label[]>>,
-    getLabelByID:       (id: string) => Promise<Message<Label>>,
+    getLabelByID:       (_id: string) => Promise<Message<Label>>,
     getLabelsByName:    (name: string) => Promise<Message<Label[]>>,
-    updateLabelById:    (id: string, newData: Partial<Label>) => Promise<Message<Label>>,
-    deleteLabelById:    (id: string) => Promise<Message<Label>>,
+    updateLabelById:    (_id: string, newData: Partial<Label>) => Promise<Message<Label>>,
+    deleteLabelById:    (_id: string) => Promise<Message<Label>>,
 }
 
 const LabelService : LabelServiceType = (() => {
     let numberOfLabels: number = 0;  
     const limitLabel: number = 500;
 
-    async function addLabel(label: Label): Promise<Message<Label>> {
+    async function addLabel(label: Partial<Label>): Promise<Message<Label>> {
         try {
             numberOfLabels++;
             if (numberOfLabels >= limitLabel) {
                 throw new Error(`Label service has reached the limit of ${limitLabel} labels`);
             }
 
+            label.isDeleted = label.isDeleted ?? false;
             label.createdAt = new Date();
-            return StorageService.addData<Label>(label, 'label', numberOfLabels);
+            label._id = generateId();
+
+            return StorageService.addData<Label>(label as Label, 'label', numberOfLabels);
         } catch (error) {
             numberOfLabels--;
             return Message.failure(error);

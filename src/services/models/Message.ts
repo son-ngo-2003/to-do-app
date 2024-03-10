@@ -35,3 +35,5 @@ class Message<T> {
         return this.error;
     }
 }
+
+export default Message;

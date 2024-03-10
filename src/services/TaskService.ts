@@ -1,33 +1,41 @@
+//services
 import StorageService from "./StorageService";
+import { Message } from "./models";
+
+//utils
+import { generateId } from "../utils/generator";
 import { slugInclude } from "../utils/slugUtil";
 import { isDateBetween } from "../utils/dateUtil";
 
 interface TaskServiceType {
-    addTask:           (task: Task) => Promise<Message<Task>>,
+    addTask:           (task: Partial<Task>) => Promise<Message<Task>>,
 
     getAllTasks:       () => Promise<Message<Task[]>>,
-    getTaskByID:       (id: string) => Promise<Message<Task>>,
+    getTaskByID:       (_id: string) => Promise<Message<Task>>,
     getTasksByCriteria:    (searchWord?: string, label?: Label, date?: Date) => Promise<Message<Task[]>>,
 
-    updateTaskById:    (id: string, newData: Partial<Task>) => Promise<Message<Task>>,
+    updateTaskById:    (_id: string, newData: Partial<Task>) => Promise<Message<Task>>,
     addLabelToTask:    (label: Label, taskId: string) => Promise<Message<Task>>,
     
-    deleteTaskById:    (id: string) => Promise<Message<Task>>,
+    deleteTaskById:    (_id: string) => Promise<Message<Task>>,
 }
 
 const TaskService : TaskServiceType = (() => {
     let numberOfTasks: number = 0;  
     const limitTask: number = 500;
 
-    async function addTask(task: Task): Promise<Message<Task>> {
+    async function addTask(task: Partial<Task>): Promise<Message<Task>> {
         try {
             numberOfTasks++;
             if (numberOfTasks >= limitTask) {
                 throw new Error(`Task service has reached the limit of ${limitTask} tasks`);
             }
 
+            task.isDeleted = task.isDeleted ?? false;
             task.createdAt = new Date();
-            return StorageService.addData<Task>(task, 'task', numberOfTasks);
+            task._id = generateId();
+
+            return StorageService.addData<Task>(task as Task, 'task', numberOfTasks);
         } catch (error) {
             numberOfTasks--;
             return Message.failure(error);
