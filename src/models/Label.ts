@@ -1,4 +1,5 @@
 interface Label {
-    id: String,
-    name: String,
+    id: string,
+    name: string,
+    isDeleted: boolean,
 }

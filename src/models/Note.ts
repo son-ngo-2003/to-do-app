@@ -1,9 +1,9 @@
 interface Note {
-    id: String,
-    title: String,
-    content: String,
+    id: string,
+    title: string,
+    content: string,
     labels: Label[],
-    createdAt: String,
-    updatedAt: String,
+    createdAt: string,
+    updatedAt: string,
     isDeleted: boolean,
 }

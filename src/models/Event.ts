@@ -1,6 +1,6 @@
 interface Event {
-    id: String,
-    title: String,
+    id: string,
+    title: string,
     description: Note,
     labels: Label[],
 
@@ -11,6 +11,6 @@ interface Event {
     isAnnouncement: boolean,
 
     isDeleted: boolean,
-    createdAt: String,
-    updatedAt: String,
+    createdAt: string,
+    updatedAt: string,
 }
