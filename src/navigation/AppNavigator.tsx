@@ -8,11 +8,16 @@ import DrawerNavigation from './DrawerNavigation';
 //themes
 import { DarkTheme, LightTheme } from '../styles/colors';
 
-const AppNavigator : React.FC = () => {
+type AppNavigatorProps = {
+    onReady: () => void,
+}
+
+const AppNavigator : React.FC<AppNavigatorProps> = ( {onReady} ) => {
     const scheme = useColorScheme();
 
     return (
-        <NavigationContainer theme={ scheme === 'dark' ? DarkTheme : LightTheme}>
+        <NavigationContainer theme={ scheme === 'dark' ? DarkTheme : LightTheme}
+                            onReady = {onReady}>
             <DrawerNavigation />
         </NavigationContainer>
     )

@@ -14,7 +14,6 @@ type FontImports = {
     'Aleo-BoldItalic' : any,
     'Aleo-SemiBoldItalic' : any,
     'Aleo-MediumItalic' : any,
-    'Aleo-RegularItalic' : any,
     'Aleo-LightItalic' : any,
     'Aleo-ExtraLightItalic' : any,
     'Aleo-ThinItalic' : any,
@@ -22,7 +21,7 @@ type FontImports = {
 }
 
 const fontImports : FontImports = {
-    'Aleo-Back' : require('./Aleo-Back.ttf'),
+    'Aleo-Back' : require('./Aleo-Black.ttf'),
     'Aleo-ExtraBold' : require('./Aleo-ExtraBold.ttf'),
     'Aleo-Bold' : require('./Aleo-Bold.ttf'),
     'Aleo-SemiBold' : require('./Aleo-SemiBold.ttf'),
@@ -37,7 +36,6 @@ const fontImports : FontImports = {
     'Aleo-BoldItalic' : require('./Aleo-BoldItalic.ttf'),
     'Aleo-SemiBoldItalic' : require('./Aleo-SemiBoldItalic.ttf'),
     'Aleo-MediumItalic' : require('./Aleo-MediumItalic.ttf'),
-    'Aleo-RegularItalic' : require('./Aleo-RegularItalic.ttf'),
     'Aleo-LightItalic' : require('./Aleo-LightItalic.ttf'),
     'Aleo-ExtraLightItalic' : require('./Aleo-ExtraLightItalic.ttf'),
     'Aleo-ThinItalic' : require('./Aleo-ThinItalic.ttf'),

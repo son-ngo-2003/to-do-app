@@ -1,6 +1,5 @@
 import 'react-native-gesture-handler';
 import { useCallback } from 'react';
-import { View } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 
@@ -22,8 +21,6 @@ export default function App() {
     }
 
     return (
-        <View onLayout={onLayoutRootView}>
-            <AppNavigator />
-        </View>
+        <AppNavigator onReady = {onLayoutRootView}/>
     );
 }
