@@ -3,9 +3,8 @@
 import { PlatformPressable } from '@react-navigation/elements';
 import { useTheme } from '@react-navigation/native';
 import * as React from 'react';
-import { Text, View } from 'react-native';
-
-import styles from './DrawerItem.style';
+import { Text, View, StyleSheet } from 'react-native';
+import { Typography, Colors, Bases } from '../../../styles';
 
 type Props = {
     //href?: string;
@@ -15,6 +14,7 @@ type Props = {
         size: number;
         color: string;
     }) => React.ReactNode;
+    notification?: number;
     focused?: boolean;
     onPress: () => void;
     /**
@@ -37,6 +37,7 @@ export default function DrawerItem(props: Props) {
         //href,
         icon,
         label,
+        notification,
         focused = false,
         allowFontScaling,
         onPress,
@@ -45,7 +46,7 @@ export default function DrawerItem(props: Props) {
     } = props;
 
     const color = focused ? colors.primary : colors.text;
-    const iconNode = icon ? icon({ size: 24, focused, color }) : null;
+    const iconNode = icon ? icon({ size: 25, focused, color }) : null;
 
     return (
         <View
@@ -69,13 +70,46 @@ export default function DrawerItem(props: Props) {
                         <Text
                             numberOfLines={1}
                             allowFontScaling={allowFontScaling}
-                            style={[styles.labelText, { color }]}
+                            style={[styles.labelText, { color }, Typography.subheader.x40]}
                         >
                             {label}
                         </Text>
                     </View>
+                    {!!notification && (
+                        <View style={[styles.notiWrapper]}>
+                            <Text style={[{color: 'white'}, Typography.subheader.x30]}>{notification}</Text>
+                        </View>
+                    )}
                 </View>
             </PlatformPressable>
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        marginHorizontal: 20,
+        marginVertical: 4,
+        overflow: 'hidden',
+    },
+    wrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 4,
+        paddingHorizontal: 5,
+    },
+    label: {
+        marginEnd: 12,
+        marginVertical: 4,
+        flex: 1,
+    },
+    labelText: {
+        lineHeight: 24,
+        textAlignVertical: 'center',
+    },
+    notiWrapper: {
+        backgroundColor: Colors.primary.red,
+        ...Bases.circle(26),
+        ...Bases.centerItem.all,
+    }
+});

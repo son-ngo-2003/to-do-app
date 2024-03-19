@@ -61,6 +61,7 @@ export default function DrawerItemList({ state, navigation, descriptors, forRout
                 focused={focused}
                 allowFontScaling={drawerAllowFontScaling}
                 onPress={onPress}
+                notification={ i%2 === 0 ? 1 : 0}
             />
         );
     }) as React.ReactNode as React.ReactElement;

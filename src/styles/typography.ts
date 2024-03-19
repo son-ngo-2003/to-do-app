@@ -7,19 +7,19 @@ type FontFamily = 'Aleo'
 type FontSize = "x10" | "x20" | "x30" | "x40" | "x50" | "x60" | "x70"
 export const fontSize: Record<FontSize, TextStyle> = {
     x10: {
-        fontSize: 10,
+        fontSize: 13,
     },
     x20: {
-        fontSize: 12,
-    },
-    x30: {
         fontSize: 14,
     },
-    x40: {
+    x30: {
         fontSize: 16,
     },
+    x40: {
+        fontSize: 19,
+    },
     x50: {
-        fontSize: 20,
+        fontSize: 24,
     },
     x60: {
         fontSize: 32,

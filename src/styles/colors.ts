@@ -141,7 +141,7 @@ export const DarkTheme : Theme = {
         background: background.dark,
         card: card.dark,
         text: text.dark,
-        border: primary.yellow,
+        border: neutral.s800,
         notification: primary.yellow,
     }
 }
@@ -152,7 +152,7 @@ export const LightTheme : Theme = {
         background: background.light,
         card: card.light,
         text: text.light,
-        border: primary.yellow,
+        border: neutral.s200,
         notification: primary.yellow,
     }
 }

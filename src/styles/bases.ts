@@ -15,6 +15,18 @@ export const centerItem : Record<Direction, ViewStyle> = {
     }    
 }
 
+export const centerSelf : Record<Direction, ViewStyle> = {
+    horizontal: {
+        alignSelf: "center",
+    },
+    vertical: {
+        alignSelf: "center",
+    },
+    all: {
+        alignSelf: "center",
+    }
+}
+
 export const circle : (size: DimensionValue) => ViewStyle = (size = '100%') => ({
     width: size,
     height: size,
