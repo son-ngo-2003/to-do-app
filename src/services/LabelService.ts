@@ -1,6 +1,7 @@
 import StorageService from "./StorageService";
 import { generateId } from "../utils/generator";
 import { Message } from "./models"
+import { Colors } from "../styles";
 
 interface LabelServiceType {
     addLabel:           (label: Partial<Label>) => Promise<Message<Label>>,
@@ -25,6 +26,11 @@ const LabelService : LabelServiceType = (() => {
             label.isDeleted = label.isDeleted ?? false;
             label.createdAt = new Date();
             label._id = generateId();
+            label.color = label.color ?? Colors.getRandomColor();
+
+            label.numberOfTasks = 0;
+            label.numberOfCompletedTasks = 0;
+            label.numberOfNotes = 0;
 
             return StorageService.addData<Label>(label as Label, 'label', numberOfLabels);
         } catch (error) {

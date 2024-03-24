@@ -4,6 +4,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import Octicons from 'react-native-vector-icons/Octicons';
 import FontAwesome5 from'react-native-vector-icons/FontAwesome5';
 import FontAwesome6 from'react-native-vector-icons/FontAwesome6';
+import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons'
 
 type IconProps = {
     name: string,
@@ -23,6 +24,8 @@ const Icon : React.FC<IconProps> = ({name, size, color, library}) => {
             return <FontAwesome5 name={name} size={size} color={color} />;
         case 'FontAwesome6':
             return <FontAwesome6 name={name} size={size} color={color} />;
+        case 'SimpleLineIcons':
+            return <SimpleLineIcons name={name} size={size} color={color} />;
         default:
             return <Ionicons name={name} size={size} color={color} />;
     }

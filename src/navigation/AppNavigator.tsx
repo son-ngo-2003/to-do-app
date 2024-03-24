@@ -14,7 +14,6 @@ type AppNavigatorProps = {
 
 const AppNavigator : React.FC<AppNavigatorProps> = ( {onReady} ) => {
     const scheme = useColorScheme();
-
     return (
         <NavigationContainer theme={ scheme === 'dark' ? DarkTheme : LightTheme}
                              onReady = {onReady}>

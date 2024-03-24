@@ -30,7 +30,7 @@ export const neutral: Record<Neutral, string> = {
     black: "#000000",
 }
 
-type Primary = "red" | "orange" | "yellow" | "teal" | "blue" | "purple" | "pink"
+export type Primary = "red" | "orange" | "yellow" | "teal" | "blue" | "purple" | "pink"
 export const primary: Record<Primary, string> = {
     "red" : "#FF595E",
     "orange" : "#E07A5F",
@@ -40,6 +40,8 @@ export const primary: Record<Primary, string> = {
     "pink" : "#F49CBB",
     "purple" : "#6D597A",
 }
+export const mainPrimaryColor = "yellow"; 
+export const listColor = Object.keys(primary).filter((key) => key != mainPrimaryColor);
 
 // type Secondary = "brand" | "s200" | "s600"
 // export const secondary: Record<Secondary, string> = {
@@ -72,13 +74,13 @@ export const background: Record<Background, string> = {
 
 type Card = "dark" | "light";
 export const card: Record<Card, string> = {
-    dark: neutral.s900,
+    dark: neutral.s800,
     light: neutral.white,
 }
 
 type Text = "dark" | "light";
 export const text: Record<Text, string> = {
-    dark: neutral.s200,
+    dark: neutral.white,
     light: neutral.s900,
 }
 
@@ -122,6 +124,12 @@ export const shadeColor = (hexColor: string, percent: number): string => {
     return `#${hexString}`
 }
 
+export const getRandomColor : () => string = () => {
+    const primaryColors = Object.values(primary);
+    const randomIndex = Math.floor(Math.random() * primaryColors.length);
+    return primaryColors[randomIndex];
+}
+
 type ColorsTheme = {
     primary: string,
     background: string,
@@ -141,7 +149,7 @@ export const DarkTheme : Theme = {
         background: background.dark,
         card: card.dark,
         text: text.dark,
-        border: neutral.s800,
+        border: neutral.s600,
         notification: primary.yellow,
     }
 }
@@ -159,13 +167,13 @@ export const LightTheme : Theme = {
 
 type TypeComponent = "text" | "background" | "card"
 export const setColorTheme : (colors: ColorsTheme) => Record<TypeComponent, ViewStyle | TextStyle> = (colors) => ({
-        text: {
-            color: colors.text,
-        },
-        background: {
-            backgroundColor: colors.background,
-        },
-        card: {
-            backgroundColor: colors.card,
-        },
-    })
+    text: {
+        color: colors.text,
+    },
+    background: {
+        backgroundColor: colors.background,
+    },
+    card: {
+        backgroundColor: colors.card,
+    },
+})

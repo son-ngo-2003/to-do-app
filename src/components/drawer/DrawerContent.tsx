@@ -31,6 +31,6 @@ const styles = StyleSheet.create({
         marginVertical: 10,
         height: 1,
         width: '80%',
-        ...Bases.centerSelf.horizontal,
+        alignSelf: 'center',
     }
 });

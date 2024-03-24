@@ -26,7 +26,7 @@ export const shadow: Record<Shadow, ViewStyle> = {
             width: 0,
             height: 3,
         },
-        shadowOpacity: 0.10,
+        shadowOpacity: 0.25,
         shadowRadius: 4.65,
         elevation: 6,
     },
@@ -37,7 +37,7 @@ export const shadow: Record<Shadow, ViewStyle> = {
             width: 0,
             height: 1,
         },
-        shadowOpacity: 0.10,
+        shadowOpacity: 0.25,
         shadowRadius: 2.32,
         elevation: 4,
     }

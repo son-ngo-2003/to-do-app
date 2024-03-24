@@ -15,15 +15,30 @@ export const centerItem : Record<Direction, ViewStyle> = {
     }    
 }
 
-export const centerSelf : Record<Direction, ViewStyle> = {
+export const flip : Record<Direction, ViewStyle> = {
     horizontal: {
-        alignSelf: "center",
+        transform: [
+            {
+                rotateY: "180deg",
+            },
+        ],
     },
     vertical: {
-        alignSelf: "center",
+        transform: [
+            {
+                rotateX: "180deg",
+            },
+        ],
     },
     all: {
-        alignSelf: "center",
+        transform: [
+            {
+                rotateX: "180deg",
+            },
+            {
+                rotateY: "180deg",
+            },
+        ],
     }
 }
 
