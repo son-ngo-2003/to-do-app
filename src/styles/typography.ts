@@ -1,6 +1,7 @@
 import { TextStyle, Platform } from "react-native"
 
 import * as Colors from "./colors"
+import { AleoFont } from "../assets/fonts"
 
 type FontFamily = 'Aleo'
 
@@ -176,4 +177,8 @@ export const body: Record<Body, TextStyle> = {
         ...fontWeight('Aleo').regular,
         color: Colors.neutral.s800,
     },
+}
+
+export const fontStyleSheets = {
+    AleoFont
 }

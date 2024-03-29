@@ -1,4 +1,5 @@
 import { TextStyle, ViewStyle } from "react-native"
+import { EditorTheme, darkEditorTheme, defaultEditorTheme } from "@10play/tentap-editor"
 
 type Neutral =
     | "white"
@@ -41,7 +42,8 @@ export const primary: Record<Primary, string> = {
     "purple" : "#6D597A",
 }
 export const mainPrimaryColor = "yellow"; 
-export const listColor = Object.keys(primary).filter((key) => key != mainPrimaryColor);
+export const listColor : Primary[] = Object.keys(primary).filter((key) => key != mainPrimaryColor) as Primary[];
+export const listValueColor = Object.values(primary).filter((value) => value != primary[mainPrimaryColor]);
 
 // type Secondary = "brand" | "s200" | "s600"
 // export const secondary: Record<Secondary, string> = {
@@ -177,3 +179,4 @@ export const setColorTheme : (colors: ColorsTheme) => Record<TypeComponent, View
         backgroundColor: colors.card,
     },
 })
+

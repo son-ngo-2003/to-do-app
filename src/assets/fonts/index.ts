@@ -43,3 +43,4 @@ const fontImports : FontImports = {
 }
 
 export default fontImports;
+export { AleoFont } from './stylesheet' 

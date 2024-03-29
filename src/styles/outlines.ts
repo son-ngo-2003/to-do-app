@@ -21,23 +21,23 @@ export const borderWidth: Record<BorderWidth, number> = {
 type Shadow = "small" | "base"
 export const shadow: Record<Shadow, ViewStyle> = {
     base: {
-        shadowColor: Colors.neutral.s400,
+        shadowColor: Colors.neutral.s900,
         shadowOffset: {
             width: 0,
             height: 3,
         },
-        shadowOpacity: 0.25,
+        shadowOpacity: 0.15,
         shadowRadius: 4.65,
         elevation: 6,
     },
 
     small: {
-        shadowColor: Colors.neutral.s400,
+        shadowColor: Colors.neutral.s900,
         shadowOffset: {
             width: 0,
             height: 1,
         },
-        shadowOpacity: 0.25,
+        shadowOpacity: 0.15,
         shadowRadius: 2.32,
         elevation: 4,
     }

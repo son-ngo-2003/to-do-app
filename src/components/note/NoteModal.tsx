@@ -1,64 +1,61 @@
 import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
-import { Pressable, View, TextInput, StyleSheet, Modal, 
-         Keyboard } from 'react-native';
-import { Colors, Typography, Outlines, Layouts, Bases, Animations as Anim} from '../../styles';
-import Animated,
-        { useSharedValue, ZoomInEasyDown, useAnimatedStyle
-} from 'react-native-reanimated';
+import { Pressable, View, TextInput, StyleSheet, Modal, Text,
+         Keyboard, ScrollView } from 'react-native';
+import { Typography, Outlines, Layouts, Bases} from '../../styles';
+import Animated, { ZoomInEasyDown} from 'react-native-reanimated';
 
 //components
 import { Icon, Overlay, KeyboardOptimizeView } from '../atomic';
-import { ColorSelect } from './atomic/';
+import { LabelsList } from '../label';
+import { TextEditor } from '../textEditor';
 
-type LabelModalProps = {
+type NoteModalProps = {
     mode: 'add' | 'edit',
-    label?: Label,
+    note?: Note,
     setIsOpenModal: (isOpen: boolean) => void,
-    onAddLabel?: (label: Label) => void,
-    visible: boolean,
 }
 
-const sizeButton : number = 23;
+const sizeButton : number = 25;
 
-const LabelModal: React.FC<LabelModalProps> = ({ 
-    mode, 
-    label, 
-    setIsOpenModal,
-    onAddLabel,
-    visible=true,
-}) => {
-    const [ name, setName ] = React.useState<string>((mode === 'add' || !label) ? '' :  label.name) ;
-    const [ indexColorSelected, setIndexColor ] = React.useState<number>(   
-                                                        (mode === 'add' || !label)
-                                                            ? -1
-                                                            : Colors.listColor.findIndex( (color) => label.color === color ) 
-                                                    ) ;
+const NoteModal: React.FC<NoteModalProps> = ({ mode, note, setIsOpenModal }) => {
+    const [ title, setTitle ] = React.useState<string>((mode === 'add' || !note) ? '' :  note.title) ;
+    const [ content, setContent ] = React.useState<string>((mode === 'add' || !note) ? '' :  note.content) ;
+    const [ listLabels, setListLabels ] = React.useState<Label[]>((mode === 'add' || !note) ? [] :  note.labels) ;
     const { colors } = useTheme();
+    const todayDate: string = (new Date()).toLocaleDateString();
 
     const onPressAdd = () => {
         if (Keyboard.isVisible()) return;
         console.log('Add');
         setIsOpenModal(false);
-        //TODO: call LabelService to add new label and retrurn label -> onAddLabel(label);
     }
 
     const onPressUpdate = () => {
         if (Keyboard.isVisible()) return;
         console.log('Update');
         setIsOpenModal(false);
-        //TODO: onPressUpdateLabel();
     }
 
     const onPressCancel = () => {
         if (Keyboard.isVisible()) return;
         console.log('Cancel');
         setIsOpenModal(false);
-        // TODO: onPressCancel()
+    }
+
+    const onPressAddLabel = () => {
+        if (Keyboard.isVisible()) return;
+        console.log('Add labels');
+        setIsOpenModal(false);
+    };
+
+    const onChangeLabels = (newListLabels: Label[]) => {
+        setListLabels(newListLabels);
+        //TODO: base on auto save then auto update this to storage
     }
 
     return (
-        <Modal transparent={true} animationType='fade' visible={visible}>
+        <Modal transparent={true} animationType='fade'>
             <KeyboardOptimizeView style={styles.container}>
                 <Overlay onPress={onPressCancel} background='highOpacity'/>
 
@@ -86,29 +83,43 @@ const LabelModal: React.FC<LabelModalProps> = ({
                         </Pressable>
                     </View>
 
-                    {/* Labels Parts  */}
-                    <TextInput style={[styles.label, {color: colors.text}]} multiline={true}
-                                onChangeText={setName} value={name}/>
+                    {/* Title  */}
+                    <Text style={[{color: colors.border}]}>
+                        {
+                            mode === 'add'
+                            ? 'Today: ' + todayDate
+                            : note?.updatedAt
+                                ? 'Last modified: ' + note.updatedAt.toLocaleDateString()
+                                : 'Created at: ' + note?.createdAt.toLocaleDateString()
+                        }
+                    </Text>
+                    <TextInput style={[styles.title, {color: colors.text}]} multiline={true}
+                                onChangeText={setTitle} value={title}
+                                placeholder='Press here to add title to your note'/>
+
+                    {/* Labels */}
+                    <LabelsList
+                        setListLabels={(newLabels) => onChangeLabels(newLabels)}
+                        choseLabelsList={listLabels}
+                    />
+
                     <View style={[styles.decorationLine, {backgroundColor: colors.border}]}></View>
 
-                    {/* List of colors */}
-                    <View style={[styles.colorsContainer]}>
-                        {Colors.listColor.map((color, index) => (
-                            <ColorSelect key={index} color={color} index={index} 
-                                        currentSelectedIndex={indexColorSelected}
-                                        onPress={() => setIndexColor(index)}/>
-                        ))}
-                        <ColorSelect key={-1} color={colors.background} index={-1}
-                                    currentSelectedIndex={indexColorSelected}
-                                    onPress={() => setIndexColor(-1)}/>
+                    {/* Content */}
+                    <View style={[styles.textEditorContainer]}>
+                        <TextEditor
+                            placeholder='Write something ...'
+                            onChange={() => {}} //TODO: check autosave and update this onChange
+                        />
                     </View>
+
                 </Animated.View>            
 
             </KeyboardOptimizeView>
         </Modal>
     )
 }
-export default LabelModal;
+export default NoteModal;
 
 const styles = StyleSheet.create({
     container: {
@@ -118,28 +129,31 @@ const styles = StyleSheet.create({
     modalContainer: {
         width: '90%',
         alignSelf: 'center',
-        paddingVertical: 15,
+        paddingVertical: 20,
         paddingHorizontal: 25,
         borderRadius: Outlines.borderRadius.large,
         overflow: 'hidden',
     },
+
     buttonsContainer: {
         flexDirection: 'row',
         justifyContent:'flex-end',
         gap: 20,
     },
-    label: {
-        ...Typography.subheader.x40,
+
+
+    title: {
+        ...Typography.subheader.x50,
     },
+
     decorationLine: {
         width: '100%',
         height: 1,
-        marginTop: 8,
+        marginTop: 10,
     },
-    colorsContainer: {
-        marginTop: 8,
-        flexDirection: 'row',
-        justifyContent:'space-around',
-        alignItems: 'center',
-    }
+
+    textEditorContainer: {
+        width: '100%',
+        height: 300,
+    },
 });

@@ -1,5 +1,6 @@
 import { type DrawerNavigationOptions, createDrawerNavigator } from '@react-navigation/drawer';
 import { RouteName, listIcons } from '../screens';
+import { NavigationCst } from '../constant';
 
 //screens
 import { HomeScreen, 
@@ -13,6 +14,7 @@ import { HomeScreen,
 
 //components
 import { DrawerContent, Icon } from '../components';
+import { DimensionValue } from 'react-native';
 
 const Drawer = createDrawerNavigator();
 
@@ -34,7 +36,7 @@ const DrawerNavigation = () => {
 		<Drawer.Navigator 	initialRouteName='Home' 
 						  	drawerContent={(props) => <DrawerContent {...props}/>}
 						  	screenOptions={{
-								drawerStyle: { width: '60%',},
+								drawerStyle: { width: NavigationCst.drawerWidth as DimensionValue },
 								drawerType: 'front',
 						  	}}>
 			<Drawer.Screen  name="Home" component={HomeScreen} 

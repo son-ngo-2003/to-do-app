@@ -5,17 +5,18 @@ import { Colors, Bases, Typography, Outlines } from '../../styles';
 
 //Components
 import { Icon } from '../atomic';
+import { Primary } from '../../styles/colors';
 
 type LabelTagProps = {
     text: string,
-    backgroundColor: string,
+    color: string,
     onPressDeleteButton?: () => void,
 }
 
-const LabelTag: React.FC<LabelTagProps> = ({text, backgroundColor, onPressDeleteButton, }) => {
+const LabelTag: React.FC<LabelTagProps> = ({text, color, onPressDeleteButton, }) => {
 
     return (
-        <View style={[styles.container, {backgroundColor}]}>
+        <View style={[styles.container, { backgroundColor: color  }]}>
             <Text style={[styles.label, Typography.subheader.x10]}>{text.toLocaleUpperCase()}</Text>
 
             { onPressDeleteButton && (
@@ -30,8 +31,8 @@ export default LabelTag;
 
 const styles = StyleSheet.create({
     container: {
-        ...Bases.centerItem.vertical,
         flexDirection: 'row',
+        alignItems: 'center',
         gap: 3,
 
         paddingLeft: 10,
