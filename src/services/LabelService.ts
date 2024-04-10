@@ -8,6 +8,7 @@ interface LabelServiceType {
     getAllLabels:       () => Promise<Message<Label[]>>,
     getLabelByID:       (_id: string) => Promise<Message<Label>>,
     getLabelsByName:    (name: string) => Promise<Message<Label[]>>,
+    //TODO: get deleted labels
     updateLabelById:    (_id: string, newData: Partial<Label>) => Promise<Message<Label>>,
     deleteLabelById:    (_id: string) => Promise<Message<Label>>,
 }
@@ -28,9 +29,9 @@ const LabelService : LabelServiceType = (() => {
             label._id = generateId();
             label.color = label.color ?? Colors.getRandomColor();
 
-            label.numberOfTasks = 0;
-            label.numberOfCompletedTasks = 0;
-            label.numberOfNotes = 0;
+            label.numberOfTasks = label.numberOfTasks ?? 0;
+            label.numberOfCompletedTasks = label.numberOfCompletedTasks ?? 0;
+            label.numberOfNotes = label.numberOfNotes ?? 0;
 
             return StorageService.addData<Label>(label as Label, 'label', numberOfLabels);
         } catch (error) {

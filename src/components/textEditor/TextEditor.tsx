@@ -12,8 +12,10 @@ import { Layouts, Typography } from '../../styles';
 import { ToolbarItems } from './toolbarActions';
 import { toolbarTheme, darkToolbarTheme } from './toolbarTheme';
 
+//components
 import { KeyboardOptimizeView } from '../atomic';
-import { InsertToolList, ColorToolList } from '.';
+import InsertToolList from './InsertToolList';
+import ColorToolList from './ColorToolList';
 
 
 type ListToolModalType = 'none' | 'insert' | 'color';

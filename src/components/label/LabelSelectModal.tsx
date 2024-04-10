@@ -14,14 +14,14 @@ import { LabelService } from '../../services';
 import { useTheme } from '@react-navigation/native';
 
 
-type LabelSelectListModalProps = {
+type LabelSelectModalProps = {
     onPressOnLabel: (label: Label, isSelected: boolean) => void,
     choseLabelsList: Label[],
     style: ViewStyle,
     onPressCancel: () => void,
 }
 
-const LabelSelectListModal : React.FC<LabelSelectListModalProps> = ({
+const LabelSelectModal : React.FC<LabelSelectModalProps> = ({
     onPressOnLabel,
     choseLabelsList,
     style,
@@ -91,7 +91,7 @@ const LabelSelectListModal : React.FC<LabelSelectListModalProps> = ({
     )
 }
 
-export default LabelSelectListModal;
+export default LabelSelectModal;
 
 const styles = StyleSheet.create({
     container : {

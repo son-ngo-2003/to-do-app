@@ -9,10 +9,11 @@ import Animated, { ZoomInEasyDown} from 'react-native-reanimated';
 import { Icon, Overlay, KeyboardOptimizeView } from '../atomic';
 import { LabelsList } from '../label';
 import { TextEditor } from '../textEditor';
+import { getNextEntireHour } from '../../utils/dateUtil';
 
 type NoteModalProps = {
     mode: 'add' | 'edit',
-    note?: Note,
+    task?: Task,
     setIsOpenModal: (isOpen: boolean) => void,
     onAddNote: (note: Note) => void,
 }
@@ -21,13 +22,19 @@ const sizeButton : number = 25;
 
 const NoteModal: React.FC<NoteModalProps> = ({ 
     mode, 
-    note, 
+    task, 
     setIsOpenModal, 
     onAddNote 
 }) => {
-    const [ title, setTitle ] = React.useState<string>((mode === 'add' || !note) ? '' :  note.title) ;
-    const [ content, setContent ] = React.useState<string>((mode === 'add' || !note) ? '' :  note.content) ;
-    const [ listLabels, setListLabels ] = React.useState<Label[]>((mode === 'add' || !note) ? [] :  note.labels) ;
+    const [ title, setTitle ]           = React.useState<string>(       (mode === 'add' || !task) ? '' :  task.title) ;
+    const [ note, setNote ]             = React.useState<Note | null>(  (mode === 'add' || !task) ? null :  task.note) ;
+    const [ listLabels, setListLabels ] = React.useState<Label[]>(      (mode === 'add' || !note) ? [] :  note.labels) ;
+    const [ startDate, setStartDate ]   = React.useState<Date>(         (mode === 'add' || !task) ? new Date() :  task.start) ;
+    const [ endDate, setEndDate ]       = React.useState<Date>(         (mode === 'add' || !task) ? getNextEntireHour() :  task.end) ;
+    const [ isAllDay, setIsAllDay ]     = React.useState<boolean>(      (mode === 'add' || !task) ? false :  task.isAllDay) ;
+    const [ repeat, setRepeat ]         = React.useState<string>(       (mode === 'add' || !task) ? 'none' :  task.repeat) ;
+    const [ isAnnouncement, setIsAnnouncement ] = React.useState<boolean>( (mode === 'add' || !task) ? false :  task.isAnnouncement) ;
+
     const { colors } = useTheme();
     const todayDate: string = (new Date()).toLocaleDateString();
 

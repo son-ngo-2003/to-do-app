@@ -5,7 +5,7 @@ import { AleoFont } from "../assets/fonts"
 
 type FontFamily = 'Aleo'
 
-type FontSize = "x10" | "x20" | "x30" | "x40" | "x50" | "x60" | "x70"
+type FontSize = "x10" | "x20" | "x30" | "x40" | "x50" | "x55" | "x60" | "x70"
 export const fontSize: Record<FontSize, TextStyle> = {
     x10: {
         fontSize: 13,
@@ -17,10 +17,13 @@ export const fontSize: Record<FontSize, TextStyle> = {
         fontSize: 16,
     },
     x40: {
-        fontSize: 19,
+        fontSize: 18,
     },
     x50: {
         fontSize: 24,
+    },
+    x55: {
+        fontSize: 28,
     },
     x60: {
         fontSize: 32,
@@ -52,7 +55,7 @@ export const letterSpacing: Record<LetterSpacing, number> = {
     x40: 3,
 }
 
-type LineHeight = "x10" | "x20" | "x30" | "x40" | "x50" | "x60" | "x70"
+type LineHeight = "x10" | "x20" | "x30" | "x40" | "x50" | "x55" | "x60" | "x70"
 export const lineHeight: Record<LineHeight, TextStyle> = {
     x10: {
         lineHeight: 20,
@@ -69,6 +72,9 @@ export const lineHeight: Record<LineHeight, TextStyle> = {
     x50: {
         lineHeight: 32,
     },
+    x55: {
+        lineHeight: 35,
+    },
     x60: {
         lineHeight: 38,
     },
@@ -77,7 +83,7 @@ export const lineHeight: Record<LineHeight, TextStyle> = {
     },
 }
 
-type Header = "x10" | "x20" | "x30" | "x40" | "x50" | "x60" | "x70"
+type Header = "x10" | "x20" | "x30" | "x40" | "x50" | "x55" | "x60" | "x70"
 export const header: Record<Header, TextStyle> = {
   x10: {
     ...fontSize.x10,
@@ -104,6 +110,11 @@ export const header: Record<Header, TextStyle> = {
     ...lineHeight.x50,
     ...fontWeight('Aleo').bold,
   },
+  x55: {
+    ...fontSize.x55,
+    ...lineHeight.x55,
+    ...fontWeight('Aleo').bold,
+  },
   x60: {
     ...fontSize.x60,
     ...lineHeight.x60,
@@ -116,7 +127,7 @@ export const header: Record<Header, TextStyle> = {
   },
 }
 
-type Subheader = "x10" | "x20" | "x30" | "x40" | "x50"
+type Subheader = "x10" | "x20" | "x30" | "x40" | "x50" | "x55"
 export const subheader: Record<Subheader, TextStyle> = {
     x10: {
         ...fontSize.x10,
@@ -143,6 +154,11 @@ export const subheader: Record<Subheader, TextStyle> = {
         ...lineHeight.x50,
         ...fontWeight('Aleo').semibold,
     },
+    x55: {
+        ...fontSize.x55,
+        ...lineHeight.x55,
+        ...fontWeight('Aleo').semibold,
+    }
 }
 
 type Body = "x10" | "x20" | "x30" | "x40" | "x50"

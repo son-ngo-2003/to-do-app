@@ -13,6 +13,8 @@ interface TaskServiceType {
     getAllTasks:       () => Promise<Message<Task[]>>,
     getTaskByID:       (_id: string) => Promise<Message<Task>>,
     getTasksByCriteria:    (searchWord?: string, label?: Label, date?: Date) => Promise<Message<Task[]>>,
+    //TODO: get completed tasks, get deleted tasks
+    //TODO: add params isCompleted for getTasksByCriteria
 
     updateTaskById:    (_id: string, newData: Partial<Task>) => Promise<Message<Task>>,
     addLabelToTask:    (label: Label, taskId: string) => Promise<Message<Task>>,
@@ -32,7 +34,9 @@ const TaskService : TaskServiceType = (() => {
             }
 
             task.isDeleted = task.isDeleted ?? false;
+            task.isCompleted = task.isCompleted ?? false;
             task.createdAt = new Date();
+            task.completedAt = task.isCompleted ? new Date() : undefined;
             task._id = generateId();
 
             return StorageService.addData<Task>(task as Task, 'task', numberOfTasks);

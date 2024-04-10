@@ -8,8 +8,6 @@ import { useTheme } from '@react-navigation/native';
 import { Icon } from '../atomic';
 import { LabelTag } from '../label';
 
-
-
 type NoteCardProps = {
     note: Note,
     orientation: 'landscape' | 'portrait',

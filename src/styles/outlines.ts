@@ -2,11 +2,12 @@ import { ViewStyle, StyleSheet } from "react-native"
 
 import * as Colors from "./colors"
 
-type BorderRadius = "small" | "base" | "large" | "max"
+type BorderRadius = "small" | "base" | "large" | "extraLarge" | "max"; 
 export const borderRadius: Record<BorderRadius, number> = {
     small: 5,
     base: 10,
-    large: 20,
+    large: 15,
+    extraLarge: 20,
     max: 9999,
 }
 

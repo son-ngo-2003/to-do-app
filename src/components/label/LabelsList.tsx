@@ -4,18 +4,23 @@ import { StyleSheet, ScrollView, View, Pressable, Text,
 
 //components & styles
 import { ListModal, Icon } from '../atomic';
-import { LabelSelectListModal, LabelTag } from '.';
+import LabelSelectModal from './LabelSelectModal';
+import LabelTag from './LabelTag';
 import { useTheme } from '@react-navigation/native';
 import { Layouts, Typography } from '../../styles';
 
 
 type LabelsListProps = {
-    setListLabels: (newChoseLabels: Label[]) => void,
+    withAddButton: boolean,
+    withDeleteButton: boolean,
+    setListLabels?: (newChoseLabels: Label[]) => void,
     choseLabelsList: Label[],
 }
 
 const LabelsList : React.FC<LabelsListProps> = ({
-    setListLabels,
+    withAddButton,
+    withDeleteButton,
+    setListLabels = () => {},
     choseLabelsList,
 }) => {
     const plusButtonRef = React.useRef<View>(null);
@@ -53,23 +58,42 @@ const LabelsList : React.FC<LabelsListProps> = ({
                                 >
                         {choseLabelsList.map((label: Label, index) => (
                             <LabelTag key={index} text={label.name} color={label.color}
-                                        onPressDeleteButton={() => {onPressDeleteLabel(label)}}/>
+                                        onPressDeleteButton={
+                                            withDeleteButton 
+                                            ? () => {onPressDeleteLabel(label)}
+                                            : undefined
+                                        }/>
                         ))}
                     </ScrollView>
                 :
-                    <Text style={{...Typography.fontSize.x30, height: 26}}>No Label</Text>
+                    <Pressable onPress={ () => setIsShowModal(withAddButton) }
+                                style={[ { flex: 1 }]}
+                    >
+                        <Text style={{...Typography.subheader.x30, height: 26}}>
+                            {
+                                withAddButton
+                                ? "Add label to your note"
+                                : ""
+                            }   
+                            
+                        </Text>
+                    </Pressable>
             }
-            <Pressable onPress={()=>{setIsShowModal(true)}}
-                        ref={plusButtonRef} 
-                        onLayout={getLayoutPlusButton}
-                        style = {{ paddingLeft: 6}}
-            >
-                <Icon name='plus-circle' size={20} color={colors.text} library='FontAwesome5'></Icon>
-            </Pressable>
+            {
+                withAddButton &&
+                <Pressable onPress={()=>{setIsShowModal(true)}}
+                            ref={plusButtonRef} 
+                            onLayout={getLayoutPlusButton}
+                            style = {{ paddingLeft: 6}}
+                            hitSlop={20}
+                >
+                    <Icon name='plus-circle' size={20} color={colors.text} library='FontAwesome5'></Icon>
+                </Pressable>
+            }
 
             {
                 isShowModal &&
-                <LabelSelectListModal
+                <LabelSelectModal
                     choseLabelsList={choseLabelsList}
                     style = {{top: plusButtonPos.y - 10, right: Layouts.screen.width - plusButtonPos.x - 20, maxHeight: 300}}
                     onPressCancel = {() => {setIsShowModal(false)}}
