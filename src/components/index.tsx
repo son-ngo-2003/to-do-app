@@ -20,6 +20,7 @@ export { CalendarListHeader,
         Calendar,
         CalendarProvider,
         CalendarList,
+        TimeLine,
 } from './calendar';
 
 //Add useCallBack to all callback defined in each component

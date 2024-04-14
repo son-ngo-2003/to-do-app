@@ -7,6 +7,7 @@ import { LabelSelectItem, AddLabelCard, LabelModal,
         NoteCard, NoteModal, TaskItem,
         NoteInTaskItem, AddNoteInTask, TaskProgressCard,
         CalendarListHeader, Calendar, CalendarProvider, CalendarList,
+        TimeLine
 } from '../../components/';
 
 
@@ -18,6 +19,8 @@ import { Message } from '../../services/models';
 import { Colors, Bases, Typography, Layouts } from '../../styles';
 import moment from 'moment';
 import { MarkedObject } from '../../components/calendar/calendar/DateItem';
+import { CALENDAR_BODY_HEIGHT } from '../../components/calendar/constants';
+import { TaskTimeLine } from '../../components/calendar/timeline/TimeLineColumn';
 
 const HomeScreen : React.FC = () => {
     const [ isOpenModal, setIsOpenModal ] = React.useState<boolean>(false);
@@ -36,6 +39,60 @@ const HomeScreen : React.FC = () => {
         '2024-04-06' : [{key: 'Working', color: 'red'},
                         {key: 'Study', color: 'green'}]
     }
+
+    const taskList : TaskTimeLine[] = [
+        {
+            id: 1,
+            start: moment({hour: 8, minute: 15}),
+            end: moment({hour: 12, minute: 0}),
+            isAllDay: false,
+    
+            title: 'Title 1',
+            description: 'Description 1',
+            color: 'purple',
+        },
+        {
+            id: 2,
+            start: moment({hour: 11, minute: 0}),
+            end: moment({hour: 12, minute: 0}),
+            isAllDay: false,
+    
+            title: 'Title 2',
+            description: 'Description 2',
+            color: 'blue',
+        },
+        {
+            id: 3,
+            start: moment({hour: 9, minute: 0}),
+            end: moment({hour: 14, minute: 0}),
+            isAllDay: false,
+    
+            title: 'Title 3',
+            description: 'Description 3',
+            color: 'green',
+        },
+        {
+            id: 4,
+            start: moment({hour: 10, minute: 0}),
+            end: moment({hour: 12, minute: 0}),
+            isAllDay: false,
+    
+            title: 'Title 4',
+            description: 'Description 4',
+            color: 'pink',
+        },
+        {
+            id: 5,
+            start: moment({hour: 9, minute: 15}),
+            end: moment({hour: 11, minute: 30}),
+            isAllDay: true,
+    
+            title: 'Title 4',
+            description: 'Description 4',
+            color: 'green',
+        }
+        
+    ]
 
     // React.useEffect(() => {
     //     StorageService.clearAllData('label');
@@ -112,7 +169,7 @@ const HomeScreen : React.FC = () => {
                 />
             </View> */}
             {/* <CalendarProvider> */}
-                <CalendarList
+                {/* <CalendarList
                     showOneWeek={isOpenModal}
                     onPressDate={(date: moment.Moment) => {}}
                     markedDate={markedDate}
@@ -120,13 +177,20 @@ const HomeScreen : React.FC = () => {
                     maxMonth={3}
                     width={Layouts.screen.width - 40}
                     onPressCalendarList={(e) =>{ e.stopPropagation(); setIsOpenModal(false)}}
-                />
+                /> */}
             {/* </CalendarProvider> */}
-            <Pressable onPress={(e) => {e.stopPropagation(); setIsOpenModal(!isOpenModal)}}>
+            {/* <Pressable onPress={(e) => {e.stopPropagation(); setIsOpenModal(!isOpenModal)}}>
                 <View>
                     <Text>Press here!</Text>
                 </View>
-            </Pressable>
+            </Pressable> */}
+            <TimeLine
+                height={CALENDAR_BODY_HEIGHT}
+                numberOfDate={7}
+                taskList={taskList}
+
+                onPressTask={(id) => {console.log(id)}}
+            />
         </View>
     );
 };
