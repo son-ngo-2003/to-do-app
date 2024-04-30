@@ -1,13 +1,7 @@
 import * as React from 'react';
 import moment from 'moment';
-import { useTheme } from '@react-navigation/native';
 import { View, StyleSheet } from 'react-native';
-import Animated, { FadeIn, StretchOutY } from 'react-native-reanimated';
-
-//contexts
-import { CalendarContext,
-        type CalendarContextType 
-} from '../context';
+import Animated from 'react-native-reanimated';
 
 //components
 import CalendarHeader from './CalendarHeader';

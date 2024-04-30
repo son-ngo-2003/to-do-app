@@ -4,15 +4,19 @@ import { useTheme } from '@react-navigation/native';
 import { Text, View, Pressable, StyleSheet } from 'react-native';
 
 //constants
-import { DATE_NAME_FULL, DATE_NAME_3, DATE_NAME_2, DATE_NAME_1, DATE_ITEM_WIDTH, MONTH_NAME_3, TIMELINE_TIME_BAR_WIDTH } from '../constants';
-import { Colors, Layouts, Outlines, Typography } from '../../../styles';
+import { DATE_NAME_FULL, DATE_NAME_3, DATE_NAME_2, DATE_NAME_1, TIMELINE_TIME_BAR_WIDTH } from '../constants';
 
-type TimeLineHeaderProps = {
+//components
+import { TaskTimeline } from './TimelineColumn';
+import DateItem from './DateItem';
+
+type TimelineHeaderProps = {
     startDay: number,
     startMonth: number,
     startYear: number,
     numberOfDays: number,
 
+    taskList: TaskTimeline[],
     selectedDay?: number,
     onPressDate?: (date: moment.Moment) => void,
 
@@ -20,12 +24,13 @@ type TimeLineHeaderProps = {
     showMonth?: boolean
 }
 
-const TimeLineHeader: React.FC<TimeLineHeaderProps> = ({
+const TimelineHeader: React.FC<TimelineHeaderProps> = ({
     startDay,
     startMonth,
     startYear,
     numberOfDays,
 
+    taskList = [],
     selectedDay,
     onPressDate = () => {},
 
@@ -33,57 +38,51 @@ const TimeLineHeader: React.FC<TimeLineHeaderProps> = ({
     showMonth = true,
 }) => {
     const startMoment = React.useMemo( () => moment( startYear && startMonth && startDay && [startYear, startMonth, startDay]), [startYear, startMonth, startDay] );
+    const taskListAllDay = React.useMemo(() => taskList.filter( task => task.isAllDay), [taskList]);
     const { colors } = useTheme();
 
     function renderText () : React.ReactNode[] {
         const dates: React.ReactNode[] = [];
         
-        let listDateName : string[];
+        let listDateNames : string[];
         switch (dateNameType) {
             case 'full':
-                listDateName = DATE_NAME_FULL;
+                listDateNames = DATE_NAME_FULL;
                 break;
             case '3 letters':
-                listDateName = DATE_NAME_3;
+                listDateNames = DATE_NAME_3;
                 break;
             case '2 letters':
-                listDateName = DATE_NAME_2;
+                listDateNames = DATE_NAME_2;
                 break;
             case '1 letter':
-                listDateName = DATE_NAME_1;
+                listDateNames = DATE_NAME_1;
                 break;
             default:
-                listDateName = DATE_NAME_3;
+                listDateNames = DATE_NAME_3;
                 break;
         }
 
         for (let i = 0; i < numberOfDays; i++) {
             const thisDay = startMoment.clone().add(i, 'days');
-            const isToday = thisDay.isSame(moment(), 'day');
             const isSelected = selectedDay === thisDay.date();
             dates.push( 
-                <Pressable 
+                <DateItem 
                     key={i}
-                    style={[
-                        styles.dayTextContainer,
-                        {width: `${1/numberOfDays*100}%`},
-                        isSelected && {backgroundColor: colors.primary}
-                    ]}
-                    onPress={() => onPressDate(thisDay)}
-                >
-                    <Text style={[
-                        styles.dayText,
-                        {...Typography.header.x40, fontSize: 21, color: colors.text},
-                        isToday && {color: Colors.primary.blue},
-                        isSelected && {color: Colors.neutral.white},
-                    ]}>{thisDay.date()}</Text>
 
-                    <Text style={[styles.dayText, 
-                        {...Typography.body.x10, color: colors.text, lineHeight: 15},
-                        isToday && {color: Colors.primary.blue},
-                        isSelected && {color: Colors.neutral.white},
-                    ]}>{listDateName[thisDay.isoWeekday() - 1]}</Text>
-                </Pressable>
+                    thisDay = {thisDay.date()}
+                    thisMonth = {thisDay.month()}
+                    thisYear = {thisDay.year()}
+                    taskListThisDay = {taskListAllDay.filter( task => thisDay.isBetween(task.start, task.end, 'day', '[]'))}
+                    
+                    thisDayOfWeek = {thisDay.isoWeekday()}
+                    listDateNames = {listDateNames}
+                
+                    isSelected = {isSelected}
+                    onPress={() => onPressDate(thisDay)}
+                
+                    width = {`${1/numberOfDays*100}%`}
+                />
             )
         }
         return dates;
@@ -91,17 +90,6 @@ const TimeLineHeader: React.FC<TimeLineHeaderProps> = ({
 
     return (
         <View style={[styles.headerContainer]}>
-            {/* {   showMonth && 
-                <View style={[styles.titleContainer]}>
-                    <Text
-                        style={[{color: colors.text}, Typography.header.x50]}
-                    >{  MONTH_NAME_3[thisMonth] }</Text>
-
-                    <Text
-                        style={[{color: colors.text, opacity: 0.5}, Typography.subheader.x40]}
-                    >{  thisYear }</Text>
-                </View>
-            } */}
             <View style={[styles.dateNameContainer, ]}>
                 {renderText()}
             </View>
@@ -110,7 +98,7 @@ const TimeLineHeader: React.FC<TimeLineHeaderProps> = ({
     )
 }
 
-export default TimeLineHeader;
+export default TimelineHeader;
 
 const styles = StyleSheet.create({
     headerContainer : {
@@ -129,17 +117,8 @@ const styles = StyleSheet.create({
         alignItems: 'flex-end',
         gap: 10,
     },
-    dayTextContainer: {
-        borderRadius: Outlines.borderRadius.base,
-        paddingVertical: 5,
-    },
-    dayText: {
-        alignItems: 'center',
-        textAlign: 'center',
-        textTransform: 'uppercase',
-    },
     decorationLine: {
         width: '100%',
         height: 1,
-    }
+    },
 });

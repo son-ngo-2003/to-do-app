@@ -7,7 +7,7 @@ import { LabelSelectItem, AddLabelCard, LabelModal,
         NoteCard, NoteModal, TaskItem,
         NoteInTaskItem, AddNoteInTask, TaskProgressCard,
         CalendarListHeader, Calendar, CalendarProvider, CalendarList,
-        TimeLine
+        Timeline, TimelineList
 } from '../../components/';
 
 
@@ -20,7 +20,7 @@ import { Colors, Bases, Typography, Layouts } from '../../styles';
 import moment from 'moment';
 import { MarkedObject } from '../../components/calendar/calendar/DateItem';
 import { CALENDAR_BODY_HEIGHT } from '../../components/calendar/constants';
-import { TaskTimeLine } from '../../components/calendar/timeline/TimeLineColumn';
+import { TaskTimeline } from '../../components/calendar/timeline/TimelineColumn';
 
 const HomeScreen : React.FC = () => {
     const [ isOpenModal, setIsOpenModal ] = React.useState<boolean>(false);
@@ -40,7 +40,7 @@ const HomeScreen : React.FC = () => {
                         {key: 'Study', color: 'green'}]
     }
 
-    const taskList : TaskTimeLine[] = [
+    const taskList : TaskTimeline[] = [
         {
             id: 1,
             start: moment({hour: 8, minute: 15}),
@@ -184,12 +184,14 @@ const HomeScreen : React.FC = () => {
                     <Text>Press here!</Text>
                 </View>
             </Pressable> */}
-            <TimeLine
+            <TimelineList
                 height={CALENDAR_BODY_HEIGHT}
                 numberOfDate={7}
                 taskList={taskList}
 
                 onPressTask={(id) => {console.log(id)}}
+
+                minPeriod={4}
             />
         </View>
     );

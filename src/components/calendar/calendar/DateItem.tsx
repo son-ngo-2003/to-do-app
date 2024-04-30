@@ -11,7 +11,6 @@ import { DATE_ITEM_WIDTH, DOT_SIZE } from '../constants';
 
 //styles
 import { Colors, Outlines, Typography, Animations as Anim } from '../../../styles';
-import { background } from '../../../styles/colors';
 
 export type MarkedObject = {
     key: string,

@@ -1,11 +1,10 @@
-import moment from 'moment';
 import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
-import { Text, View, Pressable, StyleSheet } from 'react-native';
+import { Text, View, StyleSheet } from 'react-native';
 
 //constants
 import { DATE_NAME_FULL, DATE_NAME_3, DATE_NAME_2, DATE_NAME_1, DATE_ITEM_WIDTH, MONTH_NAME_3 } from '../constants';
-import { Colors, Typography } from '../../../styles';
+import { Typography } from '../../../styles';
 
 type CalendarHeaderProps = {
     thisMonth: number,

@@ -11,7 +11,7 @@ export const TIMELINE_CELL_HEIGHT = 40;
 export const HOURS_PER_DAY = 24;
 export const START_HOUR = 0;
 export const END_HOUR = 23;
-export const TIMELINE_TIME_BAR_WIDTH = 35;
+export const TIMELINE_TIME_BAR_WIDTH = 40;
 export const MAX_NUMBER_OF_TASKS_SHOW_EACH_MOMENT = 5;
 
 // another

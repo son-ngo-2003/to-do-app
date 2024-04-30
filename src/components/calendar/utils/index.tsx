@@ -1,9 +1,9 @@
 import { DimensionValue } from "react-native";
 import { MAX_NUMBER_OF_TASKS_SHOW_EACH_MOMENT, TIMELINE_CELL_HEIGHT } from "../constants";
-import { type TaskTimeLine } from "../timeline/TimeLineColumn";
+import { type TaskTimeline } from "../timeline/TimelineColumn";
 import { header } from "../../../styles/typography";
 
-export const generateBBoxOfTasks = (taskList: TaskTimeLine[]) => {
+export const generateBBoxOfTasks = (taskList: TaskTimeline[]) => {
     let mapTimePositionStatus : Map<number, Array<number>> = new Map(); //contains list status of position at moment
 
     const listStartEndMinuteTasks = taskList.map( task => {

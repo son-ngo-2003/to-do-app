@@ -1,25 +1,19 @@
 import * as React from 'react';
 import moment from 'moment';
-import { useTheme } from '@react-navigation/native';
-import { View, StyleSheet, ListRenderItem, FlatList, Pressable, GestureResponderEvent } from 'react-native';
+import { StyleSheet, ListRenderItem, FlatList } from 'react-native';
 import Animated, { interpolate, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
-
-//contexts
-import { CalendarContext,
-        type CalendarContextType 
-} from '../context';
 
 //components
 import Calendar, { CalendarProps, type RangeSelectedDateType } from '../calendar/Calendar';
-import { CalendarListHeader } from '../calendarListHeader';
 import { Layouts, Animations as Anim } from '../../../styles';
+
+//constants
 import { CALENDAR_BODY_HEIGHT, CALENDAR_BODY_ONE_WEEK_HEIGHT } from '../constants';
 
-type CalendarListProps = {
+export type CalendarListProps = {
     minMonth?: number, // - delta with current month
     maxMonth?: number, // + delta with current month
     width?: number,
-    onPressCalendarList?: (e: GestureResponderEvent) => void,
 } & CalendarProps;
 
 type CalenderListRef = {
@@ -30,9 +24,8 @@ type DataItemType = {
     thisMonth: moment.Moment,
 }
 
-const CalendarList: React.FC<CalendarListProps> = React.forwardRef<CalenderListRef, CalendarListProps>(({
+const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>(({
     initialDate,
-    onPressCalendarList = () => {},
     
     isSelectRange,
     onPressDate,
@@ -53,7 +46,7 @@ const CalendarList: React.FC<CalendarListProps> = React.forwardRef<CalenderListR
     const [ currentMonth, setCurrentMonth ] = React.useState<moment.Moment>( referenceMonth );
     const [ canScroll, setCanScroll ] = React.useState<'left' | 'right' | '2-directions'>( '2-directions');
     const monthMin = React.useMemo<moment.Moment>( () => referenceMonth.clone().subtract(minMonth, 'months'), [initialDate, minMonth] );
-    const monthMax = React.useMemo<moment.Moment>( () => referenceMonth.clone().add(maxMonth, 'months'), [initialDate, minMonth] );
+    const monthMax = React.useMemo<moment.Moment>( () => referenceMonth.clone().add(maxMonth, 'months'), [initialDate, maxMonth] );
     const expandCalendarProgress = useSharedValue<number>(showOneWeek ? 0 : 1);
 
     React.useImperativeHandle(ref, () => ({
@@ -119,7 +112,7 @@ const CalendarList: React.FC<CalendarListProps> = React.forwardRef<CalenderListR
                 </Animated.View>
             </Animated.View>
         )
-    },[selectedDate, rangeSelectedDate, currentMonth, showOneWeek, isSelectRange]);
+    },[selectedDate, rangeSelectedDate, currentMonth, showOneWeek, isSelectRange, markedDate]);
 
     function getDataList () : DataItemType[] {
         const listItem : DataItemType[] = []
@@ -142,11 +135,6 @@ const CalendarList: React.FC<CalendarListProps> = React.forwardRef<CalenderListR
         const newMonth = (typeof _arg === 'number') 
                             ? currentMonth.clone().add(_arg, 'months')
                             : _arg;
-
-        newMonth.isSameOrBefore(monthMin, 'months') && setCanScroll('right');
-        newMonth.isSameOrAfter(monthMax, 'months') && setCanScroll('left');
-        if (newMonth.isBefore(monthMin, 'months') || newMonth.isAfter(monthMax, 'months')) return;
-        setCanScroll('2-directions');
 
         flatListRef.current?.scrollToIndex({
             index: getIndexOfMonth(newMonth),
@@ -172,30 +160,17 @@ const CalendarList: React.FC<CalendarListProps> = React.forwardRef<CalenderListR
     }, [showOneWeek]);
 
     return (
-        <Pressable style={[styles.calendar, {width}]}
-                    onPress={onPressCalendarList}
-                    onStartShouldSetResponderCapture={(e) => showOneWeek}
-        >
-            <CalendarListHeader
-                selectDateString={ selectedDate.format('DD/MM') }
-                currentMonth={ currentMonth.month() }
-                currentYear={ currentMonth.year() }
-                onPressLeft={() => scroll(-1)}
-                onPressRight={() => scroll(1)}
-                canScroll={canScroll}
-            />
-            <FlatList
-                ref={flatListRef}
-                data={getDataList()}
-                renderItem={renderItem}
-                scrollEnabled={!showOneWeek}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                pagingEnabled={true}
-                getItemLayout={(data, index) => ({length: width, offset: width * index, index})}
-                initialScrollIndex={getIndexOfMonth()}
-            />
-        </Pressable>
+        <FlatList
+            ref={flatListRef}
+            data={getDataList()}
+            renderItem={renderItem}
+            scrollEnabled={!showOneWeek}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            pagingEnabled={true}
+            getItemLayout={(data, index) => ({length: width, offset: width * index, index})}
+            initialScrollIndex={getIndexOfMonth()}
+        />
     )
 });
 export default CalendarList;

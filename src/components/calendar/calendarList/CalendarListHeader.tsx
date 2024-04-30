@@ -45,11 +45,13 @@ const CalendarListHeader: React.FC<CalendarListProps> = ({
                 >
                     <Icon name="chevron-left" size={20} color={colors.text} library='FontAwesome5'/>
                 </TouchableOpacity>
+                
                 <TouchableOpacity onPress={onPressRight}
                     style={{opacity: canScroll === 'left' ? 0.3 : 1}}
                 >
                     <Icon name="chevron-right" size={20} color={colors.text} library='FontAwesome5'/>
                 </TouchableOpacity>
+
                 <TouchableOpacity onPress={onPressRight}>
                     <Icon name="list" size={28} color={colors.text} library='Entypo'/>
                 </TouchableOpacity>
