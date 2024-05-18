@@ -7,7 +7,7 @@ import { Text, View, Pressable, StyleSheet } from 'react-native';
 import { DATE_NAME_FULL, DATE_NAME_3, DATE_NAME_2, DATE_NAME_1, TIMELINE_TIME_BAR_WIDTH } from '../constants';
 
 //components
-import { TaskTimeline } from './TimelineColumn';
+import { type TaskTimeline } from '../type';
 import DateItem from './DateItem';
 
 type TimelineHeaderProps = {

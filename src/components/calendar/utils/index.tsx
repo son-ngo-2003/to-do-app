@@ -1,14 +1,35 @@
+import moment from "moment";
 import { DimensionValue } from "react-native";
 import { MAX_NUMBER_OF_TASKS_SHOW_EACH_MOMENT, TIMELINE_CELL_HEIGHT } from "../constants";
-import { type TaskTimeline } from "../timeline/TimelineColumn";
+import { type MarkedObject, type TaskTimeline } from "../type";
 import { header } from "../../../styles/typography";
+
+export const taskTimelineToMarked = (taskTimeline: TaskTimeline[]) => 
+    taskTimeline.reduce((listMarked : MarkedObject[], task : TaskTimeline) => 
+        {
+            const start = moment(task.start);
+            const end = moment(task.end);
+            while (start.isSameOrBefore(end, 'days')) {
+                listMarked.push({
+                    id: task.id,
+                    color: task.color,
+                    date: start.toDate(),
+                })
+                start.add(1, 'day');
+            }
+            return listMarked;
+        }
+    , []);
 
 export const generateBBoxOfTasks = (taskList: TaskTimeline[]) => {
     let mapTimePositionStatus : Map<number, Array<number>> = new Map(); //contains list status of position at moment
 
     const listStartEndMinuteTasks = taskList.map( task => {
-        const start = task.start.hour() * 60 + task.start.minute();
-        const end = task.end.hour() * 60 + task.end.minute();      
+        const taskStart = moment(task.start);
+        const taskEnd = moment(task.end);
+
+        const start = taskStart.hour() * 60 + taskStart.minute();
+        const end = taskEnd.hour() * 60 + taskEnd.minute();      
 
         mapTimePositionStatus.set(start, Array( MAX_NUMBER_OF_TASKS_SHOW_EACH_MOMENT ).fill(0));
         mapTimePositionStatus.set(end,   Array( MAX_NUMBER_OF_TASKS_SHOW_EACH_MOMENT ).fill(0));

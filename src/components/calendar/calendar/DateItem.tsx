@@ -11,13 +11,7 @@ import { DATE_ITEM_WIDTH, DOT_SIZE } from '../constants';
 
 //styles
 import { Colors, Outlines, Typography, Animations as Anim } from '../../../styles';
-
-export type MarkedObject = {
-    key: string,
-    color: string,
-}
-
-export type SelectedType = 'one-date' | 'range-start' | 'range-end' | 'range-between' | 'none';
+import { type SelectedType, type MarkedObject } from '../type';
 
 type DateItemProps = {
     thisDay: number,
@@ -59,7 +53,7 @@ const DateItem: React.FC<DateItemProps> = ({
         return (
             <View style={[styles.listDot]}>
                 {markedThisDate &&  markedThisDate.map((item: MarkedObject) => (
-                    <View key={item.key} style={[styles.dot, {backgroundColor: item.color}]} />
+                    <View key={item.id} style={[styles.dot, {backgroundColor: item.color}]} />
                 ))}
             </View>
         )

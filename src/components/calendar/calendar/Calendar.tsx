@@ -5,11 +5,11 @@ import Animated from 'react-native-reanimated';
 
 //components
 import CalendarHeader from './CalendarHeader';
-import DateItem, { type MarkedObject, type SelectedType }  from './DateItem';
+import DateItem from './DateItem';
+import { type MarkedObject, type SelectedType } from '../type';
 
 //constants
 import { LENGTH_WEEK_SHOWS } from '../constants';
-
 
 export type RangeSelectedDateType = {
     start: moment.Moment | undefined,
@@ -30,10 +30,10 @@ export type CalendarProps = {
     thisYear?: number,
  
     showOneWeek?: boolean,
-    markedDate?: Record<string, MarkedObject[]>,
+    markedDate?: MarkedObject[],
     showMonthHeader?: boolean,
 
-    initialDate?: string,
+    initialDate?: string | Date | moment.Moment,
 }
 
 const Calendar: React.FC<CalendarProps> = ({
@@ -50,7 +50,7 @@ const Calendar: React.FC<CalendarProps> = ({
     thisYear,
 
     showOneWeek = false,
-    markedDate,
+    markedDate = [],
     showMonthHeader = true,
 
     initialDate,
@@ -115,7 +115,7 @@ const Calendar: React.FC<CalendarProps> = ({
                 onPress={() => isSelectRange ? onPressRange(thisDay) : onPress(thisDay)}
 
                 showMarked={!!markedDate}
-                markedThisDate={markedDate && markedDate[thisDay.format('YYYY-MM-DD')]}
+                markedThisDate={markedDate.filter( marked => moment(marked.date).isSame(thisDay, 'day'))}
                 isCurrentMonth={thisDay.month() === thisMonth}
             />
         )

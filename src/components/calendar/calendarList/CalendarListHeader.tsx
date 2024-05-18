@@ -7,6 +7,7 @@ import Animated, {FadeIn} from 'react-native-reanimated';
 import { Typography } from '../../../styles';
 import { MONTH_NAME_FULL } from '../constants';
 import { Icon } from '../../atomic';
+import { type ScrollType } from '../type';
 
 type CalendarListProps = {
     selectDateString: string,
@@ -14,16 +15,18 @@ type CalendarListProps = {
     currentYear: number,
     onPressLeft: () => void,
     onPressRight: () => void,
-    canScroll?: 'left' | 'right' | '2-directions',
+    onPressExpand?: () => void,
+    canScroll?: ScrollType
 }
 
 const CalendarListHeader: React.FC<CalendarListProps> = ({
     selectDateString,
     currentMonth,
     currentYear,
-    onPressLeft,
-    onPressRight,
-    canScroll = '2-directions',
+    onPressLeft = () => {},
+    onPressRight = () => {},
+    onPressExpand,
+    canScroll = {left: true, right: true},
 }) => {
     const { colors } = useTheme();
 
@@ -41,20 +44,23 @@ const CalendarListHeader: React.FC<CalendarListProps> = ({
 
             <View style={[styles.buttonsContainer]}>
                 <TouchableOpacity onPress={onPressLeft}
-                    style={{opacity: canScroll === 'right' ? 0.3 : 1}}
+                    style={{opacity: canScroll.left ? 1 : 0.3}}
                 >
                     <Icon name="chevron-left" size={20} color={colors.text} library='FontAwesome5'/>
                 </TouchableOpacity>
                 
                 <TouchableOpacity onPress={onPressRight}
-                    style={{opacity: canScroll === 'left' ? 0.3 : 1}}
+                    style={{opacity: canScroll.right ? 1 : 0.3}}
                 >
                     <Icon name="chevron-right" size={20} color={colors.text} library='FontAwesome5'/>
                 </TouchableOpacity>
 
-                <TouchableOpacity onPress={onPressRight}>
-                    <Icon name="list" size={28} color={colors.text} library='Entypo'/>
-                </TouchableOpacity>
+                {
+                    onPressExpand &&
+                    <TouchableOpacity onPress={onPressExpand}>
+                        <Icon name="list" size={28} color={colors.text} library='Entypo'/>
+                    </TouchableOpacity>
+                }
             </View>
         </View>
     )

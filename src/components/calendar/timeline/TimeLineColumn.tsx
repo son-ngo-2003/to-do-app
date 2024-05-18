@@ -10,20 +10,9 @@ import { generateBBoxOfTasks } from '../utils';
 import { HOURS_PER_DAY, TIMELINE_CELL_HEIGHT } from '../constants';
 const TIME_POINT_INDICATOR_SIZE = 10;
 
-//components
+//components & types
 import { Colors, Layouts, Outlines } from '../../../styles';
-
-export type TaskTimeline = {
-    id: any,
-
-    start: moment.Moment,
-    end: moment.Moment,
-    isAllDay: boolean,
-
-    title: string,
-    description: string,
-    color: string,
-}
+import { type TaskTimeline } from '../type';
 
 export type TimelineColumnProps = {
     width?: number,

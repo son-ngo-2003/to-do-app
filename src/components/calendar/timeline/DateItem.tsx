@@ -11,7 +11,7 @@ import { DATE_ITEM_WIDTH, DOT_SIZE } from '../constants';
 
 //styles
 import { Colors, Outlines, Typography, Animations as Anim } from '../../../styles';
-import { TaskTimeline } from './TimelineColumn';
+import { type TaskTimeline } from '../type';
 
 type DateItemProps = {
     thisDay: number,

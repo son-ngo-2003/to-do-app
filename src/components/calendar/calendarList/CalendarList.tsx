@@ -6,19 +6,17 @@ import Animated, { interpolate, useAnimatedStyle, useSharedValue } from 'react-n
 //components
 import Calendar, { CalendarProps, type RangeSelectedDateType } from '../calendar/Calendar';
 import { Layouts, Animations as Anim } from '../../../styles';
+import { type ScrollType, type CalenderListRef } from '../type';
 
 //constants
 import { CALENDAR_BODY_HEIGHT, CALENDAR_BODY_ONE_WEEK_HEIGHT } from '../constants';
 
 export type CalendarListProps = {
-    minMonth?: number, // - delta with current month
-    maxMonth?: number, // + delta with current month
+    onScroll: ( isSuccess: boolean, newCanScroll : ScrollType, newMonth?: moment.Moment  ) => void,
+    minMonth?: moment.Moment | string | Date,
+    maxMonth?: moment.Moment | string | Date,
     width?: number,
 } & CalendarProps;
-
-type CalenderListRef = {
-    scroll: (arg: moment.Moment | number) => void,
-} & Partial<FlatList>;
 
 type DataItemType = {
     thisMonth: moment.Moment,
@@ -26,34 +24,35 @@ type DataItemType = {
 
 const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>(({
     initialDate,
+    markedDate = [],
     
     isSelectRange,
     onPressDate,
     onPressRangeDate,
+    onScroll,
     
     showOneWeek = false,
     
-    markedDate,
-    minMonth = 20,
-    maxMonth = 20,
-    
+    minMonth,
+    maxMonth,
     width = Layouts.screen.width,
+
 }, ref) => {
     const flatListRef = React.useRef<FlatList<DataItemType>>(null);
+
     const referenceMonth = moment(initialDate);
+    const [ currentMonth, setCurrentMonth ] = React.useState<moment.Moment>( referenceMonth );
+    const monthMin = React.useMemo<moment.Moment>( () => moment(minMonth), [ minMonth ] );
+    const monthMax = React.useMemo<moment.Moment>( () => moment(maxMonth), [ maxMonth ] );
+    
     const [ selectedDate, setSelectedDate ] = React.useState<moment.Moment>( referenceMonth );
     const [ rangeSelectedDate, setRangeSelectedDate ] = React.useState<RangeSelectedDateType>({start: referenceMonth, end: referenceMonth});
-    const [ currentMonth, setCurrentMonth ] = React.useState<moment.Moment>( referenceMonth );
-    const [ canScroll, setCanScroll ] = React.useState<'left' | 'right' | '2-directions'>( '2-directions');
-    const monthMin = React.useMemo<moment.Moment>( () => referenceMonth.clone().subtract(minMonth, 'months'), [initialDate, minMonth] );
-    const monthMax = React.useMemo<moment.Moment>( () => referenceMonth.clone().add(maxMonth, 'months'), [initialDate, maxMonth] );
+    const [ canScroll, setCanScroll ] = React.useState<ScrollType>( {left: true, right: true} );
     const expandCalendarProgress = useSharedValue<number>(showOneWeek ? 0 : 1);
 
     React.useImperativeHandle(ref, () => ({
         ...flatListRef.current,
-        scroll: (arg: moment.Moment | number) => {
-            scroll(arg);
-        }
+        scroll: scroll,
     }), [selectedDate]);
 
     const isMonthContainedInRange = (thisMonth: moment.Moment): boolean => {
@@ -73,6 +72,8 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>(({
     const  renderItem  = React.useCallback<ListRenderItem<DataItemType>>(({ item }) => {
         const { thisMonth } = item;
 
+        const markedDateThisMonth = markedDate.filter( marked => moment(marked.date).isSame(thisMonth, 'months') )
+
         const calendarProps : CalendarProps = {
             isSelectRange :         isSelectRange,
 
@@ -87,9 +88,10 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>(({
             thisMonth:              thisMonth.month(),
             thisYear:               thisMonth.year(),
 
-            markedDate:             markedDate,
+            markedDate:             markedDateThisMonth,
             showMonthHeader:        false,
         }
+        
         return (
             <Animated.View style={[{width: width}, calendarContainerAnimation]}
             >
@@ -116,31 +118,51 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>(({
 
     function getDataList () : DataItemType[] {
         const listItem : DataItemType[] = []
-        for (let i = -minMonth; i <= maxMonth; i++) {
-            const thisMonth = referenceMonth.clone().add(i, 'months');
-            listItem.push({thisMonth});
+        
+        let thisMonth = monthMin.clone();
+        while (thisMonth.isBefore(monthMax)) {
+            listItem.push({thisMonth: thisMonth.clone()});
+            thisMonth.add( 1 , 'months');
         }
+
         return listItem;
     }
 
     function getIndexOfMonth (month: moment.Moment = referenceMonth): number {
-        const toMonth = month.month();
-        const minMonth = monthMin.month();
-        return toMonth - minMonth;
+        return Math.floor(month.diff(monthMin, 'months', true));
     }
 
-    function scroll( _arg: moment.Moment | number, force : boolean = false ) : void {
-        if (!flatListRef.current) return;
-        if (!force && showOneWeek) return; //avoid scroll when show 1 week
+    function scroll( _arg: moment.Moment | number | Date | string, force : boolean = false ) : void {
+        if (!flatListRef.current) {
+            onScroll( false, {left: false, right: false});
+            return;
+        }
+
+        if (!force && showOneWeek) { //avoid scroll when show 1 week
+            onScroll( false, {left: false, right: false}); 
+            return;
+        }         
+        
         const newMonth = (typeof _arg === 'number') 
                             ? currentMonth.clone().add(_arg, 'months')
-                            : _arg;
+                            : moment(_arg);
+
+        let scrollDirection : ScrollType = {left: true, right: true};
+        newMonth.isSameOrBefore(monthMin, 'months') && (scrollDirection.left = false);
+        newMonth.isSameOrAfter(monthMax, 'months') && (scrollDirection.right = false);
+        setCanScroll(scrollDirection);
+        if (newMonth.isBefore(monthMin, 'months') || newMonth.isAfter(monthMax, 'months')) {
+            onScroll( false, scrollDirection );
+            return;
+        }
 
         flatListRef.current?.scrollToIndex({
             index: getIndexOfMonth(newMonth),
             animated: true,
         });
         setCurrentMonth(newMonth);
+
+        onScroll( true, scrollDirection, newMonth );
     }
 
     React.useEffect(() => {

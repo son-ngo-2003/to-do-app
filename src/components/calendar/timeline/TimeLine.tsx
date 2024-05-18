@@ -17,7 +17,7 @@ export type TimelineProps = {
     startDay?: number,
     startMonth?: number,
     startYear?: number,
-    initialDate?: moment.Moment,
+    initialDate?: moment.Moment | string | Date,
 
     selectedDate?: moment.Moment,
     setSelectedDate?: (date: moment.Moment) => void,
