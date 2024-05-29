@@ -5,7 +5,6 @@ import { Colors, Typography, Outlines, Animations as Anim } from '../../styles';
 import Animated, 
     { ZoomIn
 } from 'react-native-reanimated';
-import { LabelsList } from '../label';
 
 import { Icon } from '../atomic';
 

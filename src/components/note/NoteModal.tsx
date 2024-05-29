@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
 import { Pressable, View, TextInput, StyleSheet, Modal, Text,
-         Keyboard, ScrollView } from 'react-native';
+         Keyboard } from 'react-native';
 import { Typography, Outlines, Layouts, Bases} from '../../styles';
 import Animated, { ZoomInEasyDown} from 'react-native-reanimated';
 

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Text, View, Pressable, StyleSheet, DimensionValue} from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { Colors, Bases, Typography, Outlines } from '../../styles';
+import { Bases, Typography, Outlines } from '../../styles';
 import { useTheme } from '@react-navigation/native';
 
 //Components

@@ -1,7 +1,4 @@
-type RouteName = 'Home' | 'Notes' | 'Labels' | 'Calendar' | 'Tasks' | 'History' | 'Trash';
-export {
-    type RouteName,
-}
+export type RouteName = 'Home' | 'Notes' | 'Labels' | 'Calendar' | 'Tasks' | 'History' | 'Trash';
 
 export const listRouteNames : RouteName[] = ['Home', 'Notes', 'Labels', 'Calendar', 'Tasks', 'History', 'Trash'];
 

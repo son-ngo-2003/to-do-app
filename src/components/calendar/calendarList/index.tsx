@@ -1,2 +1,1 @@
-export { default as CalendarList } from './CalendarList';
-export { default as TimelineList } from './TimelineList';
+export { default as CalendarList} from './TimelineList';

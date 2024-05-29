@@ -1,5 +1,5 @@
 import * as React from 'react';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { View, Text, StyleSheet } from "react-native"
 import { useTheme } from '@react-navigation/native';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -10,30 +10,26 @@ import { Layouts, Typography } from '../../../styles';
 import TimelineHeader from './TimelineHeader';
 
 //constants
-import { END_HOUR, START_HOUR, TIMELINE_CELL_HEIGHT, TIMELINE_TIME_BAR_WIDTH } from '../constants';
+import { CALENDAR_BODY_HEIGHT, END_HOUR, START_HOUR, TIMELINE_CELL_HEIGHT, TIMELINE_TIME_BAR_WIDTH } from '../constants';
 
 
 export type TimelineProps = {
-    startDay?: number,
-    startMonth?: number,
-    startYear?: number,
-    initialDate?: moment.Moment | string | Date,
+    startDate?: Date | string,
+    initialDate?: Date | string,
 
-    selectedDate?: moment.Moment,
-    setSelectedDate?: (date: moment.Moment) => void,
+    selectedDate?: Date,
+    setSelectedDate?: (date: Date) => void,
 
-    onPressDate?: (date: moment.Moment) => void,
-    onPressCell?: (date: moment.Moment, startHour: number) => void,
+    onPressDate?: (date: Date, dateString: string) => void,
+    onPressCell?: (date: Date, dateString: string, startHour: number) => void,
     onPressTask?: (id: any) => void,
 
-    height: number,
+    height?: number,
     numberOfDate?: number,
 } & TimelineColumnProps;
 
 const Timeline : React.FC<TimelineProps> = ({
-    startDay,
-    startMonth,
-    startYear, 
+    startDate = Date(),
 
     selectedDate,
     setSelectedDate= () => {},
@@ -44,10 +40,10 @@ const Timeline : React.FC<TimelineProps> = ({
     onPressDate = () => {},
     onPressTask = () => {},
 
-    height,
+    height = CALENDAR_BODY_HEIGHT,
     numberOfDate = 7,
 }) => {
-    const startMoment = React.useMemo( () => moment( startYear && startMonth && startDay && [startYear, startMonth, startDay]), [startYear, startMonth, startDay] );
+    const startDayjs = React.useMemo( () => dayjs( startDate ), [startDate] );
     const { colors } = useTheme();
     const [ layoutsContainer, setLayoutContainer ] = React.useState({height: height, width: Layouts.screen.width});
 
@@ -55,16 +51,19 @@ const Timeline : React.FC<TimelineProps> = ({
         const columns : React.ReactNode[] = [];
         const columnWidth = (layoutsContainer.width - 1 - TIMELINE_TIME_BAR_WIDTH) / numberOfDate;
         for (let i = 0; i < numberOfDate; i++) {
-            const thisDay = startMoment.clone().add(i, 'days');
+            const thisDay = startDayjs.add(i, 'days');
             columns.push(
                 <TimelineColumn
                     key={i}
+                    
                     taskList={taskList.filter( task => thisDay.isBetween(task.start, task.end, 'day', '[]'))}
-                    isToday={thisDay.isSame(moment(), 'day')}
-                    width={columnWidth}
-                    onPressCellCol={(startHour) => onPressCell(thisDay, startHour)}
+                    isToday={thisDay.isSame(dayjs(), 'day')}
+                    
+                    onPressCellCol={(startHour) => onPressCell(thisDay.toDate(), thisDay.format(), startHour)}
                     onPressTask={onPressTask}
+                    
                     rightBorder={i === numberOfDate - 1}
+                    width={columnWidth}
                 />
             );
         }
@@ -87,20 +86,18 @@ const Timeline : React.FC<TimelineProps> = ({
     return (
         <View style={[styles.container, ]}>
             <TimelineHeader
-                startDay={startMoment.date()}
-                startMonth={startMoment.month()}
-                startYear={startMoment.year()}
+                startDate={startDate}
                 numberOfDays={numberOfDate}
 
                 taskList = {taskList}
 
-                onPressDate={(date) => {onPressDate(date); setSelectedDate(date)}}
-                selectedDay={selectedDate?.date()}
+                onPressDate={(date, dateString) => {onPressDate(date, dateString); setSelectedDate(date)}}
+                selectedDate={selectedDate}
             />
             <ScrollView  
                 style={[{maxHeight: height}]}
                 onLayout={ (event) => setLayoutContainer(event.nativeEvent.layout) }
-                ref = { node => { node?.scrollTo({x: 0, y: TIMELINE_CELL_HEIGHT * (moment().hour() - 2), animated: true}) }}
+                ref = { node => { node?.scrollTo({x: 0, y: TIMELINE_CELL_HEIGHT * (dayjs().hour() - 2), animated: true}) }}
             >
                 <View style={{flexDirection: 'row'}}>
                     <View style={[styles.timeBarContainer]}>

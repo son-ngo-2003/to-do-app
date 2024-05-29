@@ -6,8 +6,7 @@ import { useTheme } from '@react-navigation/native';
 import { LabelSelectItem, AddLabelCard, LabelModal, 
         NoteCard, NoteModal, TaskItem,
         NoteInTaskItem, AddNoteInTask, TaskProgressCard,
-        CalendarListHeader, Calendar, CalendarProvider, CalendarList,
-        Timeline, TimelineList
+        Calendar, CalendarList, Timeline
 } from '../../components/';
 
 
@@ -17,10 +16,9 @@ import StorageService from '../../services/StorageService'
 import { Message } from '../../services/models';
 
 import { Colors, Bases, Typography, Layouts } from '../../styles';
-import moment from 'moment';
-import { MarkedObject } from '../../components/calendar/calendar/DateItem';
+import dayjs from 'dayjs';
 import { CALENDAR_BODY_HEIGHT } from '../../components/calendar/constants';
-import { TaskTimeline } from '../../components/calendar/timeline/TimelineColumn';
+import { TaskTimeline, MarkedObject } from '../../components/calendar/type';
 
 const HomeScreen : React.FC = () => {
     const [ isOpenModal, setIsOpenModal ] = React.useState<boolean>(false);
@@ -31,20 +29,22 @@ const HomeScreen : React.FC = () => {
     // const [ newTask, setNewTask ] = React.useState<Task>();
 
 
-    const markedDate : Record<string, MarkedObject[]> = {
-        '2024-04-03' : [{key: 'Working', color: 'red'},
-                        {key: 'Study', color: 'green'},
-                        {key: 'Project', color: 'pink'},
-                        {key: 'Groceries', color: 'purple'}],
-        '2024-04-06' : [{key: 'Working', color: 'red'},
-                        {key: 'Study', color: 'green'}]
-    }
+    const markedDate : MarkedObject[] = [
+                        {id: 'Working', color: 'red', date: '2024-04-03'},
+                        {id: 'Study', color: 'green', date: '2024-04-03'},
+                        {id: 'Project', color: 'pink', date: '2024-04-03'},
+                        {id: 'Groceries', color: 'purple', date: '2024-04-03'},
+
+                        {id: 'Working', color: 'red', date: '2024-04-06'},
+                        {id: 'Study', color: 'green', date: '2024-04-06'},
+                    ]
+    
 
     const taskList : TaskTimeline[] = [
         {
             id: 1,
-            start: moment({hour: 8, minute: 15}),
-            end: moment({hour: 12, minute: 0}),
+            start: dayjs({hour: 8, minute: 15}).toDate(),
+            end: dayjs({hour: 12, minute: 0}).toDate(),
             isAllDay: false,
     
             title: 'Title 1',
@@ -53,8 +53,8 @@ const HomeScreen : React.FC = () => {
         },
         {
             id: 2,
-            start: moment({hour: 11, minute: 0}),
-            end: moment({hour: 12, minute: 0}),
+            start: dayjs({hour: 11, minute: 0}).toDate(),
+            end: dayjs({hour: 12, minute: 0}).toDate(),
             isAllDay: false,
     
             title: 'Title 2',
@@ -63,8 +63,8 @@ const HomeScreen : React.FC = () => {
         },
         {
             id: 3,
-            start: moment({hour: 9, minute: 0}),
-            end: moment({hour: 14, minute: 0}),
+            start: dayjs({hour: 9, minute: 0}).toDate(),
+            end: dayjs({hour: 14, minute: 0}).toDate(),
             isAllDay: false,
     
             title: 'Title 3',
@@ -73,8 +73,8 @@ const HomeScreen : React.FC = () => {
         },
         {
             id: 4,
-            start: moment({hour: 10, minute: 0}),
-            end: moment({hour: 12, minute: 0}),
+            start: dayjs({hour: 10, minute: 0}).toDate(),
+            end: dayjs({hour: 12, minute: 0}).toDate(),
             isAllDay: false,
     
             title: 'Title 4',
@@ -83,8 +83,8 @@ const HomeScreen : React.FC = () => {
         },
         {
             id: 5,
-            start: moment({hour: 9, minute: 15}),
-            end: moment({hour: 11, minute: 30}),
+            start: dayjs({hour: 9, minute: 15}).toDate(),
+            end: dayjs({hour: 11, minute: 30}).toDate(),
             isAllDay: true,
     
             title: 'Title 4',
@@ -171,7 +171,7 @@ const HomeScreen : React.FC = () => {
             {/* <CalendarProvider> */}
                 {/* <CalendarList
                     showOneWeek={isOpenModal}
-                    onPressDate={(date: moment.Moment) => {}}
+                    onPressDate={(date: dayjs.Dayjs) => {}}
                     markedDate={markedDate}
                     minMonth={3}
                     maxMonth={3}
@@ -184,14 +184,21 @@ const HomeScreen : React.FC = () => {
                     <Text>Press here!</Text>
                 </View>
             </Pressable> */}
-            <TimelineList
-                height={CALENDAR_BODY_HEIGHT}
-                numberOfDate={7}
-                taskList={taskList}
+            <CalendarList
+                // taskList={taskList}
+                // minDate={ '2024-01-01' }
+                // maxDate={ '2024-09-09' }
+                // calendarMode='timeline'
 
-                onPressTask={(id) => {console.log(id)}}
+                // markedDate={markedDate}
+                // minMonth={ '2024-01-01' }
+                // maxMonth={ '2024-09-09' }
+                // showOneWeek = {false}
+                // width={300}
 
-                minPeriod={4}
+                minPeriod={ '2024-01-01' }
+                maxPeriod={ '2024-09-09' }
+                width={300}
             />
         </View>
     );

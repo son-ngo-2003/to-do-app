@@ -1,6 +1,6 @@
 import * as React from 'react';
-import moment from 'moment';
-import { StyleSheet, ListRenderItem, FlatList } from 'react-native';
+import dayjs from 'dayjs';
+import { StyleSheet, ListRenderItem, FlatList, View, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import Animated, { interpolate, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
 //components
@@ -12,24 +12,25 @@ import { type ScrollType, type CalenderListRef } from '../type';
 import { CALENDAR_BODY_HEIGHT, CALENDAR_BODY_ONE_WEEK_HEIGHT } from '../constants';
 
 export type CalendarListProps = {
-    onScroll: ( isSuccess: boolean, newCanScroll : ScrollType, newMonth?: moment.Moment  ) => void,
-    minMonth?: moment.Moment | string | Date,
-    maxMonth?: moment.Moment | string | Date,
+    onScroll?: ( isSuccess: boolean, newCanScroll : ScrollType, newMonth?: Date  ) => void,
+    minMonth?: dayjs.Dayjs | string | Date,
+    maxMonth?: dayjs.Dayjs | string | Date,
     width?: number,
+    initialDate?: string | Date | dayjs.Dayjs,
 } & CalendarProps;
 
 type DataItemType = {
-    thisMonth: moment.Moment,
+    thisMonth: dayjs.Dayjs,
 }
 
 const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>(({
     initialDate,
-    markedDate = [],
+    markedDate,
     
     isSelectRange,
-    onPressDate,
-    onPressRangeDate,
-    onScroll,
+    onPressDate = () => {},
+    onPressRangeDate = () => {},
+    onScroll = () => {},
     
     showOneWeek = false,
     
@@ -40,27 +41,23 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>(({
 }, ref) => {
     const flatListRef = React.useRef<FlatList<DataItemType>>(null);
 
-    const referenceMonth = moment(initialDate);
-    const [ currentMonth, setCurrentMonth ] = React.useState<moment.Moment>( referenceMonth );
-    const monthMin = React.useMemo<moment.Moment>( () => moment(minMonth), [ minMonth ] );
-    const monthMax = React.useMemo<moment.Moment>( () => moment(maxMonth), [ maxMonth ] );
+    const [ currentMonth, setCurrentMonth ] = React.useState<string>( dayjs(initialDate).format() );
+    const [ selectedDate, setSelectedDate ] = React.useState<string>( currentMonth );
+    const [ rangeSelectedDate, setRangeSelectedDate ] = React.useState<RangeSelectedDateType>({start: undefined, end: undefined});
     
-    const [ selectedDate, setSelectedDate ] = React.useState<moment.Moment>( referenceMonth );
-    const [ rangeSelectedDate, setRangeSelectedDate ] = React.useState<RangeSelectedDateType>({start: referenceMonth, end: referenceMonth});
-    const [ canScroll, setCanScroll ] = React.useState<ScrollType>( {left: true, right: true} );
     const expandCalendarProgress = useSharedValue<number>(showOneWeek ? 0 : 1);
 
     React.useImperativeHandle(ref, () => ({
         ...flatListRef.current,
         scroll: scroll,
-    }), [selectedDate]);
+    }), [selectedDate, rangeSelectedDate]);
 
-    const isMonthContainedInRange = (thisMonth: moment.Moment): boolean => {
+    const isMonthContainedInRange = React.useCallback< (thisMonth: dayjs.Dayjs) => boolean>((thisMonth) => {
         if (!rangeSelectedDate.end && 
             (thisMonth.isSame(currentMonth, 'month') || thisMonth.isSame(rangeSelectedDate.start, 'month') )) 
                 return true; //cause we don't know the end of range so we accept the end is infinity until it is selected
         return thisMonth.isBetween(rangeSelectedDate.start, rangeSelectedDate.end, 'month', '[]');
-    }
+    },[rangeSelectedDate]);
 
     const calendarContainerAnimation = useAnimatedStyle(() => {
         return {
@@ -69,70 +66,68 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>(({
         }
     }, []);
 
+    const _onPressDate = React.useCallback<(date: Date, dateString: string) => void>( (date, dateString) => {
+        onPressDate(date, dateString);
+        setSelectedDate(dateString);
+    }, []);
+
+    const _onPressRangeDate = React.useCallback< (dateRange: RangeSelectedDateType) => void > ( (dateRange) => {
+        setRangeSelectedDate(dateRange);
+        onPressRangeDate(dateRange);
+    }, []);
+
     const  renderItem  = React.useCallback<ListRenderItem<DataItemType>>(({ item }) => {
         const { thisMonth } = item;
-
-        const markedDateThisMonth = markedDate.filter( marked => moment(marked.date).isSame(thisMonth, 'months') )
+        const selectedDateInMonth = thisMonth.isSame( selectedDate, 'month' );
 
         const calendarProps : CalendarProps = {
             isSelectRange :         isSelectRange,
 
-            selectedDate:           selectedDate.isSame(thisMonth, 'month') ? selectedDate : undefined,
-            setSelectedDate:        setSelectedDate,
-            onPressDate:            onPressDate,
+            selectedDate:           selectedDateInMonth ? selectedDate : undefined,
+            onPressDate:            _onPressDate,
 
-            rangeSelectedDate:      isMonthContainedInRange(thisMonth) ? rangeSelectedDate : undefined,
-            setRangeSelectedDate:   setRangeSelectedDate,
-            onPressRangeDate:       onPressRangeDate,
+            rangeSelectedDate:      isSelectRange && isMonthContainedInRange(thisMonth) ? rangeSelectedDate : undefined,
+            onPressRangeDate:       _onPressRangeDate,
 
             thisMonth:              thisMonth.month(),
             thisYear:               thisMonth.year(),
 
-            markedDate:             markedDateThisMonth,
+            markedDate:             markedDate,
             showMonthHeader:        false,
+            showOneWeek:            selectedDateInMonth && showOneWeek,
         }
-        
-        return (
-            <Animated.View style={[{width: width}, calendarContainerAnimation]}
-            >
-                {/* to avoid render calendar again each time -> which take a lot of time */}
-                <Animated.View style={{display: showOneWeek ? 'none' : 'flex'}}
-                    //TODO: add opacity animation for 2 views
-                >
-                    <Calendar
-                        {...calendarProps}
-                        showOneWeek={false}
-                    />
-                </Animated.View>
 
-                <Animated.View style={{display: showOneWeek ? 'flex' : 'none'}}
-                >
-                    <Calendar
-                        {...calendarProps}
-                        showOneWeek={true}
-                    />
-                </Animated.View>
+        return (
+            <Animated.View style={[{width: width, overflow: 'hidden'}, calendarContainerAnimation]}>
+                <Calendar {...calendarProps}/>
             </Animated.View>
         )
-    },[selectedDate, rangeSelectedDate, currentMonth, showOneWeek, isSelectRange, markedDate]);
+    },[selectedDate, rangeSelectedDate, showOneWeek, isSelectRange, markedDate]);
 
     function getDataList () : DataItemType[] {
         const listItem : DataItemType[] = []
-        
-        let thisMonth = monthMin.clone();
-        while (thisMonth.isBefore(monthMax)) {
-            listItem.push({thisMonth: thisMonth.clone()});
-            thisMonth.add( 1 , 'months');
+
+        let thisMonth = dayjs(minMonth);
+        while (thisMonth.isBefore(maxMonth)) {
+            listItem.push({ thisMonth });
+            thisMonth = thisMonth.add( 1 , 'months');
         }
 
         return listItem;
     }
 
-    function getIndexOfMonth (month: moment.Moment = referenceMonth): number {
-        return Math.floor(month.diff(monthMin, 'months', true));
+    function getIndexOfMonth (month: dayjs.Dayjs = dayjs(selectedDate)): number {
+        return Math.floor(month.diff(minMonth, 'months'));
     }
 
-    function scroll( _arg: moment.Moment | number | Date | string, force : boolean = false ) : void {
+    function getScrollStatus( month: dayjs.Dayjs = dayjs(selectedDate) ) {
+        const scrollStatus : ScrollType = {left: false, right: false};
+        scrollStatus.left = month.isSameOrBefore(minMonth, 'months');
+        scrollStatus.right = month.isSameOrAfter(maxMonth, 'months');
+        return scrollStatus;
+    }
+
+    function scroll( _arg: dayjs.Dayjs | number | Date | string, force : boolean = false ) : void {
         if (!flatListRef.current) {
             onScroll( false, {left: false, right: false});
             return;
@@ -144,14 +139,11 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>(({
         }         
         
         const newMonth = (typeof _arg === 'number') 
-                            ? currentMonth.clone().add(_arg, 'months')
-                            : moment(_arg);
+                            ? dayjs(currentMonth).add(_arg, 'months')
+                            : dayjs(_arg);
 
-        let scrollDirection : ScrollType = {left: true, right: true};
-        newMonth.isSameOrBefore(monthMin, 'months') && (scrollDirection.left = false);
-        newMonth.isSameOrAfter(monthMax, 'months') && (scrollDirection.right = false);
-        setCanScroll(scrollDirection);
-        if (newMonth.isBefore(monthMin, 'months') || newMonth.isAfter(monthMax, 'months')) {
+        let scrollDirection : ScrollType = getScrollStatus(newMonth);      
+        if (newMonth.isBefore(minMonth, 'months') || newMonth.isAfter(maxMonth, 'months')) {
             onScroll( false, scrollDirection );
             return;
         }
@@ -160,14 +152,26 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>(({
             index: getIndexOfMonth(newMonth),
             animated: true,
         });
-        setCurrentMonth(newMonth);
 
-        onScroll( true, scrollDirection, newMonth );
+        setCurrentMonth(newMonth.format());
+        onScroll( true, scrollDirection, newMonth.toDate() );
+    }
+
+    function onScrollManuel (e: NativeSyntheticEvent<NativeScrollEvent>) {
+        const ne = e.nativeEvent;
+        if (ne.contentOffset.x % width !== 0) return;
+        const newMonth = dayjs(minMonth).add( ne.contentOffset.x / width, 'months');
+        setCurrentMonth(newMonth.format());
+
+        let scrollDirection : ScrollType = getScrollStatus(newMonth);   
+        onScroll( true, scrollDirection, newMonth.toDate() );
     }
 
     React.useEffect(() => {
-        scroll(selectedDate);
-        setCurrentMonth(selectedDate);
+        if (! dayjs(selectedDate) .isSame(currentMonth, 'months')) {
+            scroll(selectedDate);
+            setCurrentMonth( selectedDate );
+        }
     }, [selectedDate]);
 
     React.useEffect(() => {
@@ -182,26 +186,20 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>(({
     }, [showOneWeek]);
 
     return (
-        <FlatList
-            ref={flatListRef}
-            data={getDataList()}
-            renderItem={renderItem}
-            scrollEnabled={!showOneWeek}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            pagingEnabled={true}
-            getItemLayout={(data, index) => ({length: width, offset: width * index, index})}
-            initialScrollIndex={getIndexOfMonth()}
-        />
+        <View style={{width}}>
+            <FlatList
+                ref={flatListRef}
+                data={getDataList()}
+                renderItem={renderItem}
+                scrollEnabled={!showOneWeek}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                onScroll = {onScrollManuel}
+                pagingEnabled={true}
+                getItemLayout={(data, index) => ({length: width, offset: width * index, index})}
+                initialScrollIndex={getIndexOfMonth()}
+            />
+         </View>
     )
 });
-export default CalendarList;
-
-const styles = StyleSheet.create({
-    calendar: {},
-    weekContainer: {
-        flexDirection: 'row',
-        justifyContent:'space-around',
-        alignItems: 'center',
-    }
-});
+export default React.memo(CalendarList);

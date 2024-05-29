@@ -22,3 +22,5 @@ export const DATE_NAME_1 = ['M', 'T', 'W', 'T', 'F', 'S', 'S', 'S'];
 
 export const MONTH_NAME_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 export const MONTH_NAME_3 = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+export const MOMENT_FORMAT = 'YYYY-MM-DD';

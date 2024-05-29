@@ -16,12 +16,9 @@ export { TaskItem,
         TaskProgressCard
 
 } from './task';
-export { CalendarListHeader,
-        Calendar,
-        CalendarProvider,
+export { Calendar,
         CalendarList,
         Timeline,
-        TimelineList
 } from './calendar';
 
 //Add useCallBack to all callback defined in each component

@@ -1,7 +1,7 @@
-import moment from 'moment';
+import dayjs from 'dayjs';
 import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
-import { Text, View, Pressable, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 
 //constants
 import { DATE_NAME_FULL, DATE_NAME_3, DATE_NAME_2, DATE_NAME_1, TIMELINE_TIME_BAR_WIDTH } from '../constants';
@@ -11,33 +11,32 @@ import { type TaskTimeline } from '../type';
 import DateItem from './DateItem';
 
 type TimelineHeaderProps = {
-    startDay: number,
-    startMonth: number,
-    startYear: number,
+    startDate: Date | string,
     numberOfDays: number,
 
     taskList: TaskTimeline[],
-    selectedDay?: number,
-    onPressDate?: (date: moment.Moment) => void,
+    selectedDate?: Date | string,
+    onPressDate?: (date: Date, dateString: string) => void,
 
     dateNameType?: 'full' | '3 letters' | '2 letters' | '1 letter',
+    //TODO: add dateNameType to TimelineList, CalendarList and MixCalendarList
     showMonth?: boolean
+    //TODO: add showMonth function (like calendar)
 }
 
 const TimelineHeader: React.FC<TimelineHeaderProps> = ({
-    startDay,
-    startMonth,
-    startYear,
+    startDate,
     numberOfDays,
 
     taskList = [],
-    selectedDay,
+    selectedDate,
     onPressDate = () => {},
 
     dateNameType = '3 letters',
     showMonth = true,
 }) => {
-    const startMoment = React.useMemo( () => moment( startYear && startMonth && startDay && [startYear, startMonth, startDay]), [startYear, startMonth, startDay] );
+    const startDayjs = React.useMemo( () => dayjs( startDate ), [startDate] );
+    const selectedDay = React.useMemo( () => dayjs( selectedDate ), [selectedDate]);
     const taskListAllDay = React.useMemo(() => taskList.filter( task => task.isAllDay), [taskList]);
     const { colors } = useTheme();
 
@@ -64,22 +63,19 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({
         }
 
         for (let i = 0; i < numberOfDays; i++) {
-            const thisDay = startMoment.clone().add(i, 'days');
-            const isSelected = selectedDay === thisDay.date();
+            const thisDay = startDayjs.add(i, 'days');
             dates.push( 
                 <DateItem 
                     key={i}
 
-                    thisDay = {thisDay.date()}
-                    thisMonth = {thisDay.month()}
-                    thisYear = {thisDay.year()}
-                    taskListThisDay = {taskListAllDay.filter( task => thisDay.isBetween(task.start, task.end, 'day', '[]'))}
+                    thisDate={thisDay.toDate()}
+                    onPress={() => onPressDate(thisDay.toDate(), thisDay.format() )}
                     
-                    thisDayOfWeek = {thisDay.isoWeekday()}
+                    taskListThisDay = {taskListAllDay.filter( task => thisDay.isBetween(task.start, task.end, 'day', '[]'))}
                     listDateNames = {listDateNames}
                 
-                    isSelected = {isSelected}
-                    onPress={() => onPressDate(thisDay)}
+                    isSelected = {thisDay.isSame(selectedDay, 'day')}
+                    isToday = {thisDay.isSame(dayjs(), 'day')}
                 
                     width = {`${1/numberOfDays*100}%`}
                 />

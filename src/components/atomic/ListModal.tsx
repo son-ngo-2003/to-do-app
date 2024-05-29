@@ -2,7 +2,6 @@ import React from 'react';
 import { View, StyleSheet, Pressable, ViewStyle, ScrollView, Text, Modal} from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import { Bases, Layouts, Outlines } from '../../styles';
-import Animated from 'react-native-reanimated';
 
 import { Overlay } from '../atomic';
 

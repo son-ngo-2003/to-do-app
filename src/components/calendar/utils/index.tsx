@@ -1,32 +1,31 @@
-import moment from "moment";
+import dayjs from "dayjs";
 import { DimensionValue } from "react-native";
 import { MAX_NUMBER_OF_TASKS_SHOW_EACH_MOMENT, TIMELINE_CELL_HEIGHT } from "../constants";
 import { type MarkedObject, type TaskTimeline } from "../type";
-import { header } from "../../../styles/typography";
 
 export const taskTimelineToMarked = (taskTimeline: TaskTimeline[]) => 
     taskTimeline.reduce((listMarked : MarkedObject[], task : TaskTimeline) => 
         {
-            const start = moment(task.start);
-            const end = moment(task.end);
+            let start = dayjs(task.start);
+            const end = dayjs(task.end);
             while (start.isSameOrBefore(end, 'days')) {
                 listMarked.push({
                     id: task.id,
                     color: task.color,
                     date: start.toDate(),
                 })
-                start.add(1, 'day');
+                start = start.add(1, 'day');
             }
             return listMarked;
         }
     , []);
 
 export const generateBBoxOfTasks = (taskList: TaskTimeline[]) => {
-    let mapTimePositionStatus : Map<number, Array<number>> = new Map(); //contains list status of position at moment
+    let mapTimePositionStatus : Map<number, Array<number>> = new Map(); //contains list status of position at dayjs
 
     const listStartEndMinuteTasks = taskList.map( task => {
-        const taskStart = moment(task.start);
-        const taskEnd = moment(task.end);
+        const taskStart = dayjs(task.start);
+        const taskEnd = dayjs(task.end);
 
         const start = taskStart.hour() * 60 + taskStart.minute();
         const end = taskEnd.hour() * 60 + taskEnd.minute();      

@@ -1,7 +1,6 @@
 import * as React from 'react';
-import moment from 'moment';
-import { StyleSheet, ListRenderItem, FlatList, GestureResponderEvent, Pressable } from 'react-native';
-import Animated, { interpolate, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import dayjs from 'dayjs';
+import { StyleSheet, GestureResponderEvent, Pressable } from 'react-native';
 
 //components
 import CalendarListHeader from './CalendarListHeader';
@@ -9,7 +8,7 @@ import CalendarList from './CalendarList';
 import TimelineList from './TimelineList';
 import { type CalendarProps, type RangeSelectedDateType } from '../calendar/Calendar';
 import { type TimelineProps } from '../timeline/Timeline';
-import { Layouts, Animations as Anim } from '../../../styles';
+import { Layouts } from '../../../styles';
 import { ScrollType, type CalenderListRef } from '../type';
 
 //constants
@@ -19,15 +18,14 @@ import { CALENDAR_BODY_HEIGHT, CALENDAR_BODY_ONE_WEEK_HEIGHT } from '../constant
 import { taskTimelineToMarked } from '../utils';
 
 export type MixCalendarListProps = {
-    minDate?: moment.Moment | string | Date,
-    maxDate?: moment.Moment | string | Date,
+    minDate?: dayjs.Dayjs | string | Date,
+    maxDate?: dayjs.Dayjs | string | Date,
     width?: number,
     onPressCalendarList?: (e: GestureResponderEvent) => void // often use to set height of list
-    onScroll: ( isSuccess: boolean, newCanScroll : ScrollType, newPeriod?: moment.Moment  ) => void,
+    onScroll?: ( isSuccess: boolean, newCanScroll : ScrollType, newPeriod?: Date ) => void,
 
     heightMode?: number | 'short' | 'medium' | 'full', //number and full only for timeline
     calendarMode?: 'calendar' | 'timeline' | 'mix',
-
 } & CalendarProps & TimelineProps;
 
 const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(({
@@ -35,7 +33,7 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
     onPressCalendarList = () => {},
     taskList = [],
 
-    isSelectRange,
+    isSelectRange = false,
     onPressDate = () => {},
     onPressRangeDate = () => {}, //only for calendar
     onPressCell = () => {},      //only for timeline
@@ -53,32 +51,33 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
 }, ref) => {
     const listRef = React.useRef<any>(null);
 
-    const [ selectedDate, setSelectedDate ] = React.useState<moment.Moment>( moment(initialDate) );
-    const [ selectedDateString, setSelectedDateString ] = React.useState<string>( selectedDate.format('DD/MM') );
-    const [ currentPeriod, setCurrentPeriod ] = React.useState<moment.Moment>( moment(initialDate) );
+    const [ selectedDate, setSelectedDate ] = React.useState<Date>( dayjs(initialDate).toDate() );
+    const [ selectedDateString, setSelectedDateString ] = React.useState<string>( dayjs(selectedDate).format('DD/MM') );
+    const [ currentPeriod, setCurrentPeriod ] = React.useState<Date>( selectedDate );
     const [ canScroll, setCanScroll ] = React.useState<ScrollType>({left: false, right: false});
     const [ currentMode, setCurrentMode ] = React.useState<'calendar' | 'timeline' >( calendarMode == 'timeline' ? 'timeline' : 'calendar');
 
     React.useImperativeHandle(ref, () => ({
         ...listRef.current,
-    }), [currentMode]);
+    }), [currentPeriod, setSelectedDate]);
 
-    const _onPressDate = (selectedDate: moment.Moment) => {
-        setSelectedDate( selectedDate );
-        onPressDate(selectedDate);
-        setSelectedDateString(selectedDate.format('DD/MM'));
+    const _onPressDate = (date: Date, stringDate: string) => {
+        setSelectedDate( date );
+        onPressDate(date, stringDate);
+        setSelectedDateString( dayjs(date).format('DD/MM') );
     }
 
     const _onPressRangedDate = (date: RangeSelectedDateType) => {
         onPressRangeDate(date);
         let stringDate = '';
-        date.start && ( stringDate += date.start.format('DD/MM')) && setSelectedDate(date.start);
-        date.end && ( stringDate += '-' + date.end.format('DD/MM'));
+        date.start && ( stringDate += dayjs(date.start).format('DD/MM')); //&& setSelectedDate(date.start);
+        date.end && ( stringDate += '-' + dayjs(date.end).format('DD/MM'));
         setSelectedDateString(stringDate);
     }
 
-    const _onScroll =  ( isSuccess: boolean, newCanScroll : ScrollType, newPeriod?: moment.Moment  ) => {
+    const _onScroll =  ( isSuccess: boolean, newCanScroll : ScrollType, newPeriod?: Date  ) => {
         onScroll( isSuccess, newCanScroll, newPeriod);
+        newPeriod && setCurrentPeriod( newPeriod );
         setCanScroll(newCanScroll);
     }
 
@@ -92,7 +91,7 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
             currentMode === 'calendar'
             ? <CalendarList
                     ref={listRef}
-                    initialDate={selectedDate.format('DD/MM/YYYY')}
+                    initialDate={ selectedDate }
                     markedDate={ taskTimelineToMarked(taskList) }
 
                     isSelectRange={ isSelectRange }
@@ -107,10 +106,11 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
 
                     minMonth={ minDate }
                     maxMonth={ maxDate }
+                    width={width}
                 />
             : <TimelineList
                     ref={listRef}
-                    initialDate={ selectedDate.format('DD/MM/YYYY') }
+                    initialDate={ selectedDate }
                     taskList={ taskList }
 
                     onPressDate={ _onPressDate }
@@ -126,6 +126,9 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
                     numberOfDate={ numberOfDate }
                     minPeriod={ minDate }
                     maxPeriod={ maxDate }
+                    width={width}
+                    
+                    startDate={''}
                 />
         );
     }
@@ -141,15 +144,16 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
         >
             <CalendarListHeader
                 selectDateString={ selectedDateString }
-                currentMonth={ currentPeriod.month() }
-                currentYear={ currentPeriod.year() }
+                currentMonth={ currentPeriod.getMonth() }
+                currentYear={ currentPeriod.getFullYear() }
 
-                onPressLeft={() => listRef.current?.scroll(-1)}
-                onPressRight={() => listRef.current?.scroll(-1)}
-                onPressExpand={() => { setCurrentMode('timeline') }}
+                onPressLeft={() => listRef.current.scroll(-1)}
+                onPressRight={() => listRef.current.scroll(1)}
+                onPressExpand={() => { currentMode === 'calendar' ? setCurrentMode('timeline') : setCurrentMode('calendar') }}
                 canScroll={canScroll}
             />
-            { renderList() }
+
+            { renderList()}
         </Pressable>
     )
 });

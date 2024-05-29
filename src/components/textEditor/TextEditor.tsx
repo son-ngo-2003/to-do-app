@@ -13,7 +13,6 @@ import { ToolbarItems } from './toolbarActions';
 import { toolbarTheme, darkToolbarTheme } from './toolbarTheme';
 
 //components
-import { KeyboardOptimizeView } from '../atomic';
 import InsertToolList from './InsertToolList';
 import ColorToolList from './ColorToolList';
 

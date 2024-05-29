@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { View, Pressable, StyleSheet } from "react-native"
 import { useTheme } from '@react-navigation/native';
-import moment from 'moment';
 
 //utils
 import { generateBBoxOfTasks } from '../utils';

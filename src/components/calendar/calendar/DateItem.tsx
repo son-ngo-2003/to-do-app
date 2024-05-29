@@ -1,9 +1,9 @@
-import moment from 'moment';
+import dayjs from 'dayjs';
 import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
 import { Text, View, Pressable, StyleSheet } from 'react-native';
 import Animated, 
-    { useSharedValue, useAnimatedStyle, interpolateColor, 
+    { useSharedValue, useAnimatedStyle, interpolateColor, interpolate, 
 } from 'react-native-reanimated';
 
 //constants
@@ -13,41 +13,48 @@ import { DATE_ITEM_WIDTH, DOT_SIZE } from '../constants';
 import { Colors, Outlines, Typography, Animations as Anim } from '../../../styles';
 import { type SelectedType, type MarkedObject } from '../type';
 
-type DateItemProps = {
-    thisDay: number,
-    thisMonth: number,
-    thisYear: number,
+//hooks
+import { useTraceUpdate } from '../../../hooks';
 
-    onPress: () => void,
+type DateItemProps = {
+    thisDate: string,
+
+    isCurrentMonth?: boolean,
+    isToday?: boolean,
+    selectedType?: SelectedType,
+
+    onPress?: (date: Date, dateString: string) => void,
     showMarked?: boolean,
     markedThisDate?: MarkedObject[],
-    selectedType?: SelectedType,
-    isCurrentMonth?: boolean,
 }
 
-const DateItem: React.FC<DateItemProps> = ({
-    thisDay,
-    thisMonth,
-    thisYear,
-
-    onPress,
-    showMarked = false,
-    markedThisDate,
-    selectedType = 'none',
-    isCurrentMonth = true,
+const DateItem: React.FC<DateItemProps> = (props) => {
+    const {
+        thisDate,
+        
+        isCurrentMonth = true,
+        isToday = false,
+        selectedType = 'none',
     
-}) => {
-    const { colors } = useTheme();
-    const colorProgress = useSharedValue<number>(0);
-    const isToday = React.useMemo(() => moment([thisYear, thisMonth, thisDay]).isSame(moment(), 'date'), [thisDay, thisMonth, thisYear]);
+        onPress = () => {},
+        showMarked = false,
+        markedThisDate, 
+        
+    } = props;
 
-    const containerAnimatedStyles = useAnimatedStyle(() => {
-        return {
-            backgroundColor: interpolateColor( colorProgress.value, [ 0, 1 ],
-                [ colors.background, colors.primary ], 'RGB',
-            )
-        };
-    });
+    const { colors } = useTheme();
+    const progress = useSharedValue<number>(0);
+    const thisDay = React.useMemo(() => dayjs(thisDate), [thisDate]);
+    const [ borderRadius, setBorderRadius ] = React.useState({borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderTopRightRadius: 0, borderBottomRightRadius: 0});
+
+    const onPressDate = React.useCallback( () => {
+        onPress(thisDay.toDate(), thisDay.format());
+    }, [thisDate]);
+
+    const containerAnimatedStyles = useAnimatedStyle(() => ({
+        backgroundColor: interpolateColor( progress.value, [ 0, 1 ],
+            [ colors.background, colors.primary ], 'RGB'),
+        }));
 
     const renderDot : () => React.ReactNode = React.useCallback(() => {
         return (
@@ -59,24 +66,36 @@ const DateItem: React.FC<DateItemProps> = ({
         )
     }, [markedThisDate]);
 
+
     React.useEffect(() => {
         if (selectedType != 'none') {
-            colorProgress.value = Anim.timing<number>(1).easeIn.fast;
-        } else {
-            colorProgress.value = Anim.timing<number>(0).easeIn.fast;
+            progress.value = Anim.timing<number>(1).easeIn.fast
+
+            switch (selectedType) {
+                case 'range-start':
+                    setBorderRadius({borderTopLeftRadius: Outlines.borderRadius.base, borderBottomLeftRadius: Outlines.borderRadius.base, borderTopRightRadius: 0, borderBottomRightRadius: 0});
+                    break;
+                case 'range-end':
+                    setBorderRadius({borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderTopRightRadius: Outlines.borderRadius.base, borderBottomRightRadius: Outlines.borderRadius.base});
+                    break;
+                case 'one-date':
+                    setBorderRadius({borderTopLeftRadius: Outlines.borderRadius.base, borderBottomLeftRadius: Outlines.borderRadius.base, borderTopRightRadius: Outlines.borderRadius.base, borderBottomRightRadius: Outlines.borderRadius.base});
+                    break;
+            }
         }
+        else {
+            progress.value = Anim.timing<number>(0).easeIn.fast;
+        }    
     }, [selectedType])
 
     return (
         <Pressable 
             style={[styles.dateContainer]}
-            onPress = {onPress}
+            onPress = {onPressDate}
         >
             <Animated.View 
                 style={[styles.backgroundItem, 
-                    , (selectedType == 'range-start') && styles.backgroundItem_start
-                    , (selectedType == 'range-end')   && styles.backgroundItem_end
-                    , (selectedType == 'one-date')    && styles.backgroundItem_one,
+                    borderRadius,
                     containerAnimatedStyles
             ]}>
                 <Text style={[styles.dayText, 
@@ -84,7 +103,7 @@ const DateItem: React.FC<DateItemProps> = ({
                     (!isCurrentMonth) && {opacity: 0.4},
                     (isToday)         && {...Typography.subheader.x40, opacity: 1, color: Colors.primary.blue},
                     (selectedType != 'none')      && {...Typography.subheader.x40, opacity: 1, color: Colors.neutral.white},
-                ]}>{ thisDay < 10 ? `0`+thisDay : thisDay  }</Text>
+                ]}>{ thisDay.format('DD')  }</Text>
                 {showMarked && renderDot()}
             </Animated.View>
         </Pressable>
@@ -102,17 +121,6 @@ const styles = StyleSheet.create({
     backgroundItem: {
         width: '100%',
         paddingVertical: 4,    
-    },
-    backgroundItem_one: {
-        borderRadius: Outlines.borderRadius.base,
-    },
-    backgroundItem_start: {
-        borderTopLeftRadius: Outlines.borderRadius.base,
-        borderBottomLeftRadius: Outlines.borderRadius.base,
-    },
-    backgroundItem_end: {
-        borderTopRightRadius: Outlines.borderRadius.base,
-        borderBottomRightRadius: Outlines.borderRadius.base,
     },
     dayText: {
         textAlign: 'center',

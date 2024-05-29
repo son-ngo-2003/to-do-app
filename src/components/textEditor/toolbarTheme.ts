@@ -1,6 +1,5 @@
 import { StyleSheet } from "react-native";
 import type { ToolbarTheme } from "@10play/tentap-editor";
-import { transform } from "@babel/core";
 import { Colors } from "../../styles";
 
 export const toolbarTheme: ToolbarTheme = {

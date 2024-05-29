@@ -1,7 +1,6 @@
 import * as React from 'react';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { View, StyleSheet } from 'react-native';
-import Animated from 'react-native-reanimated';
 
 //components
 import CalendarHeader from './CalendarHeader';
@@ -10,82 +9,76 @@ import { type MarkedObject, type SelectedType } from '../type';
 
 //constants
 import { LENGTH_WEEK_SHOWS } from '../constants';
+import { useTraceUpdate } from '../../../hooks';
 
 export type RangeSelectedDateType = {
-    start: moment.Moment | undefined,
-    end: moment.Moment | undefined,
+    start: Date | string | undefined,
+    end: Date | string | undefined,
 }
 
 export type CalendarProps = {
-    selectedDate?: moment.Moment,
-    setSelectedDate?: (date: moment.Moment) => void,
-    onPressDate?: (date: moment.Moment) => void,
+    selectedDate?: Date | string | dayjs.Dayjs,
+    onPressDate?: (date: Date, dateString: string) => void,
 
     isSelectRange?: boolean,
     rangeSelectedDate?: RangeSelectedDateType,
-    setRangeSelectedDate?: (date: RangeSelectedDateType) => void,
     onPressRangeDate?: (date: RangeSelectedDateType) => void,
 
-    thisMonth?: number,
+    thisMonth?: number, //0-11
     thisYear?: number,
  
     showOneWeek?: boolean,
     markedDate?: MarkedObject[],
     showMonthHeader?: boolean,
-
-    initialDate?: string | Date | moment.Moment,
 }
 
-const Calendar: React.FC<CalendarProps> = ({
-    selectedDate,
-    setSelectedDate = () => {},
-    onPressDate = () => {},
+const Calendar: React.FC<CalendarProps> = (props) => {
+    const {
+        selectedDate,
+        onPressDate = () => {},
+    
+        isSelectRange = false,
+        rangeSelectedDate = { start: undefined, end: undefined },
+        onPressRangeDate = () => {},
+    
+        thisMonth,
+        thisYear,
+    
+        showOneWeek = false,
+        markedDate = [],
+        showMonthHeader = true,
+    } = props;
 
-    isSelectRange = false,
-    rangeSelectedDate = { start: undefined, end: undefined },
-    setRangeSelectedDate = () => {},
-    onPressRangeDate = () => {},
+    const thisPeriod = React.useMemo( () => ( dayjs({ month: thisMonth, year: thisYear } )), [ thisMonth, thisYear ]);
 
-    thisMonth,
-    thisYear,
-
-    showOneWeek = false,
-    markedDate = [],
-    showMonthHeader = true,
-
-    initialDate,
-}) => {
-    const [thisMoment, setThisMoment] = React.useState<moment.Moment>( moment(initialDate) );
     const firstDay = React.useMemo( () =>
                         showOneWeek && selectedDate
-                        ? selectedDate.clone().startOf('isoWeek')
-                        : thisMoment.clone().startOf('isoWeek')
-    , [showOneWeek, selectedDate, thisMoment, rangeSelectedDate])
+                        ? dayjs(selectedDate).startOf('isoWeek')
+                        : thisPeriod.startOf('isoWeek')
+    , [showOneWeek, selectedDate, thisPeriod])
 
-    const onPress : (date: moment.Moment) => void = React.useCallback( (date) => {
-        setSelectedDate(date);
-        onPressDate(date);
+    const onPress : (date: Date, dateString: string) => void = React.useCallback( (date, dateString) => {
+        onPressDate(date, dateString);
     }, []);
 
-    const onPressRange : (date: moment.Moment) => void = React.useCallback( (date) => {
+    const onPressRange : (date: Date, dateString: string) => void = React.useCallback( (date, dateString) => {
         let newRangeSelectedDate: RangeSelectedDateType = rangeSelectedDate;
         newRangeSelectedDate.end 
-            ? newRangeSelectedDate = {start: date, end: undefined}
-            : newRangeSelectedDate = {start: newRangeSelectedDate.start , end: date };
+            ? newRangeSelectedDate = {start: dateString, end: undefined}
+            : newRangeSelectedDate = {start: newRangeSelectedDate.start , end: dateString };
         
         //check if start is after end, then inverse start and end
         newRangeSelectedDate.start && newRangeSelectedDate.end
-            && newRangeSelectedDate.start.isAfter(newRangeSelectedDate.end)
+            && newRangeSelectedDate.start < newRangeSelectedDate.end
             && (newRangeSelectedDate = {start: newRangeSelectedDate.end, end: newRangeSelectedDate.start});
 
-        setRangeSelectedDate(newRangeSelectedDate);
         onPressRangeDate(newRangeSelectedDate);
     }, [rangeSelectedDate]);
 
-    const getSelectedType = React.useCallback<(thisDay: moment.Moment) => SelectedType>((thisDay) => {
+    const getSelectedType = React.useCallback<(thisDay: dayjs.Dayjs) => SelectedType>((thisDay) => {
         if (isSelectRange) {
             if (rangeSelectedDate.start && thisDay.isSame(rangeSelectedDate.start, 'day')) {
-                if (!rangeSelectedDate.end  || rangeSelectedDate.start.isSame(rangeSelectedDate.end, 'day'))
+                if (!rangeSelectedDate.end  || dayjs(rangeSelectedDate.start).isSame(rangeSelectedDate.end, 'day'))
                     return 'one-date';
                 return 'range-start';
             }
@@ -101,56 +94,48 @@ const Calendar: React.FC<CalendarProps> = ({
         }
     }, [isSelectRange, rangeSelectedDate, selectedDate])
 
-    function renderDay (week: number, dateOfWeek: number) : React.ReactNode {
-        const thisDay = firstDay.clone().add(week, 'weeks').add(dateOfWeek, 'days');
+    const renderDay = React.useCallback< (week: number, dateOfWeek: number) => React.ReactNode>((week, dateOfWeek) =>{
+        const thisDay = firstDay.add(week * 7 + dateOfWeek, 'days');
+        const markedThisDate = markedDate.filter( marked => dayjs( marked.date ).isSame(thisDay, 'day'));
         return (      
             <DateItem
-                thisDay={thisDay.date()}
-                thisMonth={thisDay.month()}
-                thisYear={thisDay.year()}
-
-                selectedType={getSelectedType(thisDay)}
-
                 key={dateOfWeek}
-                onPress={() => isSelectRange ? onPressRange(thisDay) : onPress(thisDay)}
+                thisDate = { thisDay.format() }
+
+                isToday={ thisDay.isSame(dayjs(), 'day') }
+                isCurrentMonth={thisDay.month() === thisMonth}
+                
+                selectedType={getSelectedType(thisDay) }
+                onPress={ isSelectRange ? onPressRange : onPress}
 
                 showMarked={!!markedDate}
-                markedThisDate={markedDate.filter( marked => moment(marked.date).isSame(thisDay, 'day'))}
-                isCurrentMonth={thisDay.month() === thisMonth}
+                markedThisDate={ markedDate.length > 0 ? markedThisDate : undefined }
             />
         )
-    }
+    },[firstDay, thisMonth]);
 
-    function renderWeek ( week: number ) : React.ReactNode {
+    const renderWeek = React.useCallback< ( week: number ) => React.ReactNode > ((week) => {
         const days : React.ReactNode[] = [];
         for ( let i = 0; i < 7; i++ ) { //7 days a week
             days.push(renderDay( week, i ));
         }
         return <View key={week} style={[styles.weekContainer]}>{days}</View>
-    }
+    },[selectedDate, firstDay]);
 
-    function renderMonth (weeksShow: number) : React.ReactNode {
+    const renderMonth = React.useCallback< (weeksShow: number) => React.ReactNode > ((weeksShow) => {
         const weeks : React.ReactNode[] = [];
         for ( let i = 0; i < weeksShow; i++ ) {
-            weeks.push(renderWeek( i ));
+            weeks.push( renderWeek( i ) );
         }
-        return (
-            <Animated.View key={weeksShow}>
-                {weeks}
-            </Animated.View>
-        )
-    }
-
-    React.useEffect(() => { 
-        (thisMonth !== undefined) && thisYear && setThisMoment( moment({year: thisYear, month: thisMonth, day: 1}) );
-    }, [thisMonth, thisYear]);
+        return <View>{weeks}</View>
+    }, [selectedDate, firstDay]);
 
     return (
         <View style={[styles.calendar]}>
             <CalendarHeader 
-                thisMonth={thisMoment.month()} 
-                thisYear={thisMoment.year()}
-                showMonth={showMonthHeader}
+                thisMonth={ thisPeriod.month() } 
+                thisYear= { thisPeriod.year()  }
+                showMonth={ showMonthHeader    }
             />
             {   showOneWeek 
                 ? renderMonth(1)
