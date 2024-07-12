@@ -3,8 +3,8 @@ import { DimensionValue } from "react-native";
 import { MAX_NUMBER_OF_TASKS_SHOW_EACH_MOMENT, TIMELINE_CELL_HEIGHT } from "../constants";
 import { type MarkedObject, type TaskTimeline } from "../type";
 
-export const taskTimelineToMarked = (taskTimeline: TaskTimeline[]) => 
-    taskTimeline.reduce((listMarked : MarkedObject[], task : TaskTimeline) => 
+export const taskTimelineToMarked = (taskTimeline?: TaskTimeline[]) =>
+    taskTimeline && taskTimeline.reduce((listMarked : MarkedObject[], task : TaskTimeline) => 
         {
             let start = dayjs(task.start);
             const end = dayjs(task.end);
@@ -20,7 +20,7 @@ export const taskTimelineToMarked = (taskTimeline: TaskTimeline[]) =>
         }
     , []);
 
-export const generateBBoxOfTasks = (taskList: TaskTimeline[]) => {
+export const generateBBoxOfTasks = (taskList: TaskTimeline[] = []) => {
     let mapTimePositionStatus : Map<number, Array<number>> = new Map(); //contains list status of position at dayjs
 
     const listStartEndMinuteTasks = taskList.map( task => {

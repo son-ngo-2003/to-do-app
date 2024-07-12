@@ -15,10 +15,7 @@ import { CALENDAR_BODY_HEIGHT, END_HOUR, START_HOUR, TIMELINE_CELL_HEIGHT, TIMEL
 
 export type TimelineProps = {
     startDate?: Date | string,
-    initialDate?: Date | string,
-
-    selectedDate?: Date,
-    setSelectedDate?: (date: Date) => void,
+    selectedDate?: Date | string,
 
     onPressDate?: (date: Date, dateString: string) => void,
     onPressCell?: (date: Date, dateString: string, startHour: number) => void,
@@ -26,40 +23,48 @@ export type TimelineProps = {
 
     height?: number,
     numberOfDate?: number,
+    showWeekends?: boolean, //Only apply for week timeline (numberOfDate = 7)
 } & TimelineColumnProps;
 
 const Timeline : React.FC<TimelineProps> = ({
     startDate = Date(),
-
     selectedDate,
-    setSelectedDate= () => {},
 
     taskList = [],
 
-    onPressCell = () => {},
-    onPressDate = () => {},
-    onPressTask = () => {},
+    onPressCell,
+    onPressDate,
+    onPressTask,
 
     height = CALENDAR_BODY_HEIGHT,
     numberOfDate = 7,
+    showWeekends = true,
 }) => {
-    const startDayjs = React.useMemo( () => dayjs( startDate ), [startDate] );
+    const startDayjs = React.useMemo( () => numberOfDate === 7 
+                                                ? dayjs( startDate ).startOf('week')
+                                                : dayjs( startDate )
+                                    , [startDate] );
+    const numberOfDateShow = React.useMemo( () => numberOfDate !== 7 
+                                                ? numberOfDate 
+                                                : showWeekends ? 7 : 5   //for case of week timeline but not show weekends
+                                    , [numberOfDate] );
     const { colors } = useTheme();
     const [ layoutsContainer, setLayoutContainer ] = React.useState({height: height, width: Layouts.screen.width});
 
-    const renderColumns : () => React.ReactNode[] = () => {
+    const renderColumns = React.useCallback< () => React.ReactNode[] >( () => {
         const columns : React.ReactNode[] = [];
-        const columnWidth = (layoutsContainer.width - 1 - TIMELINE_TIME_BAR_WIDTH) / numberOfDate;
-        for (let i = 0; i < numberOfDate; i++) {
+        const columnWidth = (layoutsContainer.width - 1 - TIMELINE_TIME_BAR_WIDTH) / numberOfDateShow;       
+        for (let i = 0; i < numberOfDateShow; i++) {
             const thisDay = startDayjs.add(i, 'days');
+            const taskListThisDay = taskList.filter( task => thisDay.isBetween(task.start, task.end, 'day', '[]'));
+            
             columns.push(
                 <TimelineColumn
                     key={i}
+                    thisDate = { thisDay.format() }
+                    taskList={ taskListThisDay.length > 0 ? taskListThisDay : undefined }
                     
-                    taskList={taskList.filter( task => thisDay.isBetween(task.start, task.end, 'day', '[]'))}
-                    isToday={thisDay.isSame(dayjs(), 'day')}
-                    
-                    onPressCellCol={(startHour) => onPressCell(thisDay.toDate(), thisDay.format(), startHour)}
+                    onPressCell={onPressCell}
                     onPressTask={onPressTask}
                     
                     rightBorder={i === numberOfDate - 1}
@@ -68,9 +73,9 @@ const Timeline : React.FC<TimelineProps> = ({
             );
         }
         return columns;
-    }
+    }, [startDate, taskList, numberOfDate, onPressCell, onPressTask]);
 
-    const renderTimeBar : () => React.ReactNode[] = () => {
+    const renderTimeBar = React.useCallback<() => React.ReactNode[]>(() => {
         const cells : React.ReactNode[] = [];
         for (let i = START_HOUR + 1; i <= END_HOUR; i++) {
             cells.push(
@@ -81,18 +86,25 @@ const Timeline : React.FC<TimelineProps> = ({
             )
         }
         return cells;
-    }
+    }, []);
+
+    // React.useEffect(() => {
+    //     console.log('Timeline' + selectedDate);
+    // }, [selectedDate]);
 
     return (
         <View style={[styles.container, ]}>
             <TimelineHeader
                 startDate={startDate}
-                numberOfDays={numberOfDate}
+                numberOfDays={numberOfDateShow}
 
-                taskList = {taskList}
+                taskList = {taskList.length > 0 ? taskList : undefined}
+                showTaskList = { !!taskList }
 
-                onPressDate={(date, dateString) => {onPressDate(date, dateString); setSelectedDate(date)}}
+                onPressDate={onPressDate}
                 selectedDate={selectedDate}
+
+                showMonth={false}
             />
             <ScrollView  
                 style={[{maxHeight: height}]}

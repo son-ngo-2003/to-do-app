@@ -1,46 +1,50 @@
 import dayjs from 'dayjs';
 import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 
 //constants
-import { DATE_NAME_FULL, DATE_NAME_3, DATE_NAME_2, DATE_NAME_1, TIMELINE_TIME_BAR_WIDTH } from '../constants';
+import { DATE_NAME_FULL, DATE_NAME_3, DATE_NAME_2, DATE_NAME_1, TIMELINE_TIME_BAR_WIDTH, MONTH_NAME_3 } from '../constants';
 
 //components
 import { type TaskTimeline } from '../type';
 import DateItem from './DateItem';
+import { Typography } from '../../../styles';
 
 type TimelineHeaderProps = {
     startDate: Date | string,
     numberOfDays: number,
 
-    taskList: TaskTimeline[],
+    taskList?: TaskTimeline[],
+    showTaskList?: boolean,
+
     selectedDate?: Date | string,
     onPressDate?: (date: Date, dateString: string) => void,
 
     dateNameType?: 'full' | '3 letters' | '2 letters' | '1 letter',
     //TODO: add dateNameType to TimelineList, CalendarList and MixCalendarList
     showMonth?: boolean
-    //TODO: add showMonth function (like calendar)
 }
 
 const TimelineHeader: React.FC<TimelineHeaderProps> = ({
     startDate,
     numberOfDays,
 
-    taskList = [],
+    taskList,
+    showTaskList = false,
+
     selectedDate,
-    onPressDate = () => {},
+    onPressDate,
 
     dateNameType = '3 letters',
     showMonth = true,
 }) => {
     const startDayjs = React.useMemo( () => dayjs( startDate ), [startDate] );
-    const selectedDay = React.useMemo( () => dayjs( selectedDate ), [selectedDate]);
-    const taskListAllDay = React.useMemo(() => taskList.filter( task => task.isAllDay), [taskList]);
+    const selectedDay = React.useMemo( () => selectedDate && dayjs( selectedDate ), [selectedDate]);
+    const taskListAllDay = React.useMemo(() => taskList && taskList.filter( task => task.isAllDay), [taskList]);
     const { colors } = useTheme();
 
-    function renderText () : React.ReactNode[] {
+    const renderText = React.useCallback<() => React.ReactNode[]>( () => {
         const dates: React.ReactNode[] = [];
         
         let listDateNames : string[];
@@ -64,28 +68,44 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({
 
         for (let i = 0; i < numberOfDays; i++) {
             const thisDay = startDayjs.add(i, 'days');
+            const taskThisDay = taskListAllDay ? taskListAllDay.filter( task => thisDay.isBetween(task.start, task.end, 'day', '[]')) : [];
+
             dates.push( 
                 <DateItem 
                     key={i}
 
-                    thisDate={thisDay.toDate()}
-                    onPress={() => onPressDate(thisDay.toDate(), thisDay.format() )}
+                    thisDate={thisDay.format()}
+                    isSelected = {!!selectedDate && thisDay.isSame(selectedDay, 'day')}
+                    onPress={onPressDate}
                     
-                    taskListThisDay = {taskListAllDay.filter( task => thisDay.isBetween(task.start, task.end, 'day', '[]'))}
+                    taskListThisDay = { taskThisDay.length > 0 ? taskThisDay : undefined}
+                    showTaskList = {showTaskList}
                     listDateNames = {listDateNames}
-                
-                    isSelected = {thisDay.isSame(selectedDay, 'day')}
-                    isToday = {thisDay.isSame(dayjs(), 'day')}
                 
                     width = {`${1/numberOfDays*100}%`}
                 />
             )
         }
         return dates;
-    }
+    }, [startDate, onPressDate, taskListAllDay, numberOfDays, selectedDate ]);
+
+    // React.useEffect(() => {
+    //     console.log('TimelineHeader' + startDate);
+    // });
 
     return (
         <View style={[styles.headerContainer]}>
+            {   showMonth && 
+                <View style={[styles.titleContainer]}>
+                    <Text
+                        style={[{color: colors.text}, Typography.header.x50]}
+                    >{  MONTH_NAME_3[startDayjs.month()] }</Text>
+
+                    <Text
+                        style={[{color: colors.text, opacity: 0.5}, Typography.subheader.x40]}
+                    >{  startDayjs.year() }</Text>
+                </View>
+            }
             <View style={[styles.dateNameContainer, ]}>
                 {renderText()}
             </View>

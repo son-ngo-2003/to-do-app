@@ -185,10 +185,11 @@ const HomeScreen : React.FC = () => {
                 </View>
             </Pressable> */}
             <CalendarList
-                // taskList={taskList}
-                // minDate={ '2024-01-01' }
-                // maxDate={ '2024-09-09' }
-                // calendarMode='timeline'
+                taskList={taskList}
+                minDate={ '2024-01-01' }
+                maxDate={ '2024-09-09' }
+                calendarMode='calendar'
+                showWeekends={true}
 
                 // markedDate={markedDate}
                 // minMonth={ '2024-01-01' }
@@ -196,9 +197,10 @@ const HomeScreen : React.FC = () => {
                 // showOneWeek = {false}
                 // width={300}
 
-                minPeriod={ '2024-01-01' }
-                maxPeriod={ '2024-09-09' }
-                width={300}
+                // minPeriod={ '2024-01-01' }
+                // maxPeriod={ '2024-09-09' }
+                // width={300}
+                // onPressDate={() => {}}
             />
         </View>
     );

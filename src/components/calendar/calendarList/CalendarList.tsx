@@ -10,6 +10,7 @@ import { type ScrollType, type CalenderListRef } from '../type';
 
 //constants
 import { CALENDAR_BODY_HEIGHT, CALENDAR_BODY_ONE_WEEK_HEIGHT } from '../constants';
+import { useTraceUpdate } from '../../../hooks';
 
 export type CalendarListProps = {
     onScroll?: ( isSuccess: boolean, newCanScroll : ScrollType, newMonth?: Date  ) => void,
@@ -23,22 +24,25 @@ type DataItemType = {
     thisMonth: dayjs.Dayjs,
 }
 
-const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>(({
-    initialDate,
-    markedDate,
+const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((props, ref) => {
+    const {
+        initialDate,
+        markedDate,
+        
+        isSelectRange,
+        onPressDate,
+        onPressRangeDate,
+        onScroll,
+        
+        showOneWeek = false,
+        
+        minMonth,
+        maxMonth,
+        width = Layouts.screen.width,
     
-    isSelectRange,
-    onPressDate = () => {},
-    onPressRangeDate = () => {},
-    onScroll = () => {},
-    
-    showOneWeek = false,
-    
-    minMonth,
-    maxMonth,
-    width = Layouts.screen.width,
+    } = props;
 
-}, ref) => {
+    //useTraceUpdate(props);
     const flatListRef = React.useRef<FlatList<DataItemType>>(null);
 
     const [ currentMonth, setCurrentMonth ] = React.useState<string>( dayjs(initialDate).format() );
@@ -50,7 +54,7 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>(({
     React.useImperativeHandle(ref, () => ({
         ...flatListRef.current,
         scroll: scroll,
-    }), [selectedDate, rangeSelectedDate]);
+    }), [selectedDate, rangeSelectedDate, currentMonth]);
 
     const isMonthContainedInRange = React.useCallback< (thisMonth: dayjs.Dayjs) => boolean>((thisMonth) => {
         if (!rangeSelectedDate.end && 
@@ -67,13 +71,13 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>(({
     }, []);
 
     const _onPressDate = React.useCallback<(date: Date, dateString: string) => void>( (date, dateString) => {
-        onPressDate(date, dateString);
+        onPressDate && onPressDate(date, dateString);
         setSelectedDate(dateString);
     }, []);
 
     const _onPressRangeDate = React.useCallback< (dateRange: RangeSelectedDateType) => void > ( (dateRange) => {
         setRangeSelectedDate(dateRange);
-        onPressRangeDate(dateRange);
+        onPressRangeDate && onPressRangeDate(dateRange);
     }, []);
 
     const  renderItem  = React.useCallback<ListRenderItem<DataItemType>>(({ item }) => {
@@ -122,19 +126,19 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>(({
 
     function getScrollStatus( month: dayjs.Dayjs = dayjs(selectedDate) ) {
         const scrollStatus : ScrollType = {left: false, right: false};
-        scrollStatus.left = month.isSameOrBefore(minMonth, 'months');
-        scrollStatus.right = month.isSameOrAfter(maxMonth, 'months');
+        scrollStatus.left = month.isAfter(minMonth, 'months');
+        scrollStatus.right = month.isBefore(maxMonth, 'months');
         return scrollStatus;
     }
 
     function scroll( _arg: dayjs.Dayjs | number | Date | string, force : boolean = false ) : void {
         if (!flatListRef.current) {
-            onScroll( false, {left: false, right: false});
+            onScroll && onScroll( false, {left: false, right: false});
             return;
         }
 
         if (!force && showOneWeek) { //avoid scroll when show 1 week
-            onScroll( false, {left: false, right: false}); 
+            onScroll && onScroll( false, {left: false, right: false}); 
             return;
         }         
         
@@ -144,7 +148,7 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>(({
 
         let scrollDirection : ScrollType = getScrollStatus(newMonth);      
         if (newMonth.isBefore(minMonth, 'months') || newMonth.isAfter(maxMonth, 'months')) {
-            onScroll( false, scrollDirection );
+            onScroll && onScroll( false, scrollDirection );
             return;
         }
 
@@ -154,7 +158,7 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>(({
         });
 
         setCurrentMonth(newMonth.format());
-        onScroll( true, scrollDirection, newMonth.toDate() );
+        onScroll && onScroll( true, scrollDirection, newMonth.toDate() );
     }
 
     function onScrollManuel (e: NativeSyntheticEvent<NativeScrollEvent>) {
@@ -164,13 +168,13 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>(({
         setCurrentMonth(newMonth.format());
 
         let scrollDirection : ScrollType = getScrollStatus(newMonth);   
-        onScroll( true, scrollDirection, newMonth.toDate() );
+        onScroll &&  onScroll( true, scrollDirection, newMonth.toDate() );
     }
 
     React.useEffect(() => {
         if (! dayjs(selectedDate) .isSame(currentMonth, 'months')) {
             scroll(selectedDate);
-            setCurrentMonth( selectedDate );
+            //setCurrentMonth( selectedDate );
         }
     }, [selectedDate]);
 

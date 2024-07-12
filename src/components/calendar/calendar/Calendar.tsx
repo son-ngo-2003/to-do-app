@@ -49,6 +49,8 @@ const Calendar: React.FC<CalendarProps> = (props) => {
         showMonthHeader = true,
     } = props;
 
+    //useTraceUpdate(props);
+
     const thisPeriod = React.useMemo( () => ( dayjs({ month: thisMonth, year: thisYear } )), [ thisMonth, thisYear ]);
 
     const firstDay = React.useMemo( () =>
@@ -101,15 +103,13 @@ const Calendar: React.FC<CalendarProps> = (props) => {
             <DateItem
                 key={dateOfWeek}
                 thisDate = { thisDay.format() }
-
-                isToday={ thisDay.isSame(dayjs(), 'day') }
                 isCurrentMonth={thisDay.month() === thisMonth}
                 
                 selectedType={getSelectedType(thisDay) }
                 onPress={ isSelectRange ? onPressRange : onPress}
 
                 showMarked={!!markedDate}
-                markedThisDate={ markedDate.length > 0 ? markedThisDate : undefined }
+                markedThisDate={ markedThisDate.length > 0 ? markedThisDate : undefined }
             />
         )
     },[firstDay, thisMonth]);

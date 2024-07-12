@@ -20,7 +20,6 @@ type DateItemProps = {
     thisDate: string,
 
     isCurrentMonth?: boolean,
-    isToday?: boolean,
     selectedType?: SelectedType,
 
     onPress?: (date: Date, dateString: string) => void,
@@ -33,7 +32,6 @@ const DateItem: React.FC<DateItemProps> = (props) => {
         thisDate,
         
         isCurrentMonth = true,
-        isToday = false,
         selectedType = 'none',
     
         onPress = () => {},
@@ -42,9 +40,12 @@ const DateItem: React.FC<DateItemProps> = (props) => {
         
     } = props;
 
+    // useTraceUpdate(props);
+
     const { colors } = useTheme();
     const progress = useSharedValue<number>(0);
     const thisDay = React.useMemo(() => dayjs(thisDate), [thisDate]);
+    const isToday = React.useMemo(() => dayjs().isSame(thisDay, 'day'), [thisDate]);
     const [ borderRadius, setBorderRadius ] = React.useState({borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderTopRightRadius: 0, borderBottomRightRadius: 0});
 
     const onPressDate = React.useCallback( () => {
@@ -87,6 +88,10 @@ const DateItem: React.FC<DateItemProps> = (props) => {
             progress.value = Anim.timing<number>(0).easeIn.fast;
         }    
     }, [selectedType])
+
+    // React.useEffect(() => {
+    //     console.log('DateItem' + thisDay.format('DD/MM'))
+    // });
 
     return (
         <Pressable 

@@ -16,36 +16,39 @@ import { useTraceUpdate } from '../../../hooks';
 
 type DateItemProps = {
     thisDate: Date | string,
-    onPress: () => void,
+    isSelected?: boolean,
+    onPress?: (date: Date, dateString: string) => void,
 
     listDateNames: string[],
     taskListThisDay?: TaskTimeline[],
+    showTaskList? : boolean,
     
-    isSelected?: boolean,
-    isToday?: boolean,
-    
-    width: DimensionValue,
+    width?: DimensionValue,
 }
 
 const DateItem: React.FC<DateItemProps> = (props) => {
     const {
         thisDate,
+        isSelected = false,
         onPress,
         
         listDateNames,
         taskListThisDay ,
+        showTaskList = false,
     
-        isSelected = false,
-        isToday = false,
-    
-        width,
+        width = 40,
     } = props;
 
-    useTraceUpdate(props);
+    useTraceUpdate(props)
 
     const { colors } = useTheme();
     const colorProgress = useSharedValue<number>(0);
     const thisDay = React.useMemo(() => dayjs(thisDate), [thisDate]);
+    const isToday = React.useMemo(() => dayjs().isSame(thisDay, 'day'), [thisDate]);
+
+    const onPressDate = React.useCallback(() => {
+        onPress && onPress(thisDay.toDate(), thisDay.format());
+    }, [thisDate]);
 
     const containerAnimatedStyles = useAnimatedStyle(() => {
         return {
@@ -55,23 +58,21 @@ const DateItem: React.FC<DateItemProps> = (props) => {
         };
     });
 
-    const renderDots : () => React.ReactNode = () => {
+    const renderDots = React.useCallback<() => React.ReactNode>(() => {
         return (
-            taskListThisDay &&
+            showTaskList &&
             <View style={[styles.listDot]}>
-                {taskListThisDay.map( task => (
+                {taskListThisDay && taskListThisDay.map( task => (
                     <View key={task.id} style={[styles.dot, {backgroundColor: task.color}]}/>
                 ))}
             </View>
         )
-    }
+    },[taskListThisDay]);
 
     React.useEffect(() => {
-        if (isSelected) {
-            colorProgress.value = Anim.timing<number>(1).easeIn.fast;
-        } else {
-            colorProgress.value = Anim.timing<number>(0).easeIn.fast;
-        }
+        isSelected
+            ? colorProgress.value = Anim.timing<number>(1).easeIn.fast
+            : colorProgress.value = Anim.timing<number>(0).easeIn.fast;
     }, [isSelected])
 
     return (
@@ -81,7 +82,7 @@ const DateItem: React.FC<DateItemProps> = (props) => {
                 containerAnimatedStyles,
                 {width},
             ]}
-            onPress={onPress}
+            onPress={onPressDate}
         >
             <Text style={[
                 styles.dayText,
