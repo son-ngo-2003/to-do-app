@@ -38,7 +38,7 @@ const TimelineColumn : React.FC<TimelineColumnProps> = ({
 }) => {
     const { colors } = useTheme();
     const thisDayjs = React.useMemo(() => dayjs(thisDate), [thisDate]);
-    const isToday = React.useMemo(() => dayjs().isSame(thisDayjs, 'day'), [thisDate]);
+    const isToday = React.useMemo(() => dayjs().isSame(thisDayjs, 'day'), [thisDayjs]);
     
     const taskListNotAllDay = React.useMemo(() => taskList && taskList.filter( task => !task.isAllDay), [taskList]);
     const bboxTasks = React.useMemo(() => generateBBoxOfTasks(taskListNotAllDay), [taskListNotAllDay]);
@@ -59,7 +59,7 @@ const TimelineColumn : React.FC<TimelineColumnProps> = ({
             )
         }
         return cells;
-    }, [onPressCell, width, colors.border, thisDate]);
+    }, [onPressCell, width, colors.border, thisDayjs]);
 
     const renderTasksNotAllDay = React.useCallback<() => React.ReactNode[] | undefined>(() => {
         return taskListNotAllDay && taskListNotAllDay.map( (task, index) => 

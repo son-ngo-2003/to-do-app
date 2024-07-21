@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import dayjs from 'dayjs';
 import { ListRenderItem, FlatList, View, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import Animated, { interpolate, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
@@ -7,6 +7,7 @@ import Animated, { interpolate, useAnimatedStyle, useSharedValue } from 'react-n
 import Calendar, { CalendarProps, type RangeSelectedDateType } from '../calendar/Calendar';
 import { Layouts, Animations as Anim } from '../../../styles';
 import { type ScrollType, type CalenderListRef } from '../type';
+import { useCalendarPages} from "../hooks";
 
 //constants
 import { CALENDAR_BODY_HEIGHT, CALENDAR_BODY_ONE_WEEK_HEIGHT } from '../constants';
@@ -43,12 +44,20 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((props
     } = props;
 
     //useTraceUpdate(props);
-    const flatListRef = React.useRef<FlatList<DataItemType>>(null);
+    const flatListRef = useRef<FlatList<DataItemType>>(null);
 
-    const [ currentMonth, setCurrentMonth ] = React.useState<string>( dayjs(initialDate).format() );
-    const [ selectedDate, setSelectedDate ] = React.useState<string>( currentMonth );
-    const [ rangeSelectedDate, setRangeSelectedDate ] = React.useState<RangeSelectedDateType>({start: undefined, end: undefined});
-    
+    const [ currentMonth, setCurrentMonth ] = useState<string>( dayjs(initialDate).format() );
+    const [ selectedDate, setSelectedDate ] = useState<string>( currentMonth );
+    const [ rangeSelectedDate, setRangeSelectedDate ] = useState<RangeSelectedDateType>({start: undefined, end: undefined});
+
+    const {
+        pagesRef,
+        // pagesLength,
+        isOutOfRange,
+        isOnEdgePages,
+        getIndexOfPage,
+    } = useCalendarPages({minDate: minMonth, maxDate: maxMonth, typePage: 'month'} );
+
     const expandCalendarProgress = useSharedValue<number>(showOneWeek ? 0 : 1);
 
     React.useImperativeHandle(ref, () => ({
@@ -56,7 +65,7 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((props
         scroll: scroll,
     }), [selectedDate, rangeSelectedDate, currentMonth]);
 
-    const isMonthContainedInRange = React.useCallback< (thisMonth: dayjs.Dayjs) => boolean>((thisMonth) => {
+    const isMonthContainedInRange = useCallback< (thisMonth: dayjs.Dayjs) => boolean>((thisMonth) => {
         if (!rangeSelectedDate.end && 
             (thisMonth.isSame(currentMonth, 'month') || thisMonth.isSame(rangeSelectedDate.start, 'month') )) 
                 return true; //because we don't know the end of range, so we accept the end is infinity until it is selected
@@ -70,17 +79,17 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((props
         }
     }, []);
 
-    const _onPressDate = React.useCallback<(date: Date, dateString: string) => void>( (date, dateString) => {
+    const _onPressDate = useCallback<(date: Date, dateString: string) => void>( (date, dateString) => {
         onPressDate && onPressDate(date, dateString);
         setSelectedDate(dateString);
     }, [onPressDate, setSelectedDate]);
 
-    const _onPressRangeDate = React.useCallback< (dateRange: RangeSelectedDateType) => void > ( (dateRange) => {
+    const _onPressRangeDate = useCallback< (dateRange: RangeSelectedDateType) => void > ( (dateRange) => {
         setRangeSelectedDate(dateRange);
         onPressRangeDate && onPressRangeDate(dateRange);
     }, [setRangeSelectedDate, onPressRangeDate]);
 
-    const  renderItem  = React.useCallback<ListRenderItem<DataItemType>>(({ item }) => {
+    const  renderItem  = useCallback<ListRenderItem<DataItemType>>(({ item }) => {
         const {  thisMonth } = item;
         const selectedDateInMonth = thisMonth.isSame( selectedDate, 'month' );
 
@@ -108,31 +117,17 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((props
         )
     },[selectedDate, rangeSelectedDate, showOneWeek, isSelectRange, markedDate, _onPressDate, isMonthContainedInRange, _onPressRangeDate, width, calendarContainerAnimation]);
 
-    function getDataList () : DataItemType[] {
-        const listItem : DataItemType[] = []
+    const getDataList = useCallback( () : DataItemType[] => {
+        return pagesRef.current.map((thisMonth) => ({thisMonth}));
+    }, [pagesRef.current]);
 
-        let thisMonth = dayjs(minMonth);
-        while (thisMonth.isBefore(maxMonth)) {
-            listItem.push({ thisMonth });
-            thisMonth = thisMonth.add( 1 , 'months');
-        }
+    const getScrollStatus = useCallback( ( month: dayjs.Dayjs = dayjs(selectedDate) ) => {
+        const isOnEdge = isOnEdgePages(month);
+        return isOnEdge !== 'none' ? {left: isOnEdge !== 'left', right: isOnEdge !== 'right'} :
+               isOutOfRange(month) === 'none' ? {left: true, right: true} : {left: false, right: false};
+    }, [selectedDate, isOnEdgePages, isOutOfRange]);
 
-        return listItem;
-    }
-
-    //TODO: instead of doing this, we can create a map that reference month to index (same for timeline)
-    function getIndexOfMonth (month: dayjs.Dayjs = dayjs(selectedDate)): number {
-        return Math.floor(month.diff(minMonth, 'months'));
-    }
-
-    function getScrollStatus( month: dayjs.Dayjs = dayjs(selectedDate) ) {
-        const scrollStatus : ScrollType = {left: false, right: false};
-        scrollStatus.left = month.isAfter(minMonth, 'months');
-        scrollStatus.right = month.isBefore(maxMonth, 'months');
-        return scrollStatus;
-    }
-
-    function scroll( _arg: dayjs.Dayjs | number | Date | string, force : boolean = false ) : void {
+    const scroll = useCallback( ( _arg: dayjs.Dayjs | number | Date | string, force : boolean = false ) : void => {
         if (!flatListRef.current) {
             onScroll && onScroll( false, {left: false, right: false});
             return;
@@ -148,21 +143,17 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((props
                             : dayjs(_arg);
 
         let scrollDirection : ScrollType = getScrollStatus(newMonth);      
-        if (newMonth.isBefore(minMonth, 'months') || newMonth.isAfter(maxMonth, 'months')) {
+        if ( isOutOfRange(newMonth) !== 'none' ) {
             onScroll && onScroll( false, scrollDirection );
             return;
         }
 
-        // flatListRef.current?.scrollToIndex({
-        //     index: getIndexOfMonth(newMonth),
-        //     animated: true,
-        // });
-
+        flatListRef.current?.scrollToOffset({animated: true, offset: width * getIndexOfPage(newMonth)});
         setCurrentMonth(newMonth.format());
         onScroll && onScroll( true, scrollDirection, newMonth.toDate() );
-    }
+    }, [onScroll, showOneWeek, currentMonth, isOutOfRange, width, getIndexOfPage, getScrollStatus]);
 
-    function onScrollManuel (e: NativeSyntheticEvent<NativeScrollEvent>) {
+    const onScrollManuel = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
         const ne = e.nativeEvent;
         if (ne.contentOffset.x % width !== 0) return;
         const newMonth = dayjs(minMonth).add( ne.contentOffset.x / width, 'months');
@@ -170,16 +161,15 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((props
 
         let scrollDirection : ScrollType = getScrollStatus(newMonth);   
         onScroll &&  onScroll( true, scrollDirection, newMonth.toDate() );
-    }
+    }, [width, minMonth, onScroll, getScrollStatus]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (! dayjs(selectedDate) .isSame(currentMonth, 'months')) {
             scroll(selectedDate);
-            //setCurrentMonth( selectedDate );
         }
     }, [selectedDate]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         isSelectRange
             ? scroll(rangeSelectedDate.start || 0, true)
             : scroll(selectedDate, true);
@@ -201,8 +191,8 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((props
                 showsHorizontalScrollIndicator={false}
                 onScroll = {onScrollManuel}
                 pagingEnabled={true}
-                getItemLayout={(data, index) => ({length: width, offset: width * index, index})}
-                initialScrollIndex={getIndexOfMonth()}
+                getItemLayout={(_, index) => ({length: width, offset: width * index, index})}
+                initialScrollIndex={getIndexOfPage()}
             />
          </View>
     )

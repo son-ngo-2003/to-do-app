@@ -5,6 +5,7 @@ import FontAwesome5 from'react-native-vector-icons/FontAwesome5';
 import FontAwesome6 from'react-native-vector-icons/FontAwesome6';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons'
 import Feather from 'react-native-vector-icons/Feather'
+import React from "react";
 
 type IconProps = {
     name: string,

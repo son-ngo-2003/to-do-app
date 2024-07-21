@@ -1,5 +1,5 @@
 import React, { ComponentType, PropsWithChildren } from 'react';
-import { KeyboardAvoidingView, ScrollView, View, Platform, ViewProps, KeyboardAvoidingViewProps } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, Platform, ViewProps, KeyboardAvoidingViewProps } from 'react-native';
 
 function KeyboardOptimizeHOC (
     Comp: ComponentType<PropsWithChildren<KeyboardAvoidingViewProps>>
@@ -14,6 +14,6 @@ function KeyboardOptimizeHOC (
             </Comp>
         </ScrollView>
     );
-};
+}
 
 export default KeyboardOptimizeHOC(KeyboardAvoidingView);

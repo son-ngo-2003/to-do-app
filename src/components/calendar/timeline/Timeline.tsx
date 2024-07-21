@@ -23,8 +23,8 @@ export type TimelineProps = {
     height?: number,
     width?: number,
 
-    numberOfDate?: number,
-    showWeekends?: boolean, //Only apply for week timeline (numberOfDate = 7)
+    numberOfDays?: number,
+    showWeekends?: boolean, //Only apply for week timeline (numberOfDays = 7)
 } & TimelineColumnProps;
 
 const Timeline : React.FC<TimelineProps> = ({
@@ -40,22 +40,22 @@ const Timeline : React.FC<TimelineProps> = ({
     height = CALENDAR_BODY_HEIGHT,
     width = Layouts.screen.width,
 
-    numberOfDate = 7,
+    numberOfDays = 7,
     showWeekends = true,
 }) => {
-    const startDayjs = React.useMemo( () => numberOfDate === 7 
+    const startDayjs = React.useMemo( () => numberOfDays === 7
                                                 ? dayjs( startDate ).startOf('week')
                                                 : dayjs( startDate )
-                                    , [startDate, numberOfDate] );
-    const numberOfDateShow = React.useMemo( () => numberOfDate !== 7 
-                                                ? numberOfDate 
+                                    , [startDate, numberOfDays] );
+    const numberOfDaysShow = React.useMemo( () => numberOfDays !== 7
+                                                ? numberOfDays
                                                 : showWeekends ? 7 : 5   //for case of week timeline but not show weekends
-                                    , [numberOfDate, showWeekends] );
+                                    , [numberOfDays, showWeekends] );
 
     const renderColumns = React.useCallback< () => React.ReactNode >( () => {
         const columns : React.ReactNode[] = [];
-        const columnWidth = width / numberOfDateShow;       
-        for (let i = 0; i < numberOfDateShow; i++) {
+        const columnWidth = width / numberOfDaysShow;       
+        for (let i = 0; i < numberOfDaysShow; i++) {
             const thisDay = startDayjs.add(i, 'days');
             const taskListThisDay = taskList.filter( task => thisDay.isBetween(task.start, task.end, 'day', '[]'));
             
@@ -68,7 +68,7 @@ const Timeline : React.FC<TimelineProps> = ({
                     onPressCell={ onPressCell }
                     onPressTask={ onPressTask }
                     
-                    rightBorder={i === numberOfDate - 1}
+                    rightBorder={i === numberOfDays - 1}
                     width={columnWidth}
                 />
             );
@@ -77,7 +77,7 @@ const Timeline : React.FC<TimelineProps> = ({
             <View style={{flexDirection: 'row' }}>
                 {columns.map( column => column )}
             </View>)
-    }, [taskList, numberOfDate, onPressCell, onPressTask, width, startDayjs]);
+    }, [taskList, numberOfDays, onPressCell, onPressTask, width, startDayjs]);
 
     //TODO: add initial scroll position (at current hour)
     //TODO: later, update using RecyclerListView instead: https://github.com/Flipkart/recyclerlistview/tree/master
@@ -86,7 +86,7 @@ const Timeline : React.FC<TimelineProps> = ({
         <View style={[{width : width}]}>
             <TimelineHeader
                 startDate={startDate}
-                numberOfDays={numberOfDateShow}
+                numberOfDays={numberOfDaysShow}
 
                 taskList = {taskList.length > 0 ? taskList : undefined}
                 showTaskList = { !!taskList }

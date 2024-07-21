@@ -9,7 +9,7 @@ import { type MarkedObject, type SelectedType } from '../type';
 
 //constants
 import { LENGTH_WEEK_SHOWS } from '../constants';
-import { useTraceUpdate } from '../../../hooks';
+// import { useTraceUpdate } from '../../../hooks';
 
 export type RangeSelectedDateType = {
     start: Date | string | undefined,
@@ -61,9 +61,9 @@ const Calendar: React.FC<CalendarProps> = (props) => {
 
     const onPress : (date: Date, dateString: string) => void = React.useCallback( (date, dateString) => {
         onPressDate(date, dateString);
-    }, []);
+    }, [onPressDate]);
 
-    const onPressRange : (date: Date, dateString: string) => void = React.useCallback( (date, dateString) => {
+    const onPressRange = React.useCallback( (date: Date, dateString: string) => {
         let newRangeSelectedDate: RangeSelectedDateType = rangeSelectedDate;
         newRangeSelectedDate.end 
             ? newRangeSelectedDate = {start: dateString, end: undefined}
@@ -75,9 +75,9 @@ const Calendar: React.FC<CalendarProps> = (props) => {
             && (newRangeSelectedDate = {start: newRangeSelectedDate.end, end: newRangeSelectedDate.start});
 
         onPressRangeDate(newRangeSelectedDate);
-    }, [rangeSelectedDate]);
+    }, [rangeSelectedDate, onPressRangeDate]);
 
-    const getSelectedType = React.useCallback<(thisDay: dayjs.Dayjs) => SelectedType>((thisDay) => {
+    const getSelectedType = React.useCallback((thisDay: dayjs.Dayjs) : SelectedType => {
         if (isSelectRange) {
             if (rangeSelectedDate.start && thisDay.isSame(rangeSelectedDate.start, 'day')) {
                 if (!rangeSelectedDate.end  || dayjs(rangeSelectedDate.start).isSame(rangeSelectedDate.end, 'day'))
@@ -94,9 +94,9 @@ const Calendar: React.FC<CalendarProps> = (props) => {
                 ? 'one-date'
                 : 'none';
         }
-    }, [isSelectRange, rangeSelectedDate, selectedDate])
+    }, [isSelectRange, selectedDate, rangeSelectedDate.start, rangeSelectedDate.end])
 
-    const renderDay = React.useCallback< (week: number, dateOfWeek: number) => React.ReactNode>((week, dateOfWeek) =>{
+    const renderDay = React.useCallback((week: number, dateOfWeek: number) : React.ReactNode =>{
         const thisDay = firstDay.add(week * 7 + dateOfWeek, 'days');
         const markedThisDate = markedDate.filter( marked => dayjs( marked.date ).isSame(thisDay, 'day'));
         return (      
@@ -112,23 +112,23 @@ const Calendar: React.FC<CalendarProps> = (props) => {
                 markedThisDate={ markedThisDate.length > 0 ? markedThisDate : undefined }
             />
         )
-    },[firstDay, thisMonth]);
+    },[firstDay, thisMonth, markedDate, getSelectedType, isSelectRange, onPress]);
 
-    const renderWeek = React.useCallback< ( week: number ) => React.ReactNode > ((week) => {
+    const renderWeek = React.useCallback (( week: number ) : React.ReactNode => {
         const days : React.ReactNode[] = [];
         for ( let i = 0; i < 7; i++ ) { //7 days a week
             days.push(renderDay( week, i ));
         }
-        return <View key={week} style={[styles.weekContainer]}>{days}</View>
-    },[selectedDate, firstDay]);
+        return <View key={week} style={[styles.weekContainer]}>{days.map(day => day)}</View>
+    },[renderDay]);
 
-    const renderMonth = React.useCallback< (weeksShow: number) => React.ReactNode > ((weeksShow) => {
+    const renderMonth = React.useCallback ((weeksShow: number) : React.ReactNode => {
         const weeks : React.ReactNode[] = [];
         for ( let i = 0; i < weeksShow; i++ ) {
             weeks.push( renderWeek( i ) );
         }
-        return <View>{weeks}</View>
-    }, [selectedDate, firstDay]);
+        return <View>{weeks.map( week => week )}</View>
+    }, [renderWeek]);
 
     return (
         <View style={[styles.calendar]}>

@@ -44,11 +44,11 @@ const DateItem: React.FC<DateItemProps> = (props) => {
     const { colors } = useTheme();
     const colorProgress = useSharedValue<number>(0);
     const thisDay = React.useMemo(() => dayjs(thisDate), [thisDate]);
-    const isToday = React.useMemo(() => dayjs().isSame(thisDay, 'day'), [thisDate]);
+    const isToday = React.useMemo(() => dayjs().isSame(thisDay, 'day'), [thisDay]);
 
     const onPressDate = React.useCallback(() => {
         onPress && onPress(thisDay.toDate(), thisDay.format());
-    }, [onPress, thisDate]);
+    }, [onPress, thisDay]);
 
     const containerAnimatedStyles = useAnimatedStyle(() => {
         return {

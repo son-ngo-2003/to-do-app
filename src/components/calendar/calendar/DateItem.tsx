@@ -45,12 +45,12 @@ const DateItem: React.FC<DateItemProps> = (props) => {
     const { colors } = useTheme();
     const progress = useSharedValue<number>(0);
     const thisDay = React.useMemo(() => dayjs(thisDate), [thisDate]);
-    const isToday = React.useMemo(() => dayjs().isSame(thisDay, 'day'), [thisDate]);
+    const isToday = React.useMemo(() => dayjs().isSame(thisDay, 'day'), [thisDay]);
     const [ borderRadius, setBorderRadius ] = React.useState({borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderTopRightRadius: 0, borderBottomRightRadius: 0});
 
     const onPressDate = React.useCallback( () => {
         onPress(thisDay.toDate(), thisDay.format());
-    }, [onPress, thisDate]);
+    }, [onPress, thisDay]);
 
     const containerAnimatedStyles = useAnimatedStyle(() => ({
         backgroundColor: interpolateColor( progress.value, [ 0, 1 ],

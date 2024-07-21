@@ -45,8 +45,8 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
     
     heightMode = 'medium',
     calendarMode = 'calendar',
-    numberOfDate, //only for timeline mode
-    showWeekends = true, //only for week timeline mode (numberOfDate = 7)
+    numberOfDays, //only for timeline mode
+    showWeekends = true, //only for week timeline mode (numberOfDays = 7)
 
     minDate,
     maxDate,
@@ -131,7 +131,7 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
                             : timelineHeight[heightMode]
                     }     
                     
-                    numberOfDate={ numberOfDate }
+                    numberOfDays={ numberOfDays }
                     showWeekends={ showWeekends }
                     minPeriod={ minDate }
                     maxPeriod={ maxDate }
@@ -144,7 +144,7 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
     return (
         <Pressable style={[styles.calendar, {width}]}
                 onPress={onPressShortenCalendarList}
-                onStartShouldSetResponderCapture={(e) => 
+                onStartShouldSetResponderCapture={(_) =>
                     typeof heightMode === 'number'
                     ? heightMode < CALENDAR_BODY_HEIGHT
                     : heightMode === 'short'
