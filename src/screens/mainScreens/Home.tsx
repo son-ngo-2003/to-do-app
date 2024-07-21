@@ -186,9 +186,9 @@ const HomeScreen : React.FC = () => {
             </Pressable> */}
             <CalendarList
                 taskList={taskList}
-                minDate={ '2024-01-01' }
-                maxDate={ '2024-09-09' }
-                calendarMode='calendar'
+                minDate={ '2024-07-07' }
+                maxDate={ '2024-09-15' }
+                calendarMode='timeline'
                 showWeekends={true}
 
                 // markedDate={markedDate}

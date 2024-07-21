@@ -53,6 +53,8 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
     width = Layouts.screen.width,
 
 }, ref) => {
+
+    //TODO: use useTraceUpdate to check re-render of all children
     const listRef = React.useRef<any>(null);
 
     const [ selectedDate, setSelectedDate ] = React.useState<string>( dayjs(initialDate).format() );
@@ -65,13 +67,13 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
 
     React.useImperativeHandle(ref, () => ({
         ...listRef.current,
-    }), [currentPeriod, setSelectedDate]);
+    }), [currentPeriod, setSelectedDate, currentMode]);
 
     const _onPressDate = React.useCallback<(date: Date, stringDate: string) => void>((date: Date, stringDate: string) => {
         setSelectedDate( stringDate );
         onPressDate && onPressDate(date, stringDate);
         setHeaderDateShow( dayjs(date).format('DD/MM') );
-    }, [onPressDate]);
+    }, [onPressDate, setSelectedDate, setHeaderDateShow]);
 
     const _onPressRangedDate = React.useCallback<(date: RangeSelectedDateType) => void>((date: RangeSelectedDateType) => {
         onPressRangeDate && onPressRangeDate(date);
@@ -79,21 +81,22 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
         date.start && ( stringDate += dayjs(date.start).format('DD/MM')); //&& setSelectedDate(date.start);
         date.end && ( stringDate += '-' + dayjs(date.end).format('DD/MM'));
         setHeaderDateShow(stringDate);
-    }, [onPressRangeDate]);
+    }, [onPressRangeDate, setHeaderDateShow]);
 
     const _onScroll =  React.useCallback<( isSuccess: boolean, newCanScroll : ScrollType, newPeriod?: Date ) => void>((isSuccess, newCanScroll, newPeriod) => {
         onScroll && onScroll( isSuccess, newCanScroll, newPeriod);
         newPeriod && setCurrentPeriod( dayjs(newPeriod).format() );
         setCanScroll(newCanScroll);
-    }, [onScroll]);
+    }, [onScroll, setCurrentPeriod, setCanScroll]);
 
     const renderList = () => {
-        const timelineHeight = {
+        const timelineHeight = { //TODO: move this to constants file
             'short' : CALENDAR_BODY_ONE_WEEK_HEIGHT,
             'medium' : CALENDAR_BODY_HEIGHT,
             'full' : Layouts.screen.height,
         }
         return (
+            // TODO: do not do like this, it will cause re-render of each type of list when change
             currentMode === 'calendar'
             ? <CalendarList
                     ref={listRef}
@@ -107,8 +110,7 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
 
                     showOneWeek = { typeof heightMode === 'number'
                                     ? heightMode < CALENDAR_BODY_HEIGHT
-                                    : heightMode === "short"
-                    }
+                                    : heightMode === 'short' }
 
                     minMonth={ minDate }
                     maxMonth={ maxDate }
@@ -134,8 +136,7 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
                     minPeriod={ minDate }
                     maxPeriod={ maxDate }
                     width={width}
-                    
-                    startDate={''}
+
                 />
         );
     }

@@ -2,12 +2,11 @@ import React from 'react';
 import { StyleSheet, ViewStyle, View, Pressable } from 'react-native';
 
 //components & styles
-import { ListModal, Icon } from '../atomic';
-import { LabelModal, LabelSelectItem } from '.';
-import { Colors, Outlines } from '../../styles';
-
-import { type Primary } from '../../styles/colors';
-import { type ListModalDataType } from '../atomic/ListModal';
+import { ListModal, Icon,
+        type ListModalDataType
+    } from '../atomic';
+import LabelModal from "./LabelModal";
+import LabelSelectItem from "./LabelSelectItem";
 
 //services
 import { LabelService } from '../../services';

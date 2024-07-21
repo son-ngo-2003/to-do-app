@@ -3,7 +3,7 @@ import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
 import { Text, View, Pressable, StyleSheet } from 'react-native';
 import Animated, 
-    { useSharedValue, useAnimatedStyle, interpolateColor, interpolate, 
+    { useSharedValue, useAnimatedStyle, interpolateColor,
 } from 'react-native-reanimated';
 
 //constants
@@ -14,7 +14,7 @@ import { Colors, Outlines, Typography, Animations as Anim } from '../../../style
 import { type SelectedType, type MarkedObject } from '../type';
 
 //hooks
-import { useTraceUpdate } from '../../../hooks';
+// import { useTraceUpdate } from '../../../hooks';
 
 type DateItemProps = {
     thisDate: string,
@@ -50,7 +50,7 @@ const DateItem: React.FC<DateItemProps> = (props) => {
 
     const onPressDate = React.useCallback( () => {
         onPress(thisDay.toDate(), thisDay.format());
-    }, [thisDate]);
+    }, [onPress, thisDate]);
 
     const containerAnimatedStyles = useAnimatedStyle(() => ({
         backgroundColor: interpolateColor( progress.value, [ 0, 1 ],

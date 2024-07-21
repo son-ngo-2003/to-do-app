@@ -3,7 +3,7 @@ import { View, StyleSheet, Pressable, ViewStyle, ScrollView, Text, Modal} from '
 import { useTheme } from '@react-navigation/native';
 import { Bases, Layouts, Outlines } from '../../styles';
 
-import { Overlay } from '../atomic';
+import Overlay from './Overlay';
 
 export type ListModalDataType = {
     label: string,
@@ -39,7 +39,7 @@ const ListModal : React.FC<ListModalProps> = ({
     itemStyle,
     typeOverlay = "transparent",
 }) => {
-    const { dark, colors } = useTheme();
+    const { colors } = useTheme();
 
     return (
         <Modal style={[styles.modal]} transparent={true} animationType='fade'

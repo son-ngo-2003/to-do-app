@@ -12,7 +12,7 @@ import { DOT_SIZE } from '../constants';
 //styles
 import { Colors, Outlines, Typography, Animations as Anim } from '../../../styles';
 import { type TaskTimeline } from '../type';
-import { useTraceUpdate } from '../../../hooks';
+// import { useTraceUpdate } from '../../../hooks';
 
 type DateItemProps = {
     thisDate: Date | string,
@@ -39,7 +39,7 @@ const DateItem: React.FC<DateItemProps> = (props) => {
         width = 40,
     } = props;
 
-    useTraceUpdate(props)
+    // useTraceUpdate(props)
 
     const { colors } = useTheme();
     const colorProgress = useSharedValue<number>(0);
@@ -48,7 +48,7 @@ const DateItem: React.FC<DateItemProps> = (props) => {
 
     const onPressDate = React.useCallback(() => {
         onPress && onPress(thisDay.toDate(), thisDay.format());
-    }, [thisDate]);
+    }, [onPress, thisDate]);
 
     const containerAnimatedStyles = useAnimatedStyle(() => {
         return {
@@ -67,7 +67,7 @@ const DateItem: React.FC<DateItemProps> = (props) => {
                 ))}
             </View>
         )
-    },[taskListThisDay]);
+    },[taskListThisDay, showTaskList]);
 
     React.useEffect(() => {
         isSelected

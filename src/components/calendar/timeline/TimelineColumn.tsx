@@ -59,7 +59,7 @@ const TimelineColumn : React.FC<TimelineColumnProps> = ({
             )
         }
         return cells;
-    }, [onPressCell]);
+    }, [onPressCell, width, colors.border, thisDate]);
 
     const renderTasksNotAllDay = React.useCallback<() => React.ReactNode[] | undefined>(() => {
         return taskListNotAllDay && taskListNotAllDay.map( (task, index) => 

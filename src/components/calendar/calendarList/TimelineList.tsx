@@ -1,15 +1,25 @@
 import * as React from 'react';
 import dayjs from 'dayjs';
-import { ListRenderItem, FlatList, View, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import { View, FlatList,
+        type NativeSyntheticEvent, type NativeScrollEvent, type ListRenderItem,
+} from 'react-native';
+import Animated, { useSharedValue } from 'react-native-reanimated';
 
 //components
-import { Layouts, Animations as Anim } from '../../../styles';
+import {Layouts, Animations as Anim} from '../../../styles';
 import Timeline, { type TimelineProps } from '../timeline/Timeline';
+import TimelineTimebar from "../timeline/TimelineTimebar";
 import { type ScrollType, type CalenderListRef } from '../type';
-import { CALENDAR_BODY_HEIGHT } from '../constants';
+
+//contexts
+import {SyncedScrollViewContext, syncedScrollViewState} from "../../../contexts/SyncedScrollViewContext";
+
+//constants
+import { CALENDAR_BODY_HEIGHT, TIMELINE_TIME_BAR_WIDTH } from '../constants';
+
 
 type TimelineListProps = {
+    //TODO: not using & TimelineProps, declare the props clearly. For example: startDate : Timeline['start]
     onScroll?: ( isSuccess: boolean, newCanScroll : ScrollType, newPeriod?: Date ) => void,
     minPeriod?: dayjs.Dayjs | string | Date, 
     maxPeriod?: dayjs.Dayjs | string | Date,
@@ -30,47 +40,110 @@ const TimelineList = React.forwardRef<CalenderListRef, TimelineListProps>(({
 
     minPeriod, 
     maxPeriod,
-    
+
     onPressDate,
     onPressCell,
     onPressTask,
+
     onScroll,
 
     height = CALENDAR_BODY_HEIGHT,
     width = Layouts.screen.width,
 
 }, ref) => {
+    // * ------------------------------------------------ Variables ------------------------------------------------------
 
     const flatListRef = React.useRef<FlatList<DataItemType>>(null);
+
     const referenceOfPeriod = React.useMemo<dayjs.Dayjs>( () => numberOfDate === 7
                                                                     ? dayjs(initialDate).startOf("isoWeek")
                                                                      : dayjs(initialDate)
-                                                        , [initialDate] ); //references for every start of period
+                                                        , [initialDate, numberOfDate] ); //references for every start of period
     
     const getPeriod = React.useCallback<( date?: dayjs.Dayjs | string | Date ) => dayjs.Dayjs> ((date) => {
         //TODO: test this function
         let deltaPeriod = Math.floor( dayjs(date).diff(referenceOfPeriod, 'days', true) / numberOfDate );
         return referenceOfPeriod.add( deltaPeriod * numberOfDate, 'days');
-    }, [initialDate]);
+    }, [referenceOfPeriod, numberOfDate]);
 
-    const minPeriodReal = React.useMemo<dayjs.Dayjs>( () => getPeriod(minPeriod), [minPeriod] )
-    const maxPeriodReal = React.useMemo<dayjs.Dayjs>( () => getPeriod(maxPeriod), [maxPeriod] )
+    const minPeriodReal = React.useMemo<dayjs.Dayjs>( () => getPeriod(minPeriod), [minPeriod, getPeriod] )
+    const maxPeriodReal = React.useMemo<dayjs.Dayjs>( () => getPeriod(maxPeriod), [maxPeriod, getPeriod] )
 
     const [ currentPeriod, setCurrentPeriod ] = React.useState<string>( referenceOfPeriod.format() );
     //TODO: check initialDate is between minPeriod and maxPeriod? also with calendar
-    const [ selectedDate, setSelectedDate ] = React.useState<string>( currentPeriod );
+    const [ selectedDate, setSelectedDate ] = React.useState<string>( dayjs(initialDate).format() );
+    const [ timelineVerticalOffset, setTimelineVerticalOffset ] = React.useState<number>(0); //TODO: set initial position here
 
-    const expandCalendarProgress = useSharedValue<number>(height);
+    // * --------------------------------------------- Functionality part --------------------------------------------------
 
     React.useImperativeHandle(ref, () => ({
         ...flatListRef.current,
         scroll: scroll
-    }), [ selectedDate, currentPeriod ]);
+    }), [ selectedDate, currentPeriod, currentPeriod ]);
 
     const _onPressDate = React.useCallback<(date: Date, dateString: string) => void>( (date, dateString) => {
         onPressDate && onPressDate(date, dateString);
         setSelectedDate(dateString);
-    }, [onPressDate]);
+    }, [onPressDate, setSelectedDate]);
+
+    function getIndexOfPeriod (date: dayjs.Dayjs = dayjs(selectedDate)): number {
+        return Math.floor((date.diff(minPeriodReal, 'days', true)+1) / numberOfDate);
+    }
+
+    function getScrollStatus( period: dayjs.Dayjs = dayjs(selectedDate) ) {
+        const scrollStatus : ScrollType = {left: false, right: false};
+        scrollStatus.left = period.isAfter( minPeriodReal.add(numberOfDate, 'days'), 'day' );
+        scrollStatus.right = period.isBefore( maxPeriodReal);
+        return scrollStatus;
+    }
+
+    function scroll( _arg: dayjs.Dayjs | number | Date | string ) : void {
+        if (!flatListRef.current) {
+            onScroll && onScroll( false, {left: true, right: true});
+            return;
+        }
+
+        const newPeriod = (typeof _arg === 'number')
+                            ? dayjs(currentPeriod).add(_arg * numberOfDate, 'days')
+                            : dayjs(_arg);
+
+        let scrollDirection : ScrollType = getScrollStatus(newPeriod);
+        if (newPeriod.isBefore(minPeriodReal, 'days') || newPeriod.isAfter(maxPeriod, 'days')) {
+            onScroll && onScroll( false, scrollDirection );
+            return;
+        }
+
+        flatListRef.current?.scrollToOffset({animated: true, offset: widthTimeline * getIndexOfPeriod(newPeriod)});
+        setCurrentPeriod( newPeriod.format());
+        onScroll && onScroll( true, scrollDirection, newPeriod.toDate() );
+    }
+
+    function onScrollManuel (e: NativeSyntheticEvent<NativeScrollEvent>) {
+        const ne = e.nativeEvent;
+        if (ne.contentOffset.x % widthTimeline !== 0) return;
+        const newPeriod = minPeriodReal.add( ne.contentOffset.x / widthTimeline * numberOfDate, 'days');
+        setCurrentPeriod(newPeriod.format());
+
+        let scrollDirection : ScrollType = getScrollStatus(newPeriod);
+        onScroll && onScroll( true, scrollDirection, newPeriod.toDate() );
+    }
+
+    // const onScrollVertical = React.useCallback( (offset: number) => {
+    //     setTimelineVerticalOffset(offset);
+    // },[])
+
+    React.useEffect(() => {
+        let diff = dayjs(selectedDate).diff(currentPeriod, 'date') / numberOfDate;
+        if ( ! ( 0 < diff && diff < 1 )  ) {
+            scroll( getPeriod(selectedDate) );
+        }
+    }, [selectedDate]);
+
+
+    // * --------------------------------------------- UI Part --------------------------------------------------
+
+    const widthTimeline = React.useMemo<number>(() => width - TIMELINE_TIME_BAR_WIDTH, [width]);
+    const expandCalendarProgress = useSharedValue<number>(height);
 
     const  renderItem  = React.useCallback<ListRenderItem<DataItemType>>(({ item }) => {
         const { thisPeriod } = item;
@@ -78,7 +151,7 @@ const TimelineList = React.forwardRef<CalenderListRef, TimelineListProps>(({
 
         return (
             <Animated.View 
-                style={[{width: width,
+                style={[{width: widthTimeline,
                     height: expandCalendarProgress,
                 }]}
             >
@@ -88,102 +161,61 @@ const TimelineList = React.forwardRef<CalenderListRef, TimelineListProps>(({
 
                     taskList={taskList}
 
-                    onPressCell={onPressCell}
-                    onPressDate={_onPressDate}
-                    onPressTask={onPressTask}
+                    onPressCell={ onPressCell }
+                    onPressDate={ _onPressDate }
+                    onPressTask={ onPressTask }
 
                     height={height}
+                    width={widthTimeline}
+
                     numberOfDate={numberOfDate}
                     showWeekends={showWeekends}
                 ></Timeline>
             </Animated.View>
         )
-    },[selectedDate, currentPeriod, height, taskList, width, numberOfDate, onPressCell, onPressDate, onPressTask]);
+    },[selectedDate, height, taskList, numberOfDate, onPressCell, onPressTask, expandCalendarProgress, _onPressDate, showWeekends, widthTimeline]);
 
     const getDataList = React.useCallback<() => DataItemType[]>( ()=> {
         const listItem : DataItemType[] = [];
 
-        let thisPeriod = dayjs(minPeriod);
-        while (thisPeriod.isBefore(maxPeriod)) {
+        let thisPeriod = minPeriodReal;
+        while (thisPeriod.isBefore(maxPeriodReal)) {
             listItem.push({thisPeriod});
             thisPeriod = thisPeriod.add( numberOfDate, 'days');
         }
 
         return listItem;
-    }, [minPeriod, maxPeriod, numberOfDate]);
-
-    function getIndexOfPeriod (date: dayjs.Dayjs = dayjs(selectedDate)): number {
-        return Math.floor((date.diff(minPeriodReal, 'days', true)+1) / numberOfDate);
-    }
-
-    function getScrollStatus( period: dayjs.Dayjs = dayjs(selectedDate) ) {
-        const scrollStatus : ScrollType = {left: false, right: false};
-        scrollStatus.left = period.isAfter( minPeriod, 'months');
-        scrollStatus.right = period.isBefore( maxPeriod, 'months');
-        return scrollStatus;
-    }
-
-    function scroll( _arg: dayjs.Dayjs | number | Date | string, force : boolean = false ) : void {
-        if (!flatListRef.current) {
-            onScroll && onScroll( false, {left: true, right: true});
-            return;
-        }
-
-        const newPeriod = (typeof _arg === 'number') 
-                            ? dayjs(currentPeriod).add(_arg * numberOfDate, 'days')
-                            : dayjs(_arg);
-
-        let scrollDirection : ScrollType = getScrollStatus(newPeriod);
-        if (newPeriod.isBefore(minPeriod, 'days') || newPeriod.isAfter(maxPeriod, 'days')) {
-            onScroll && onScroll( false, scrollDirection );
-            return;
-        }
-
-        flatListRef.current?.scrollToIndex({
-            index: getIndexOfPeriod(newPeriod),
-            animated: true,
-        });
-
-        setCurrentPeriod( newPeriod.format());
-        onScroll && onScroll( true, scrollDirection, newPeriod.toDate() );
-    }
-
-    function onScrollManuel (e: NativeSyntheticEvent<NativeScrollEvent>) {
-        const ne = e.nativeEvent;
-        if (ne.contentOffset.x % width !== 0) return;
-        const newPeriod = dayjs(minPeriod).add( ne.contentOffset.x / width * numberOfDate, 'days');
-        setCurrentPeriod(newPeriod.format());
-
-        let scrollDirection : ScrollType = getScrollStatus(newPeriod);   
-        onScroll && onScroll( true, scrollDirection, newPeriod.toDate() );
-    }
-
-    React.useEffect(() => {
-        let diff = dayjs(selectedDate).diff(currentPeriod, 'date') / numberOfDate;
-        if ( ! ( 0 < diff && diff < 1 )  ) {
-            scroll( getPeriod(selectedDate) );
-        }
-    }, [selectedDate]);
+    }, [numberOfDate, minPeriodReal, maxPeriodReal]);
 
     React.useEffect(() => {
         expandCalendarProgress.value = Anim.spring<number>(height).base.slow;
     }, [height]);
 
     return (
-        <View style={{width}}>
-            <FlatList
-                ref={flatListRef}
-                data={getDataList()}
-                renderItem={renderItem}
-                //scrollEnabled={!showOneWeek}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                onScroll={onScrollManuel}
-                pagingEnabled={true}
-                getItemLayout={(data, index) => ({length: width, offset: width * index, index})}
-                initialScrollIndex={getIndexOfPeriod()}
-            />
-        </View>
+        <SyncedScrollViewContext.Provider value={syncedScrollViewState}>
+            <View style={{width, flexDirection: 'row'}}>
+                <TimelineTimebar
+                    height={height}
+                    headerHeight={64}
+                />
+
+                <View style={{width: widthTimeline}}>
+                    <FlatList
+                        ref={flatListRef}
+                        data={getDataList()}
+                        renderItem={renderItem}
+                        //scrollEnabled={!showOneWeek}
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        onScroll={onScrollManuel}
+
+                        pagingEnabled={true}
+                        getItemLayout={(data, index) => ({length: widthTimeline, offset: widthTimeline, index})}
+                        initialScrollIndex={getIndexOfPeriod( dayjs(currentPeriod) )}
+                    />
+                </View>
+            </View>
+        </SyncedScrollViewContext.Provider>
     )
 });
 export default TimelineList;

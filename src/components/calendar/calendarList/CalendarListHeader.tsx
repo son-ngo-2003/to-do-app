@@ -23,7 +23,7 @@ type CalendarListProps = {
 const CalendarListHeader: React.FC<CalendarListProps> = ({
     selectDateString,
     currentMonth,
-    currentYear,
+    // currentYear,
     
     onPressLeft = () => {},
     onPressRight = () => {},

@@ -1,4 +1,5 @@
 export { default as Icon } from './Icon'
 export { default as Overlay } from './Overlay'
 export { default as KeyboardOptimizeView} from './KeyboardOptimizeView'
-export { default as ListModal} from './ListModal'
+export { default as ListModal, type ListModalDataType } from './ListModal'
+export { default as SyncedScrollView } from './SyncedScrollView'

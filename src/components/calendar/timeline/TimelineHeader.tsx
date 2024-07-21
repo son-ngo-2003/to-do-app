@@ -4,7 +4,7 @@ import { useTheme } from '@react-navigation/native';
 import { View, StyleSheet, Text } from 'react-native';
 
 //constants
-import { DATE_NAME_FULL, DATE_NAME_3, DATE_NAME_2, DATE_NAME_1, TIMELINE_TIME_BAR_WIDTH, MONTH_NAME_3 } from '../constants';
+import { DATE_NAME_FULL, DATE_NAME_3, DATE_NAME_2, DATE_NAME_1, MONTH_NAME_3 } from '../constants';
 
 //components
 import { type TaskTimeline } from '../type';
@@ -87,7 +87,7 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({
             )
         }
         return dates;
-    }, [startDate, onPressDate, taskListAllDay, numberOfDays, selectedDate ]);
+    }, [onPressDate, taskListAllDay, numberOfDays, selectedDate, dateNameType, startDayjs, selectedDay, showTaskList]);
 
     // React.useEffect(() => {
     //     console.log('TimelineHeader' + startDate);
@@ -95,6 +95,7 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({
 
     return (
         <View style={[styles.headerContainer]}>
+            {/*TODO: this part is not suitable any more*/}
             {   showMonth && 
                 <View style={[styles.titleContainer]}>
                     <Text
@@ -122,7 +123,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     dateNameContainer: {
-        paddingLeft: TIMELINE_TIME_BAR_WIDTH,
         width: '100%',
         flexDirection: 'row',
         justifyContent:'space-around',

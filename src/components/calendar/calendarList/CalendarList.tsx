@@ -1,6 +1,6 @@
 import * as React from 'react';
 import dayjs from 'dayjs';
-import { StyleSheet, ListRenderItem, FlatList, View, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import { ListRenderItem, FlatList, View, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import Animated, { interpolate, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
 //components
@@ -10,7 +10,7 @@ import { type ScrollType, type CalenderListRef } from '../type';
 
 //constants
 import { CALENDAR_BODY_HEIGHT, CALENDAR_BODY_ONE_WEEK_HEIGHT } from '../constants';
-import { useTraceUpdate } from '../../../hooks';
+// import { useTraceUpdate } from '../../../hooks';
 
 export type CalendarListProps = {
     onScroll?: ( isSuccess: boolean, newCanScroll : ScrollType, newMonth?: Date  ) => void,
@@ -59,9 +59,9 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((props
     const isMonthContainedInRange = React.useCallback< (thisMonth: dayjs.Dayjs) => boolean>((thisMonth) => {
         if (!rangeSelectedDate.end && 
             (thisMonth.isSame(currentMonth, 'month') || thisMonth.isSame(rangeSelectedDate.start, 'month') )) 
-                return true; //cause we don't know the end of range so we accept the end is infinity until it is selected
+                return true; //because we don't know the end of range, so we accept the end is infinity until it is selected
         return thisMonth.isBetween(rangeSelectedDate.start, rangeSelectedDate.end, 'month', '[]');
-    },[rangeSelectedDate]);
+    },[rangeSelectedDate.end, currentMonth, rangeSelectedDate.start]);
 
     const calendarContainerAnimation = useAnimatedStyle(() => {
         return {
@@ -73,15 +73,15 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((props
     const _onPressDate = React.useCallback<(date: Date, dateString: string) => void>( (date, dateString) => {
         onPressDate && onPressDate(date, dateString);
         setSelectedDate(dateString);
-    }, []);
+    }, [onPressDate, setSelectedDate]);
 
     const _onPressRangeDate = React.useCallback< (dateRange: RangeSelectedDateType) => void > ( (dateRange) => {
         setRangeSelectedDate(dateRange);
         onPressRangeDate && onPressRangeDate(dateRange);
-    }, []);
+    }, [setRangeSelectedDate, onPressRangeDate]);
 
     const  renderItem  = React.useCallback<ListRenderItem<DataItemType>>(({ item }) => {
-        const { thisMonth } = item;
+        const {  thisMonth } = item;
         const selectedDateInMonth = thisMonth.isSame( selectedDate, 'month' );
 
         const calendarProps : CalendarProps = {
@@ -106,7 +106,7 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((props
                 <Calendar {...calendarProps}/>
             </Animated.View>
         )
-    },[selectedDate, rangeSelectedDate, showOneWeek, isSelectRange, markedDate]);
+    },[selectedDate, rangeSelectedDate, showOneWeek, isSelectRange, markedDate, _onPressDate, isMonthContainedInRange, _onPressRangeDate, width, calendarContainerAnimation]);
 
     function getDataList () : DataItemType[] {
         const listItem : DataItemType[] = []
@@ -120,6 +120,7 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((props
         return listItem;
     }
 
+    //TODO: instead of doing this, we can create a map that reference month to index (same for timeline)
     function getIndexOfMonth (month: dayjs.Dayjs = dayjs(selectedDate)): number {
         return Math.floor(month.diff(minMonth, 'months'));
     }
@@ -152,10 +153,10 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((props
             return;
         }
 
-        flatListRef.current?.scrollToIndex({
-            index: getIndexOfMonth(newMonth),
-            animated: true,
-        });
+        // flatListRef.current?.scrollToIndex({
+        //     index: getIndexOfMonth(newMonth),
+        //     animated: true,
+        // });
 
         setCurrentMonth(newMonth.format());
         onScroll && onScroll( true, scrollDirection, newMonth.toDate() );
