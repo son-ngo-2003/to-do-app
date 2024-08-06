@@ -1,15 +1,22 @@
-import { useContext, useEffect, useRef, useState } from "react"
+import React, { useContext, useEffect, useRef, useState } from "react"
 import { Animated, ScrollView, ScrollViewProps } from "react-native"
 import { SyncedScrollViewContext } from "../../contexts/SyncedScrollViewContext"
+import {useTraceUpdate} from "../../hooks";
 
 // ----------------------------------------------------------------------------
 
 interface SyncedScrollViewProps extends ScrollViewProps {
-    _id: number
+    _id: number,
+    initialOffset?: number,
 }
 
-const SyncedScrollView = (props: SyncedScrollViewProps) => {
-    const { _id, ...rest } = props;
+const SyncedScrollView = React.forwardRef<ScrollView, SyncedScrollViewProps>((
+    props,
+    ref
+) => {
+    // useTraceUpdate(props)
+
+    const { _id, initialOffset = 0, ...rest } = props;
     const { activeScrollView, offsetPercent } = useContext(SyncedScrollViewContext)
 
     // Get relevant ScrollView Dimensions --------------------------------------------------
@@ -35,9 +42,7 @@ const SyncedScrollView = (props: SyncedScrollViewProps) => {
         setContentLength(props.horizontal ? width : height)
     }
 
-    // handle yPercent change ----------------------------------------------------
-
-    const scrollViewRef = useRef<ScrollView>(null)
+    // handle yPercent change ---------------------------------------------------
 
     offsetPercent?.addListener(({ value }) => {
         // Only respond to changes of the offsetPercent if this scrollView is NOT the activeScrollView
@@ -45,13 +50,16 @@ const SyncedScrollView = (props: SyncedScrollViewProps) => {
         // @ts-ignore
         if (_id !== activeScrollView._value && scrollableLength > 0) {
             // Depending on the orientation we scroll in, we need to use different properties
-            scrollViewRef.current?.scrollTo({ [props.horizontal ? 'x' : 'y']: value * scrollableLength, animated: false })
+            scrollViewRef.current && scrollViewRef.current.scrollTo({ [props.horizontal ? 'x' : 'y']: value * scrollableLength, animated: false })
         }
     })
 
     // handleScroll ---------------------------------------------------------------
+    let scrollViewRef = useRef<ScrollView>(null)
 
-    const offset = new Animated.Value(0)
+    React.useImperativeHandle(ref, () => scrollViewRef.current as ScrollView, [scrollViewRef.current]);
+
+    const offset = new Animated.Value(initialOffset)
 
     const handleScroll = Animated.event(
         // Depending on the orientation we scroll in, we need to use different properties
@@ -75,10 +83,16 @@ const SyncedScrollView = (props: SyncedScrollViewProps) => {
         activeScrollView.setValue(_id)
     }
 
+    useEffect(() => {
+        setTimeout(() => {
+            scrollViewRef.current?.scrollTo({[props.horizontal ? 'x' : 'y']: initialOffset, animated: false})
+        }, 0)
+    }, []);
+
     return (
         <Animated.ScrollView
             {...rest}
-            ref={scrollViewRef}
+            ref={ scrollViewRef }
             onScroll={handleScroll}
             scrollEventThrottle={16}
             onTouchStart={handleTouchStart}
@@ -86,6 +100,6 @@ const SyncedScrollView = (props: SyncedScrollViewProps) => {
             onContentSizeChange={handleContentSizeChange}
         />
     )
-}
+});
 
-export default SyncedScrollView;
+export default React.memo( SyncedScrollView );

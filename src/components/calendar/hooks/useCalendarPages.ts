@@ -21,7 +21,6 @@ const UseCalendarPages = ({
     const _referenceOfPeriod = useMemo(() => dayjs(referenceOfPeriod), [referenceOfPeriod]);
 
     const getPeriod = React.useCallback ((date?: dayjs.Dayjs | string | Date) => {
-        //TODO: test this function
         if (typePage === 'month') {
             return dayjs(date).startOf('month');
         } else if (typePage === 'week'  || ( typePage === 'period' && numberOfDays === 7 && !referenceOfPeriod )) {
@@ -33,13 +32,13 @@ const UseCalendarPages = ({
     }, [referenceOfPeriod, numberOfDays]);
 
     const _minDate = useMemo(() => getPeriod(minDate), [minDate]);
-    const _maxDate = useMemo(() => getPeriod(maxDate), [maxDate]);
+    const _maxDate = useMemo(() => { console.log(getPeriod(maxDate).format('DD-MM-YYYY')) ; return getPeriod(maxDate)}, [maxDate]);
 
     const _generateListDate = useCallback(() => {
         let pages : dayjs.Dayjs[] = [];
         let thisDate = _minDate;
 
-        while (thisDate.isBefore(_maxDate)) {
+        while (thisDate.isSameOrBefore(_maxDate)) {
             pages.push( thisDate );
             thisDate =  typePage === 'month'
                 ? thisDate.add(1, 'month')
@@ -71,11 +70,11 @@ const UseCalendarPages = ({
         return Math.floor(dayjs(date).diff(_minDate, 'days', true) / numberOfDays);
     }, []);
 
-    const isOutOfRange = useCallback((date: dayjs.Dayjs | string | Date) : 'left' | 'right' | 'none' => {
+    const isOutOfRange = useCallback((date?: dayjs.Dayjs | string | Date) : 'left' | 'right' | 'none' => {
         return getPeriod(date).isBefore(_minDate) ? 'left' : getPeriod(date).isAfter(_maxDate) ? 'right' : 'none';
     }, []);
 
-    const isOnEdgePages = useCallback((date: dayjs.Dayjs | string | Date) : 'left' | 'right' | 'none' => {
+    const isOnEdgePages = useCallback((date?: dayjs.Dayjs | string | Date) : 'left' | 'right' | 'none' => {
         return getIndexOfPage(date) === 0 ? 'left' : getIndexOfPage(date) === pagesLength - 1 ? 'right' : 'none';
     }, []);
 

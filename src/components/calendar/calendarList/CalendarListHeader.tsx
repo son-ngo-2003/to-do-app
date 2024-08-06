@@ -46,12 +46,14 @@ const CalendarListHeader: React.FC<CalendarListProps> = ({
 
             <View style={[styles.buttonsContainer]}>
                 <TouchableOpacity onPress={onPressLeft}
+                    disabled={!canScroll.left}
                     style={{opacity: canScroll.left ? 1 : 0.3}}
                 >
                     <Icon name="chevron-left" size={20} color={colors.text} library='FontAwesome5'/>
                 </TouchableOpacity>
                 
                 <TouchableOpacity onPress={onPressRight}
+                    disabled={!canScroll.right}
                     style={{opacity: canScroll.right ? 1 : 0.3}}
                 >
                     <Icon name="chevron-right" size={20} color={colors.text} library='FontAwesome5'/>

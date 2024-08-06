@@ -6,7 +6,7 @@ import { Text, View, StyleSheet } from 'react-native';
 import { DATE_NAME_FULL, DATE_NAME_3, DATE_NAME_2, DATE_NAME_1, DATE_ITEM_WIDTH, MONTH_NAME_3 } from '../constants';
 import { Typography } from '../../../styles';
 
-type CalendarHeaderProps = {
+export interface CalendarHeaderProps {
     thisMonth: number,
     thisYear: number,
     dateNameType?: 'full' | '3 letters' | '2 letters' | '1 letter',

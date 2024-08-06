@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import { View, StyleSheet } from 'react-native';
 
 //components
-import CalendarHeader from './CalendarHeader';
+import CalendarHeader, {type CalendarHeaderProps} from './CalendarHeader';
 import DateItem from './DateItem';
 import { type MarkedObject, type SelectedType } from '../type';
 
@@ -16,7 +16,7 @@ export type RangeSelectedDateType = {
     end: Date | string | undefined,
 }
 
-export type CalendarProps = {
+export interface CalendarProps {
     selectedDate?: Date | string | dayjs.Dayjs,
     onPressDate?: (date: Date, dateString: string) => void,
 
@@ -30,6 +30,8 @@ export type CalendarProps = {
     showOneWeek?: boolean,
     markedDate?: MarkedObject[],
     showMonthHeader?: boolean,
+
+    dateNameType?: CalendarHeaderProps['dateNameType'],
 }
 
 const Calendar: React.FC<CalendarProps> = (props) => {
@@ -47,6 +49,8 @@ const Calendar: React.FC<CalendarProps> = (props) => {
         showOneWeek = false,
         markedDate = [],
         showMonthHeader = true,
+
+        dateNameType,
     } = props;
 
     //useTraceUpdate(props);
@@ -136,6 +140,7 @@ const Calendar: React.FC<CalendarProps> = (props) => {
                 thisMonth={ thisPeriod.month() } 
                 thisYear= { thisPeriod.year()  }
                 showMonth={ showMonthHeader    }
+                dateNameType={ dateNameType }
             />
             {   showOneWeek 
                 ? renderMonth(1)

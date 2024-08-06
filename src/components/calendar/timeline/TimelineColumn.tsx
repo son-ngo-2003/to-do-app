@@ -13,8 +13,9 @@ const TIME_POINT_INDICATOR_SIZE = 10;
 import { Colors, Layouts, Outlines } from '../../../styles';
 import { type TaskTimeline } from '../type';
 import dayjs from 'dayjs';
+import {useTraceUpdate} from "../../../hooks";
 
-export type TimelineColumnProps = {
+export interface TimelineColumnProps {
     thisDate?: Date | string,
 
     onPressCell?: (date: Date, dateString: string, startHour: number) => void,
@@ -26,16 +27,20 @@ export type TimelineColumnProps = {
     width?: number,
 }
 
-const TimelineColumn : React.FC<TimelineColumnProps> = ({
-    thisDate,
+const TimelineColumn : React.FC<TimelineColumnProps> = (props) => {
+    const {
+        thisDate,
 
-    onPressCell = () => {},
-    onPressTask = () => {},
-    taskList,
-    
-    rightBorder = false,
-    width = Layouts.screen.width,
-}) => {
+        onPressCell = () => {},
+        onPressTask = () => {},
+        taskList,
+
+        rightBorder = false,
+        width = Layouts.screen.width,
+    } = props;
+
+    // useTraceUpdate(props);
+
     const { colors } = useTheme();
     const thisDayjs = React.useMemo(() => dayjs(thisDate), [thisDate]);
     const isToday = React.useMemo(() => dayjs().isSame(thisDayjs, 'day'), [thisDayjs]);

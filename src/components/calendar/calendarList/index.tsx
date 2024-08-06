@@ -1,1 +1,1 @@
-export { default as CalendarList} from './MixCalendarList';
+export { default as CalendarList } from './MixCalendarList';

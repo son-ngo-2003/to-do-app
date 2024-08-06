@@ -10,8 +10,9 @@ import { DATE_NAME_FULL, DATE_NAME_3, DATE_NAME_2, DATE_NAME_1, MONTH_NAME_3 } f
 import { type TaskTimeline } from '../type';
 import DateItem from './DateItem';
 import { Typography } from '../../../styles';
+import {useTraceUpdate} from "../../../hooks";
 
-type TimelineHeaderProps = {
+export interface TimelineHeaderProps {
     startDate: Date | string,
     numberOfDays: number,
 
@@ -22,25 +23,28 @@ type TimelineHeaderProps = {
     onPressDate?: (date: Date, dateString: string) => void,
 
     dateNameType?: 'full' | '3 letters' | '2 letters' | '1 letter',
-    //TODO: add dateNameType to TimelineList, CalendarList and MixCalendarList
     showMonth?: boolean
 }
 
-const TimelineHeader: React.FC<TimelineHeaderProps> = ({
-    startDate,
-    numberOfDays,
+const TimelineHeader: React.FC<TimelineHeaderProps> = ( props ) => {
+    const {
+        startDate,
+        numberOfDays,
 
-    taskList,
-    showTaskList = false,
+        taskList,
+        showTaskList = false,
 
-    selectedDate,
-    onPressDate,
+        selectedDate,
+        onPressDate,
 
-    dateNameType = '3 letters',
-    showMonth = true,
-}) => {
+        dateNameType = '3 letters',
+        showMonth = true,
+    } = props;
+
+    // useTraceUpdate(props)
+
     const startDayjs = React.useMemo( () => dayjs( startDate ), [startDate] );
-    const selectedDay = React.useMemo( () => selectedDate && dayjs( selectedDate ), [selectedDate]);
+    // const selectedDay = React.useMemo( () => selectedDate && dayjs( selectedDate ), [selectedDate]);
     const taskListAllDay = React.useMemo(() => taskList && taskList.filter( task => task.isAllDay), [taskList]);
     const { colors } = useTheme();
 
@@ -68,14 +72,16 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({
 
         for (let i = 0; i < numberOfDays; i++) {
             const thisDay = startDayjs.add(i, 'days');
-            const taskThisDay = taskListAllDay ? taskListAllDay.filter( task => thisDay.isBetween(task.start, task.end, 'day', '[]')) : [];
+            const taskThisDay = taskListAllDay
+                                              ? taskListAllDay.filter( task => thisDay.isBetween(task.start, task.end, 'day', '[]'))
+                                              : [];
 
             dates.push( 
                 <DateItem 
                     key={i}
 
                     thisDate={thisDay.format()}
-                    isSelected = {!!selectedDate && thisDay.isSame(selectedDay, 'day')}
+                    isSelected = {!!selectedDate && thisDay.isSame(selectedDate, 'day')}
                     onPress={onPressDate}
                     
                     taskListThisDay = { taskThisDay.length > 0 ? taskThisDay : undefined}
@@ -87,7 +93,7 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({
             )
         }
         return dates;
-    }, [onPressDate, taskListAllDay, numberOfDays, selectedDate, dateNameType, startDayjs, selectedDay, showTaskList]);
+    }, [onPressDate, taskListAllDay, numberOfDays, selectedDate, dateNameType, showTaskList, startDayjs]);
 
     // React.useEffect(() => {
     //     console.log('TimelineHeader' + startDate);
@@ -95,7 +101,6 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({
 
     return (
         <View style={[styles.headerContainer]}>
-            {/*TODO: this part is not suitable any more*/}
             {   showMonth && 
                 <View style={[styles.titleContainer]}>
                     <Text
@@ -115,7 +120,7 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({
     )
 }
 
-export default TimelineHeader;
+export default React.memo( TimelineHeader );
 
 const styles = StyleSheet.create({
     headerContainer : {

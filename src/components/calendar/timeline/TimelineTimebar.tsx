@@ -5,7 +5,7 @@ import { View, StyleSheet, Text } from 'react-native';
 //constants
 import {
     TIMELINE_TIME_BAR_WIDTH,
-    START_HOUR, END_HOUR, TIMELINE_CELL_HEIGHT, CALENDAR_BODY_HEIGHT
+    START_HOUR, END_HOUR, TIMELINE_CELL_HEIGHT, CALENDAR_BODY_HEIGHT, TIMELINE_HEIGHT
 } from '../constants';
 
 //components
@@ -13,7 +13,7 @@ import {Outlines, Typography} from '../../../styles';
 import {type TimelineProps} from "./Timeline";
 import {SyncedScrollView} from "../../atomic";
 
-type TimelineTimebarProps = {
+interface TimelineTimebarProps {
     height?: TimelineProps['height']
     headerHeight?: number,
 }
@@ -24,6 +24,9 @@ const TimelineTimebar : React.FC<TimelineTimebarProps> = ({
 }) => {
 
     const { colors } = useTheme();
+    const heightNumber = React.useMemo( () => {
+        return typeof height === 'number' ? height : TIMELINE_HEIGHT[height];
+    } , [height] );
 
     const renderTimeBar = React.useCallback<() => React.ReactNode>(() => {
         const cells : React.ReactNode[] = [];
@@ -48,7 +51,7 @@ const TimelineTimebar : React.FC<TimelineTimebarProps> = ({
             <View style={[{height: headerHeight, borderColor: colors.border}, styles.timeBarHeader]} />
             <SyncedScrollView
                 _id={0}
-                style={[{maxHeight: height } ]}
+                style={[{maxHeight: heightNumber } ]}
                 showsVerticalScrollIndicator={false}
             >
                 {renderTimeBar()}

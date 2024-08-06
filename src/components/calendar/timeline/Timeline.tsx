@@ -1,50 +1,63 @@
 import * as React from 'react';
 import dayjs from 'dayjs';
-import { View } from "react-native"
+import {ScrollView, View} from "react-native"
 
 //components
 import TimelineColumn, { TimelineColumnProps } from './TimelineColumn';
 import {Layouts} from '../../../styles';
-import TimelineHeader from './TimelineHeader';
+import TimelineHeader, {type TimelineHeaderProps} from './TimelineHeader';
 import { SyncedScrollView } from "../../atomic/";
 
 //constants
-import { CALENDAR_BODY_HEIGHT } from '../constants';
+import {CALENDAR_BODY_HEIGHT, CALENDAR_BODY_ONE_WEEK_HEIGHT, TIMELINE_HEIGHT} from '../constants';
+import {useTraceUpdate} from "../../../hooks";
 
 
-export type TimelineProps = {
-    startDate?: Date | string,
+export interface TimelineProps {
+    startDate: Date | string,
     selectedDate?: Date | string,
+    taskList?: TimelineColumnProps['taskList']
 
     onPressDate?: (date: Date, dateString: string) => void,
-    onPressCell?: (date: Date, dateString: string, startHour: number) => void,
-    onPressTask?: (id: any) => void,
+    onPressCell?: TimelineColumnProps['onPressCell'],
+    onPressTask?: TimelineColumnProps['onPressTask'],
 
-    height?: number,
+    height?: number | 'short' | 'medium' | 'full',
     width?: number,
+    initialOffset?: number,
 
     numberOfDays?: number,
     showWeekends?: boolean, //Only apply for week timeline (numberOfDays = 7)
-} & TimelineColumnProps;
 
-const Timeline : React.FC<TimelineProps> = ({
-    startDate = Date(),
-    selectedDate,
+    dateNameType?: TimelineHeaderProps['dateNameType']
+};
 
-    taskList = [],
+const Timeline = React.forwardRef <ScrollView, TimelineProps> ((
+    props, ref
+) => {
+    const {
+        startDate,
+        selectedDate,
 
-    onPressCell,
-    onPressDate,
-    onPressTask,
+        taskList,
 
-    height = CALENDAR_BODY_HEIGHT,
-    width = Layouts.screen.width,
+        onPressCell,
+        onPressDate,
+        onPressTask,
 
-    numberOfDays = 7,
-    showWeekends = true,
-}) => {
+        height = CALENDAR_BODY_HEIGHT,
+        width = Layouts.screen.width,
+        initialOffset = 0,
+
+        numberOfDays = 7,
+        showWeekends = true,
+        dateNameType,
+    } = props;
+
+    // useTraceUpdate(props);
+
     const startDayjs = React.useMemo( () => numberOfDays === 7
-                                                ? dayjs( startDate ).startOf('week')
+                                                ? dayjs( startDate ).startOf('isoWeek')
                                                 : dayjs( startDate )
                                     , [startDate, numberOfDays] );
     const numberOfDaysShow = React.useMemo( () => numberOfDays !== 7
@@ -52,12 +65,19 @@ const Timeline : React.FC<TimelineProps> = ({
                                                 : showWeekends ? 7 : 5   //for case of week timeline but not show weekends
                                     , [numberOfDays, showWeekends] );
 
-    const renderColumns = React.useCallback< () => React.ReactNode >( () => {
+    const heightNumber = React.useMemo( () => {
+        return typeof height === 'number' ? height : TIMELINE_HEIGHT[height];
+    } , [height] );
+
+    const renderColumns = React.useCallback< () => React.ReactNode[] >( () => {
+
         const columns : React.ReactNode[] = [];
         const columnWidth = width / numberOfDaysShow;       
         for (let i = 0; i < numberOfDaysShow; i++) {
             const thisDay = startDayjs.add(i, 'days');
-            const taskListThisDay = taskList.filter( task => thisDay.isBetween(task.start, task.end, 'day', '[]'));
+            const taskListThisDay = taskList
+                                                    ? taskList.filter( task => thisDay.isBetween(task.start, task.end, 'day', '[]'))
+                                                    : [];
             
             columns.push(
                 <TimelineColumn
@@ -73,37 +93,43 @@ const Timeline : React.FC<TimelineProps> = ({
                 />
             );
         }
-        return (
-            <View style={{flexDirection: 'row' }}>
-                {columns.map( column => column )}
-            </View>)
-    }, [taskList, numberOfDays, onPressCell, onPressTask, width, startDayjs]);
 
-    //TODO: add initial scroll position (at current hour)
+        return columns
+    }, [taskList, numberOfDays, onPressCell, onPressTask, width, startDate]);
+
     //TODO: later, update using RecyclerListView instead: https://github.com/Flipkart/recyclerlistview/tree/master
 
+    const containerStyle = React.useMemo(() => ({width}), [width]);
+    const scrollViewStyle = React.useMemo(() => ({maxHeight: heightNumber}), [heightNumber]);
+
     return (
-        <View style={[{width : width}]}>
+        <View style={containerStyle}>
             <TimelineHeader
                 startDate={startDate}
                 numberOfDays={numberOfDaysShow}
 
-                taskList = {taskList.length > 0 ? taskList : undefined}
+                taskList = { (taskList && taskList.length > 0) ? taskList : undefined}
                 showTaskList = { !!taskList }
 
                 onPressDate={onPressDate}
                 selectedDate={selectedDate}
 
                 showMonth={false}
+                dateNameType={dateNameType}
             />
+
             <SyncedScrollView
                 _id={ dayjs(startDate).unix() }
-                style={[{maxHeight: height}]}
+                initialOffset={initialOffset}
+                ref={ref}
+                style={scrollViewStyle}
             >
-                    {renderColumns()}
+                <View style={{flexDirection: 'row' }}>
+                    { renderColumns() }
+                </View>
             </SyncedScrollView>
         </View>
     )
-}
+});
 
 export default React.memo(Timeline);

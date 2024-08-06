@@ -12,7 +12,7 @@ import { DOT_SIZE } from '../constants';
 //styles
 import { Colors, Outlines, Typography, Animations as Anim } from '../../../styles';
 import { type TaskTimeline } from '../type';
-// import { useTraceUpdate } from '../../../hooks';
+import { useTraceUpdate } from '../../../hooks';
 
 type DateItemProps = {
     thisDate: Date | string,
@@ -74,6 +74,10 @@ const DateItem: React.FC<DateItemProps> = (props) => {
             ? colorProgress.value = Anim.timing<number>(1).easeIn.fast
             : colorProgress.value = Anim.timing<number>(0).easeIn.fast;
     }, [isSelected])
+
+    // React.useEffect(() => {
+    //     console.log('DateItem rendered' + thisDay.format());
+    // })
 
     return (
         <AnimatedPressable 

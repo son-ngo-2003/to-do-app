@@ -16,7 +16,7 @@ import { type SelectedType, type MarkedObject } from '../type';
 //hooks
 // import { useTraceUpdate } from '../../../hooks';
 
-type DateItemProps = {
+interface DateItemProps {
     thisDate: string,
 
     isCurrentMonth?: boolean,

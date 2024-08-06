@@ -1,11 +1,11 @@
 import * as React from 'react';
 import dayjs from 'dayjs';
-import { StyleSheet, GestureResponderEvent, Pressable } from 'react-native';
+import {StyleSheet, GestureResponderEvent, Pressable, View} from 'react-native';
 
 //components
 import CalendarListHeader from './CalendarListHeader';
-import CalendarList from './CalendarList';
-import TimelineList from './TimelineList';
+import CalendarList, {type CalendarListProps} from './CalendarList';
+import TimelineList, {type TimelineListProps} from './TimelineList';
 import { type CalendarProps, type RangeSelectedDateType } from '../calendar/Calendar';
 import { type TimelineProps } from '../timeline/Timeline';
 import { Layouts } from '../../../styles';
@@ -17,129 +17,101 @@ import { CALENDAR_BODY_HEIGHT, CALENDAR_BODY_ONE_WEEK_HEIGHT } from '../constant
 //utils
 import { taskTimelineToMarked } from '../utils';
 
-export type MixCalendarListProps = {
+export interface MixCalendarListProps {
+    initialDate?: CalendarListProps['initialDate'],
+    taskList?: TimelineListProps['taskList'],
+
+    isSelectRange?: CalendarListProps['isSelectRange'],
+    onPressDate?: CalendarListProps['onPressDate'],
+    onPressRangeDate?: CalendarListProps['onPressRangeDate'], //only for calendarMode = calendar
+    onPressCell?: TimelineListProps['onPressCell'],           //only for calendarMode = timeline
+    onPressTask?: TimelineListProps['onPressTask'],
+    onScroll?: TimelineListProps['onScroll'],
+
+    heightMode?: number | 'short' | 'medium' | 'full', //number and full only for timeline
     calendarMode?: 'calendar' | 'timeline' | 'mix',
-    
-    initialDate?: Date | string | dayjs.Dayjs,
+    numberOfDays?: TimelineListProps['numberOfDays'], //only for timeline mode
+    showWeekends?: TimelineListProps['showWeekends'], //only for week timeline mode (numberOfDays = 7)
+
     minDate?: dayjs.Dayjs | string | Date,
     maxDate?: dayjs.Dayjs | string | Date,
-
-    onPressShortenCalendarList?: (e: GestureResponderEvent) => void // often use to set height of list
-    onScroll?: ( isSuccess: boolean, newCanScroll : ScrollType, newPeriod?: Date ) => void,
-    
-    heightMode?: number | 'short' | 'medium' | 'full', //number and full only for timeline
     width?: number,
-} & CalendarProps & TimelineProps;
+    onPressShortenCalendarList?: (e: GestureResponderEvent) => void // often use to set height of list
+
+    dateNameType?: CalendarListProps['dateNameType'],
+}
 
 const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(({
     initialDate,
-    onPressShortenCalendarList = () => {},
     taskList,
 
     isSelectRange = false,
     onPressDate,
-    onPressRangeDate, //only for calendar
-    onPressCell,      //only for timeline
-    onPressTask,      //only for 
+    onPressRangeDate,
+    onPressCell,
+    onPressTask,
     onScroll,
-    
+
     heightMode = 'medium',
     calendarMode = 'calendar',
-    numberOfDays, //only for timeline mode
-    showWeekends = true, //only for week timeline mode (numberOfDays = 7)
+    numberOfDays,
+    showWeekends = true,
 
     minDate,
     maxDate,
     width = Layouts.screen.width,
+    onPressShortenCalendarList,
+
+    dateNameType,
 
 }, ref) => {
 
     //TODO: use useTraceUpdate to check re-render of all children
-    const listRef = React.useRef<any>(null);
+    const itemsRef = React.useRef<any>(null);
 
-    const [ selectedDate, setSelectedDate ] = React.useState<string>( dayjs(initialDate).format() );
-    const [ headerDateShow, setHeaderDateShow ] = React.useState<string>( dayjs(selectedDate).format('DD/MM') );
-    const [ currentPeriod, setCurrentPeriod ] = React.useState<string>( selectedDate );
+    //TODO: selectedDate still not working when change mode
+    const [ headerDateShow, setHeaderDateShow ] = React.useState<string>( dayjs(initialDate).format('DD/MM') );
     const [ canScroll, setCanScroll ] = React.useState<ScrollType>({left: false, right: false});
     const [ currentMode, setCurrentMode ] = React.useState<'calendar' | 'timeline' >( calendarMode == 'timeline' ? 'timeline' : 'calendar');
     
     const markedList = React.useMemo( () => taskTimelineToMarked(taskList) , [taskList] )
 
-    React.useImperativeHandle(ref, () => ({
-        ...listRef.current,
-    }), [currentPeriod, setSelectedDate, currentMode]);
+    const _onPressDate = React.useCallback((date: Date, stringDate: string) : void => {
+        itemsRef.current && itemsRef.current.forEach( (item: any) => item.onChangeSelectedDate( date, stringDate ) );
 
-    const _onPressDate = React.useCallback<(date: Date, stringDate: string) => void>((date: Date, stringDate: string) => {
-        setSelectedDate( stringDate );
         onPressDate && onPressDate(date, stringDate);
         setHeaderDateShow( dayjs(date).format('DD/MM') );
-    }, [onPressDate, setSelectedDate, setHeaderDateShow]);
+    }, [onPressDate, setHeaderDateShow]);
 
-    const _onPressRangedDate = React.useCallback<(date: RangeSelectedDateType) => void>((date: RangeSelectedDateType) => {
+    const _onPressRangedDate = React.useCallback((date: RangeSelectedDateType) : void => {
         onPressRangeDate && onPressRangeDate(date);
+
         let stringDate = '';
         date.start && ( stringDate += dayjs(date.start).format('DD/MM')); //&& setSelectedDate(date.start);
         date.end && ( stringDate += '-' + dayjs(date.end).format('DD/MM'));
         setHeaderDateShow(stringDate);
     }, [onPressRangeDate, setHeaderDateShow]);
 
-    const _onScroll =  React.useCallback<( isSuccess: boolean, newCanScroll : ScrollType, newPeriod?: Date ) => void>((isSuccess, newCanScroll, newPeriod) => {
-        onScroll && onScroll( isSuccess, newCanScroll, newPeriod);
-        newPeriod && setCurrentPeriod( dayjs(newPeriod).format() );
+    const _onScroll =  React.useCallback(( isSuccess: boolean, newCanScroll : ScrollType, newPeriod?: Date ) : void => {
+        onScroll && onScroll( isSuccess, newCanScroll, newPeriod );
         setCanScroll(newCanScroll);
-    }, [onScroll, setCurrentPeriod, setCanScroll]);
+    }, [onScroll, setCanScroll]);
 
-    const renderList = () => {
-        const timelineHeight = { //TODO: move this to constants file
-            'short' : CALENDAR_BODY_ONE_WEEK_HEIGHT,
-            'medium' : CALENDAR_BODY_HEIGHT,
-            'full' : Layouts.screen.height,
-        }
-        return (
-            // TODO: do not do like this, it will cause re-render of each type of list when change
-            currentMode === 'calendar'
-            ? <CalendarList
-                    ref={listRef}
-                    initialDate={ initialDate }
-                    markedDate={ markedList }
+    const setItemsRef = React.useCallback((node: any, itemType: string) : void => {
+        !itemsRef.current && (itemsRef.current = new Map());
 
-                    isSelectRange={ isSelectRange }
-                    onPressDate={ _onPressDate }
-                    onPressRangeDate={ _onPressRangedDate }
-                    onScroll={ _onScroll }
+        node
+        ? itemsRef.current.set(itemType, node)
+        : itemsRef.current.delete(itemType);
+    } , [itemsRef.current]);
 
-                    showOneWeek = { typeof heightMode === 'number'
-                                    ? heightMode < CALENDAR_BODY_HEIGHT
-                                    : heightMode === 'short' }
+    const getCurrentPeriod = React.useCallback( () : dayjs.Dayjs => {
+        if (!itemsRef.current ||!itemsRef.current.get(currentMode)) return dayjs(initialDate);
+        return dayjs(itemsRef.current.get(currentMode).currentPeriod)
+    }, [currentMode, itemsRef.current] );
 
-                    minMonth={ minDate }
-                    maxMonth={ maxDate }
-                    width={width}
-                />
-            : <TimelineList
-                    ref={listRef}
-                    initialDate={ initialDate }
-                    taskList={ taskList }
-
-                    onPressDate={ _onPressDate }
-                    onPressCell={ onPressCell }
-                    onPressTask={ onPressTask }
-                    onScroll={ _onScroll }
-
-                    height={ typeof heightMode === 'number'
-                            ? heightMode
-                            : timelineHeight[heightMode]
-                    }     
-                    
-                    numberOfDays={ numberOfDays }
-                    showWeekends={ showWeekends }
-                    minPeriod={ minDate }
-                    maxPeriod={ maxDate }
-                    width={width}
-
-                />
-        );
-    }
+    React.useImperativeHandle(ref, () => itemsRef.current[currentMode]
+    , [currentMode, itemsRef.current]);
 
     return (
         <Pressable style={[styles.calendar, {width}]}
@@ -152,20 +124,62 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
         >
             <CalendarListHeader
                 selectDateString={ headerDateShow }
-                currentMonth={ dayjs(currentPeriod).month() }
-                currentYear={ dayjs(currentPeriod).year() }
+                currentMonth={ getCurrentPeriod().month() }
+                currentYear={ getCurrentPeriod().year() }
 
-                onPressLeft={() => listRef.current.scroll(-1)}
-                onPressRight={() => listRef.current.scroll(1)}
+                onPressLeft={() => itemsRef.current.get(currentMode).scroll(-1)}
+                onPressRight={() => itemsRef.current.get(currentMode).scroll(1)}
                 onPressExpand={() => { currentMode === 'calendar' ? setCurrentMode('timeline') : setCurrentMode('calendar') }}
                 canScroll={canScroll}
             />
 
-            { renderList()}
+            <View style={{display : (currentMode === 'calendar' ? 'flex' : 'none') }}>
+                <CalendarList
+                    ref={ node => setItemsRef(node, 'calendar') }
+                    initialDate={ initialDate }
+                    markedDate={ markedList }
+
+                    isSelectRange={ isSelectRange }
+                    onPressDate={ _onPressDate }
+                    onPressRangeDate={ _onPressRangedDate }
+                    onScroll={ _onScroll }
+
+                    showOneWeek = { typeof heightMode === 'number'
+                        ? heightMode < CALENDAR_BODY_HEIGHT
+                        : heightMode === 'short' }
+
+                    minMonth={ minDate }
+                    maxMonth={ maxDate }
+                    width={ width }
+                    dateNameType={ dateNameType }
+                />
+            </View>
+
+            <View style={{display : (currentMode === 'timeline' ? 'flex' : 'none') }}>
+                <TimelineList
+                    ref={ node => setItemsRef(node, 'timeline') }
+                    initialDate={ initialDate }
+                    taskList={ taskList }
+
+                    onPressDate={ _onPressDate }
+                    onPressCell={ onPressCell }
+                    onPressTask={ onPressTask }
+                    onScroll={ _onScroll }
+
+                    numberOfDays={ numberOfDays }
+                    showWeekends={ showWeekends }
+                    minPeriod={ minDate }
+                    maxPeriod={ maxDate }
+
+                    width={ width }
+                    height={ heightMode}
+                    dateNameType={ dateNameType }
+                />
+            </View>
         </Pressable>
     )
 });
-export default MixCalendarList;
+export default React.memo( MixCalendarList );
 
 const styles = StyleSheet.create({
     calendar: {},

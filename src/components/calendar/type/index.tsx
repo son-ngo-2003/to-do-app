@@ -25,4 +25,6 @@ export type SelectedType = 'one-date' | 'range-start' | 'range-end' | 'range-bet
 
 export type CalenderListRef = {
     scroll: (arg: dayjs.Dayjs | number | Date | string) => void,
+    currentPeriod: string,
+    onChangeSelectedDate: (date: Date, dateString: string) => void,
 } & Partial<FlatList>;
