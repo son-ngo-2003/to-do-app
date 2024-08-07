@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { Text, View, Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import { useTheme } from '@react-navigation/native';
-import { Colors, Bases, Typography, Outlines } from '../../styles';
+import { Bases, Outlines } from '../../styles';
 
 //Components
 import { Icon } from '../atomic';

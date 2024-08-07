@@ -64,7 +64,7 @@ const NoteModal: React.FC<NoteModalProps> = ({
     return (
         <Modal transparent={true} animationType='fade'>
             <KeyboardOptimizeView style={styles.container}>
-                <Overlay onPress={onPressCancel} background='highOpacity'/>
+                <Overlay onPress={onPressCancel} background={'highOpacity'}/>
 
                 {/* Modal parts */}
                 <Animated.View style={[styles.modalContainer, {backgroundColor: colors.card}]}

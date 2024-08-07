@@ -67,7 +67,7 @@ const Calendar: React.FC<CalendarProps> = (props) => {
         onPressDate(date, dateString);
     }, [onPressDate]);
 
-    const onPressRange = React.useCallback( (date: Date, dateString: string) => {
+    const onPressRange = React.useCallback( (_date: Date, dateString: string) => {
         let newRangeSelectedDate: RangeSelectedDateType = rangeSelectedDate;
         newRangeSelectedDate.end 
             ? newRangeSelectedDate = {start: dateString, end: undefined}

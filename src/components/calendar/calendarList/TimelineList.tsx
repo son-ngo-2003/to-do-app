@@ -16,7 +16,6 @@ import { useCalendarPages} from "../hooks";
 //constants
 import {
     CALENDAR_BODY_HEIGHT,
-    CALENDAR_BODY_ONE_WEEK_HEIGHT,
     TIMELINE_CELL_HEIGHT, TIMELINE_HEIGHT,
     TIMELINE_TIME_BAR_WIDTH
 } from '../constants';
@@ -115,7 +114,7 @@ const TimelineList = React.forwardRef<CalenderListRef, TimelineListProps>((
         onChangeSelectedDate,
     }), [ selectedDate, currentPeriod, currentPeriod ]);
 
-    const onChangeSelectedDate = useCallback( (date : Date, dateString : string) : void => {
+    const onChangeSelectedDate = useCallback( (_date : Date, dateString : string) : void => {
         setSelectedDate(dateString);
     }, [setSelectedDate]);
 
@@ -171,18 +170,10 @@ const TimelineList = React.forwardRef<CalenderListRef, TimelineListProps>((
         }
     }, [selectedDate]);
 
-    useEffect(() => {
-        setTimeout(() => {
-            flatListRef.current?.scrollToOffset({offset: getIndexOfPage(selectedDate) * widthTimeline, animated: false});
-            console.log(getIndexOfPage(selectedDate))
-            console.log(selectedDate);
-        }, 400); //TODO: find a better way to initial scroll to selectedDate (400 is to wait every items rendered)
-    }, [])
-
 
     // * --------------------------------------------- UI Part --------------------------------------------------
     const heightNumber = React.useMemo( () => {
-        return typeof height === 'number' ? height : TIMELINE_HEIGHT[height];
+        return (typeof height === "number") ? height : TIMELINE_HEIGHT[height];
     } , [height] );
 
     const expandCalendarProgress = useSharedValue<number>(heightNumber);
@@ -225,7 +216,7 @@ const TimelineList = React.forwardRef<CalenderListRef, TimelineListProps>((
             } ]}>
                 <TimelineTimebar
                     height={heightNumber}
-                    headerHeight={64}
+                    headerHeight={!taskList || taskList.length === 0 ? 54 : 64}
                 />
 
                 <View style={{width: widthTimeline}}>
@@ -233,7 +224,7 @@ const TimelineList = React.forwardRef<CalenderListRef, TimelineListProps>((
                         ref={flatListRef}
                         // removeClippedSubviews
 
-                        keyExtractor={(item, index) => index.toString()}
+                        keyExtractor={(_, index) => index.toString()}
                         data={pagesRef.current}
                         renderItem={renderItem}
                         // initialNumToRender={4}
@@ -243,8 +234,8 @@ const TimelineList = React.forwardRef<CalenderListRef, TimelineListProps>((
                         onScroll={onScrollManuel}
 
                         pagingEnabled={true}
-                        // initialScrollIndex={ getIndexOfPage(selectedDate) }
-                        getItemLayout={(_, index) => ({length: widthTimeline, offset: widthTimeline, index})}
+                        initialScrollIndex={ getIndexOfPage(selectedDate) }
+                        getItemLayout={(_, index) => ({length: width - TIMELINE_TIME_BAR_WIDTH, offset: (width - TIMELINE_TIME_BAR_WIDTH) * index, index})}
 
                     />
                 </View>

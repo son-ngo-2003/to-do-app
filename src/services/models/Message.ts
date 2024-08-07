@@ -1,7 +1,7 @@
 class Message<T> {
-    private isSuccess: boolean;
-    private data: T;
-    private error: string;
+    private readonly isSuccess: boolean;
+    private readonly data: T;
+    private readonly error: string;
 
     constructor(isSuccess: boolean, data?: T, error?: string) {
         this.isSuccess = isSuccess;

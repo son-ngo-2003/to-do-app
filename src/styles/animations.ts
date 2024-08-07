@@ -1,9 +1,7 @@
-import Animated, 
-    {   withTiming, 
-        interpolateColor, Easing, ReduceMotion,
-        type SharedValue,
-        type AnimatableValue,
-        withSpring
+import { withTiming,
+         Easing, ReduceMotion,
+         type AnimatableValue,
+         withSpring
 } from 'react-native-reanimated';
 
 type DurationType = 'fast' | 'base' | 'slow' | 'glacial';

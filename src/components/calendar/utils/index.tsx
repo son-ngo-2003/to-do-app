@@ -38,14 +38,14 @@ export const generateBBoxOfTasks = (taskList: TaskTimeline[] = []) => {
 
     //update list of positions
     const posOfTasks = listStartEndMinuteTasks.map( ({start, end}) => {
-        const avaiPos = mapTimePositionStatus.get(start)?.findIndex( (position) => position === 0) as number;
+        const availablePos = mapTimePositionStatus.get(start)?.findIndex( (position) => position === 0) as number;
         mapTimePositionStatus.forEach( (_, time) => {
             if ( ! (start <= time && time < end) ) return;
             let newPosStatus = mapTimePositionStatus.get(time) as Array<number>;
-            newPosStatus[avaiPos] = 1;
+            newPosStatus[availablePos] = 1;
             mapTimePositionStatus.set(time, newPosStatus);
         });
-        return avaiPos;
+        return availablePos;
     });
 
     //get width of each task
@@ -58,11 +58,11 @@ export const generateBBoxOfTasks = (taskList: TaskTimeline[] = []) => {
                 maxNumberOfTasksInThisDuration = numberOfTasksThisTime;
             }
         });
-        return 100 * 1 / maxNumberOfTasksInThisDuration;
+        return 100 / maxNumberOfTasksInThisDuration;
     });
 
     return widthOfTasks.map((width, index) => {
-        const minWidth = 100 * 1 / MAX_NUMBER_OF_TASKS_SHOW_EACH_MOMENT;
+        const minWidth = 100 / MAX_NUMBER_OF_TASKS_SHOW_EACH_MOMENT;
         const leftCount = posOfTasks[index];
         const { start, end } = listStartEndMinuteTasks[index];
         return {

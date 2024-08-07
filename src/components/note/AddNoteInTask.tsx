@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
-import { Text, View, Pressable, StyleSheet } from 'react-native';
-import { Colors, Typography, Outlines, Animations as Anim } from '../../styles';
+import { Text, Pressable, StyleSheet } from 'react-native';
+import { Colors, Typography, Outlines } from '../../styles';
 
 import NoteModal from './NoteModal'
 
@@ -13,7 +13,7 @@ const AddNoteInTask: React.FC<AddNoteInTaskProps> = ({
     onAddNote,
 }) => {
     const [ isShowNoteModal, setIsShowNoteModal ] = React.useState<boolean>(false);
-    const { dark, colors } = useTheme();
+    const { dark } = useTheme();
 
     return (
         <>

@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react"
 import { Animated, ScrollView, ScrollViewProps } from "react-native"
 import { SyncedScrollViewContext } from "../../contexts/SyncedScrollViewContext"
-import {useTraceUpdate} from "../../hooks";
+// import {useTraceUpdate} from "../../hooks";
 
 // ----------------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ const SyncedScrollView = React.forwardRef<ScrollView, SyncedScrollViewProps>((
 
     // Calculate the scrollable Length everytime the contentLength or scrollViewLength changes
     useEffect(() => {
-        // The scrollable length is the difference between the content length and the scrollview length
+        // The scrollable length is the difference between the content length and the ScrollView length
         setScrollableLength(contentLength - scrollViewLength)
     }, [scrollViewLength, contentLength])
 

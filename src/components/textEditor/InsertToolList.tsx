@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, ViewStyle, Image } from 'react-native';
+import { ViewStyle } from 'react-native';
 import {   
     type EditorBridge,
 } from '@10play/tentap-editor';
@@ -7,17 +7,17 @@ import { useTheme } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 
 //components
-import { ListModal, Icon } from '../atomic';
-import { ListModalDataType } from '../atomic/ListModal';
-import { Images } from '../../assets/images';
+import { ListModal, Icon,
+        type ListModalDataType
+} from '../atomic';
 
-type InserToolListProps = {
+type InsertToolListProps = {
     editor: EditorBridge,
     style: ViewStyle,
     onPressOverlay: () => void,
 }
 
-const InserToolList : React.FC<InserToolListProps> = ({
+const InsertToolList : React.FC<InsertToolListProps> = ({
     editor,
     style,
     onPressOverlay,
@@ -105,4 +105,4 @@ const InserToolList : React.FC<InserToolListProps> = ({
     )
 }
 
-export default InserToolList;
+export default InsertToolList;

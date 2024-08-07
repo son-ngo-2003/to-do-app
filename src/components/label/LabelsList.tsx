@@ -1,9 +1,9 @@
-import React, { LegacyRef, RefObject } from 'react';
+import React from 'react';
 import { StyleSheet, ScrollView, View, Pressable, Text,
         type LayoutChangeEvent } from 'react-native';
 
 //components & styles
-import { ListModal, Icon } from '../atomic';
+import { Icon } from '../atomic';
 import LabelSelectModal from './LabelSelectModal';
 import LabelTag from './LabelTag';
 import { useTheme } from '@react-navigation/native';
@@ -38,9 +38,9 @@ const LabelsList : React.FC<LabelsListProps> = ({
         setListLabels(newListLabels);
     }
 
-    const getLayoutPlusButton = (event: LayoutChangeEvent) => {
+    const getLayoutPlusButton = (_event: LayoutChangeEvent) => {
         //const {width, height} = event.nativeEvent.layout;
-        setTimeout(() => { //wait until finish trainsition of modal
+        setTimeout(() => { //wait until finish transition of modal
             plusButtonRef.current?.measureInWindow((pagex, pagey) => {
                 setPlusButtonPos({x: pagex, y: pagey});
             });

@@ -12,7 +12,7 @@ import { DOT_SIZE } from '../constants';
 //styles
 import { Colors, Outlines, Typography, Animations as Anim } from '../../../styles';
 import { type TaskTimeline } from '../type';
-import { useTraceUpdate } from '../../../hooks';
+// import { useTraceUpdate } from '../../../hooks';
 
 type DateItemProps = {
     thisDate: Date | string,

@@ -2,10 +2,8 @@ import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
 import { Pressable, View, TextInput, StyleSheet, Modal, 
          Keyboard } from 'react-native';
-import { Colors, Typography, Outlines, Layouts, Bases, Animations as Anim} from '../../styles';
-import Animated,
-        { useSharedValue, ZoomInEasyDown, useAnimatedStyle
-} from 'react-native-reanimated';
+import { Colors, Typography, Outlines, Layouts, Bases} from '../../styles';
+import Animated, { ZoomInEasyDown } from 'react-native-reanimated';
 
 //components
 import { Icon, Overlay, KeyboardOptimizeView } from '../atomic';
@@ -40,7 +38,7 @@ const LabelModal: React.FC<LabelModalProps> = ({
         if (Keyboard.isVisible()) return;
         console.log('Add');
         setIsOpenModal(false);
-        //TODO: call LabelService to add new label and retrurn label -> onAddLabel(label);
+        //TODO: call LabelService to add new label and return label -> onAddLabel(label);
     }
 
     const onPressUpdate = () => {
@@ -60,7 +58,7 @@ const LabelModal: React.FC<LabelModalProps> = ({
     return (
         <Modal transparent={true} animationType='fade' visible={visible}>
             <KeyboardOptimizeView style={styles.container}>
-                <Overlay onPress={onPressCancel} background='highOpacity'/>
+                <Overlay onPress={onPressCancel} background={'highOpacity'}/>
 
                 {/* Modal parts */}
                 <Animated.View style={[styles.modalContainer, {backgroundColor: colors.card}]}

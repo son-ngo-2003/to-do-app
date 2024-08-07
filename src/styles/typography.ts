@@ -1,4 +1,4 @@
-import { TextStyle, Platform } from "react-native"
+import { TextStyle } from "react-native"
 
 import * as Colors from "./colors"
 import { AleoFont } from "../assets/fonts"

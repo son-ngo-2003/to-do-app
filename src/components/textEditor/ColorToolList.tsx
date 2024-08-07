@@ -3,14 +3,11 @@ import { StyleSheet, ViewStyle, View } from 'react-native';
 import {   
     type EditorBridge,
 } from '@10play/tentap-editor';
-import { useTheme } from '@react-navigation/native';
-import * as ImagePicker from 'expo-image-picker';
 
 //components
-import { ListModal, Icon } from '../atomic';
-import { ListModalDataType } from '../atomic/ListModal';
-import { Images } from '../../assets/images';
-import { Colors, Layouts, Outlines } from '../../styles';
+import { ListModal } from '../atomic';
+import { ListModalDataType } from '../atomic';
+import { Colors, Outlines } from '../../styles';
 import { Primary } from '../../styles/colors';
 
 type ColorToolListProps = {
@@ -24,7 +21,6 @@ const ColorToolList : React.FC<ColorToolListProps> = ({
     style,
     onPressOverlay,
 }) => {
-    const { colors } = useTheme();
 
     const ColorBox : React.FC<{color: string}> = ({color}) => {
         return (

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
-import { Text, View, Pressable, StyleSheet } from 'react-native';
-import { Colors, Typography, Outlines, Animations as Anim } from '../../styles';
+import { Text, Pressable, StyleSheet } from 'react-native';
+import { Colors, Typography, Outlines } from '../../styles';
 import Animated, 
     { ZoomIn
 } from 'react-native-reanimated';

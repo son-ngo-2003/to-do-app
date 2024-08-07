@@ -1,5 +1,4 @@
 import { TextStyle, ViewStyle } from "react-native"
-import { EditorTheme, darkEditorTheme, defaultEditorTheme } from "@10play/tentap-editor"
 
 type Neutral =
     | "white"

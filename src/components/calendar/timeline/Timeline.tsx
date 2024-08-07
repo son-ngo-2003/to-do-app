@@ -9,8 +9,9 @@ import TimelineHeader, {type TimelineHeaderProps} from './TimelineHeader';
 import { SyncedScrollView } from "../../atomic/";
 
 //constants
-import {CALENDAR_BODY_HEIGHT, CALENDAR_BODY_ONE_WEEK_HEIGHT, TIMELINE_HEIGHT} from '../constants';
-import {useTraceUpdate} from "../../../hooks";
+import {CALENDAR_BODY_HEIGHT, TIMELINE_HEIGHT} from '../constants';
+
+// import {useTraceUpdate} from "../../../hooks";
 
 
 export interface TimelineProps {
@@ -30,7 +31,7 @@ export interface TimelineProps {
     showWeekends?: boolean, //Only apply for week timeline (numberOfDays = 7)
 
     dateNameType?: TimelineHeaderProps['dateNameType']
-};
+}
 
 const Timeline = React.forwardRef <ScrollView, TimelineProps> ((
     props, ref
@@ -95,7 +96,7 @@ const Timeline = React.forwardRef <ScrollView, TimelineProps> ((
         }
 
         return columns
-    }, [taskList, numberOfDays, onPressCell, onPressTask, width, startDate]);
+    }, [taskList, numberOfDays, onPressCell, onPressTask, width, startDayjs]);
 
     //TODO: later, update using RecyclerListView instead: https://github.com/Flipkart/recyclerlistview/tree/master
 

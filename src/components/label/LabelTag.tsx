@@ -1,11 +1,9 @@
 import * as React from 'react';
 import { Text, View, Pressable, StyleSheet } from 'react-native';
-import { useTheme } from '@react-navigation/native';
-import { Colors, Bases, Typography, Outlines } from '../../styles';
+import { Colors, Typography, Outlines } from '../../styles';
 
 //Components
 import { Icon } from '../atomic';
-import { Primary } from '../../styles/colors';
 
 type LabelTagProps = {
     text: string,

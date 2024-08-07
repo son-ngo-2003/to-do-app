@@ -11,15 +11,15 @@ type LabelCardProps = {
 
 const LabelCard: React.FC<LabelCardProps> = ({ label }) => {
     const onPressCard = React.useCallback(() => {
-        console.log(label);
-    },[]);
+        console.log(label); //TODO: do this
+    },[label]);
 
     const onPressDeleteButton = React.useCallback(() => {
-        console.log("delete label")
+        console.log("delete label") //TODO: do this
     },[]);
 
     const onPressEditButton = React.useCallback(() => {
-        console.log("edit label")
+        console.log("edit label") //TODO: do this
     },[]);
 
     return (

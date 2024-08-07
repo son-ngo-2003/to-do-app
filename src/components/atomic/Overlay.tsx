@@ -24,7 +24,7 @@ const Overlay: React.FC<OverlayProps> = ({ background, onPress, isBlur = false }
                                                          styles.highOpacity]}
                         tint={'dark'} intensity={isBlur ? 20 : 0}
                         >
-            {   !isKeyBoardOpen && //the properties keyboardShouldPersistTaps of scrollview doesn't close Keyboard when
+            {   !isKeyBoardOpen && //the properties keyboardShouldPersistTaps of ScrollView doesn't close Keyboard when
                                     //touching Pressable, so we need to hide Pressable to make this function works
                 <Pressable style={styles.overlay} onPress={onPress}></Pressable>}
         </BlurView>

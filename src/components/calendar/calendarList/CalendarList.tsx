@@ -90,7 +90,7 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((
         return thisMonth.isBetween(rangeSelectedDate.start, rangeSelectedDate.end, 'month', '[]');
     },[rangeSelectedDate.end, currentMonth, rangeSelectedDate.start]);
 
-    const onChangeSelectedDate = useCallback( (date : Date, dateString : string) : void => {
+    const onChangeSelectedDate = useCallback( (_date : Date, dateString : string) : void => {
         setSelectedDate(dateString);
     }, [setSelectedDate]);
 
@@ -192,7 +192,7 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((
                 <Calendar {...calendarProps}/>
             </Animated.View>
         )
-    },[selectedDate, rangeSelectedDate, showOneWeek, isSelectRange, markedDate, _onPressDate, isMonthContainedInRange, _onPressRangeDate, width, calendarContainerAnimation]);
+    },[selectedDate, rangeSelectedDate, showOneWeek, isSelectRange, markedDate, _onPressDate, isMonthContainedInRange, _onPressRangeDate, width, calendarContainerAnimation, dateNameType]);
 
     const getDataList = useCallback( () : DataItemType[] => {
         return pagesRef.current.map((thisMonth) => ({thisMonth}));
@@ -216,7 +216,7 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((
                 data={getDataList()}
                 renderItem={renderItem}
 
-                keyExtractor={(item, index) => index.toString()}
+                keyExtractor={(_, index) => index.toString()}
                 scrollEnabled={!showOneWeek}
                 horizontal
                 showsHorizontalScrollIndicator={false}

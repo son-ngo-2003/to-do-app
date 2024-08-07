@@ -13,7 +13,7 @@ const TIME_POINT_INDICATOR_SIZE = 10;
 import { Colors, Layouts, Outlines } from '../../../styles';
 import { type TaskTimeline } from '../type';
 import dayjs from 'dayjs';
-import {useTraceUpdate} from "../../../hooks";
+// import {useTraceUpdate} from "../../../hooks";
 
 export interface TimelineColumnProps {
     thisDate?: Date | string,

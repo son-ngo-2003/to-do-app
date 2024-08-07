@@ -72,9 +72,9 @@ const TextEditor : React.FC<TextEditorProps> = ({
         onChange: () => {onChange(editor)},
     });
 
-    const getLayoutToolbar = (event: LayoutChangeEvent) => {
+    const getLayoutToolbar = (_event: LayoutChangeEvent) => {
         //const {width, height} = event.nativeEvent.layout;
-        setTimeout(() => { //wait until finish trainsition of modal
+        setTimeout(() => { //wait until finish transition of modal
             toolbarRef.current?.measureInWindow((pagex, pagey) => {
                 setToolBarPos({x: pagex, y: pagey});
             });

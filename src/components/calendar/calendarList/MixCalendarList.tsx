@@ -6,13 +6,12 @@ import {StyleSheet, GestureResponderEvent, Pressable, View} from 'react-native';
 import CalendarListHeader from './CalendarListHeader';
 import CalendarList, {type CalendarListProps} from './CalendarList';
 import TimelineList, {type TimelineListProps} from './TimelineList';
-import { type CalendarProps, type RangeSelectedDateType } from '../calendar/Calendar';
-import { type TimelineProps } from '../timeline/Timeline';
+import { type RangeSelectedDateType } from '../calendar/Calendar';
 import { Layouts } from '../../../styles';
 import { ScrollType, type CalenderListRef } from '../type';
 
 //constants
-import { CALENDAR_BODY_HEIGHT, CALENDAR_BODY_ONE_WEEK_HEIGHT } from '../constants';
+import { CALENDAR_BODY_HEIGHT } from '../constants';
 
 //utils
 import { taskTimelineToMarked } from '../utils';
@@ -108,7 +107,7 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
     const getCurrentPeriod = React.useCallback( () : dayjs.Dayjs => {
         if (!itemsRef.current ||!itemsRef.current.get(currentMode)) return dayjs(initialDate);
         return dayjs(itemsRef.current.get(currentMode).currentPeriod)
-    }, [currentMode, itemsRef.current] );
+    }, [currentMode, itemsRef.current, initialDate] );
 
     React.useImperativeHandle(ref, () => itemsRef.current[currentMode]
     , [currentMode, itemsRef.current]);

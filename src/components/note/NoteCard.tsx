@@ -22,7 +22,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, orientation, showLabels = tru
 
     const onPressCard = React.useCallback(() => {
         console.log(note);
-    },[]);
+    },[note]);
 
     const onPressDeleteButton = React.useCallback(() => {
         console.log("delete note")

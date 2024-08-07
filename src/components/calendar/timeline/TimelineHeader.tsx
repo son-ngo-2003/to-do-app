@@ -10,7 +10,8 @@ import { DATE_NAME_FULL, DATE_NAME_3, DATE_NAME_2, DATE_NAME_1, MONTH_NAME_3 } f
 import { type TaskTimeline } from '../type';
 import DateItem from './DateItem';
 import { Typography } from '../../../styles';
-import {useTraceUpdate} from "../../../hooks";
+
+// import {useTraceUpdate} from "../../../hooks";
 
 export interface TimelineHeaderProps {
     startDate: Date | string,

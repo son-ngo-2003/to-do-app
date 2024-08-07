@@ -22,7 +22,7 @@ type DrawerItemListProps = DrawerContentComponentProps & { forRoutes?: RouteName
 export default function DrawerItemList({ state, navigation, descriptors, forRoutes }: DrawerItemListProps) {
     // const { buildHref } = useLinkBuilder();
 
-    const focusedRoute = state.routes[state.index];
+    // const focusedRoute = state.routes[state.index];
     return state.routes.map((route, i) => {
         if (forRoutes && !forRoutes.includes(route.name as RouteName)) {
             return null;
