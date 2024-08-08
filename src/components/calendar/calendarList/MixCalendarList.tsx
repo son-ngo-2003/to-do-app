@@ -71,7 +71,8 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
     //TODO: selectedDate still not working when change mode
     const [ headerDateShow, setHeaderDateShow ] = React.useState<string>( dayjs(initialDate).format('DD/MM') );
     const [ canScroll, setCanScroll ] = React.useState<ScrollType>({left: false, right: false});
-    const [ currentMode, setCurrentMode ] = React.useState<'calendar' | 'timeline' >( calendarMode == 'timeline' ? 'timeline' : 'calendar');
+    const [ currentMode, setCurrentMode ] = React.useState<'calendar' | 'timeline' >( calendarMode == 'timeline' ? 'timeline' : 'calendar' );
+    const [ currentNumberOfDays, setCurrentNumberOfDays ] = React.useState<number>( numberOfDays || 7 );
     
     const markedList = React.useMemo( () => taskTimelineToMarked(taskList) , [taskList] )
 
@@ -128,7 +129,11 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
 
                 onPressLeft={() => itemsRef.current.get(currentMode).scroll(-1)}
                 onPressRight={() => itemsRef.current.get(currentMode).scroll(1)}
-                onPressExpand={() => { currentMode === 'calendar' ? setCurrentMode('timeline') : setCurrentMode('calendar') }}
+
+                initialMode={ calendarMode == 'timeline' ? 'timeline' : 'calendar' }
+                setCalendarMode={setCurrentMode}
+                setNumberOfDays={setCurrentNumberOfDays}
+
                 canScroll={canScroll}
             />
 
@@ -165,7 +170,7 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
                     onPressTask={ onPressTask }
                     onScroll={ _onScroll }
 
-                    numberOfDays={ numberOfDays }
+                    numberOfDays={ currentNumberOfDays }
                     showWeekends={ showWeekends }
                     minPeriod={ minDate }
                     maxPeriod={ maxDate }

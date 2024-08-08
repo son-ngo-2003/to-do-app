@@ -62,7 +62,7 @@ const ListModal : React.FC<ListModalProps> = ({
                                             ]}
                                         onPress={() => {data.onPress 
                                                             ? data.onPress()
-                                                            : onPressItem(index); 
+                                                            : onPressItem(index);
                                                         onPressOverlay();
                                                 }}>
                                     {data.icon}
