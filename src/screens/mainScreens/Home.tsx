@@ -188,8 +188,8 @@ const HomeScreen : React.FC = () => {
                 // taskList={taskList}
                 minDate={ '2024-05-07' }
                 maxDate={ '2024-09-15' }
-                calendarMode='timeline'
-                showWeekends={true}
+                calendarModes={ 'month' }
+                initialModeIndex = {0}
 
                 // markedDate={markedDate}
                 // minMonth={ '2024-01-01' }

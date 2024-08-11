@@ -15,6 +15,10 @@ import { CALENDAR_BODY_HEIGHT } from '../constants';
 
 //utils
 import { taskTimelineToMarked } from '../utils';
+import {useMemo} from "react";
+
+export type CalendarMode = 'calendar' | 'month' | 'week' | 'weekdays' | 'day' | number;
+// calendar = month; number will be timeline mode with number of days correspond (number <= 10)
 
 export interface MixCalendarListProps {
     initialDate?: CalendarListProps['initialDate'],
@@ -28,9 +32,8 @@ export interface MixCalendarListProps {
     onScroll?: TimelineListProps['onScroll'],
 
     heightMode?: number | 'short' | 'medium' | 'full', //number and full only for timeline
-    calendarMode?: 'calendar' | 'timeline' | 'mix',
-    numberOfDays?: TimelineListProps['numberOfDays'], //only for timeline mode
-    showWeekends?: TimelineListProps['showWeekends'], //only for week timeline mode (numberOfDays = 7)
+    calendarModes: CalendarMode[] | CalendarMode, //a calendar mode or a list of calendar modes
+    initialModeIndex?: number,
 
     minDate?: dayjs.Dayjs | string | Date,
     maxDate?: dayjs.Dayjs | string | Date,
@@ -40,7 +43,7 @@ export interface MixCalendarListProps {
     dateNameType?: CalendarListProps['dateNameType'],
 }
 
-const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(({
+const MixCalendarList = React.forwardRef<CalenderListRef,MixCalendarListProps>(({
     initialDate,
     taskList,
 
@@ -52,9 +55,8 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
     onScroll,
 
     heightMode = 'medium',
-    calendarMode = 'calendar',
-    numberOfDays,
-    showWeekends = true,
+    calendarModes,
+    initialModeIndex = 0,
 
     minDate,
     maxDate,
@@ -69,10 +71,10 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
     const itemsRef = React.useRef<any>(null);
 
     //TODO: selectedDate still not working when change mode
+    const listCalendarModes = useMemo( () => Array.isArray(calendarModes) ? calendarModes : [calendarModes], [calendarModes] );
     const [ headerDateShow, setHeaderDateShow ] = React.useState<string>( dayjs(initialDate).format('DD/MM') );
     const [ canScroll, setCanScroll ] = React.useState<ScrollType>({left: false, right: false});
-    const [ currentMode, setCurrentMode ] = React.useState<'calendar' | 'timeline' >( calendarMode == 'timeline' ? 'timeline' : 'calendar' );
-    const [ currentNumberOfDays, setCurrentNumberOfDays ] = React.useState<number>( numberOfDays || 7 );
+    const [ currentMode, setCurrentMode ] = React.useState<CalendarMode>( listCalendarModes[ Math.min( initialModeIndex, listCalendarModes.length-1 ) ] );
     
     const markedList = React.useMemo( () => taskTimelineToMarked(taskList) , [taskList] )
 
@@ -97,7 +99,7 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
         setCanScroll(newCanScroll);
     }, [onScroll, setCanScroll]);
 
-    const setItemsRef = React.useCallback((node: any, itemType: string) : void => {
+    const setItemsRef = React.useCallback((node: any, itemType: CalendarMode) : void => {
         !itemsRef.current && (itemsRef.current = new Map());
 
         node
@@ -109,6 +111,15 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
         if (!itemsRef.current ||!itemsRef.current.get(currentMode)) return dayjs(initialDate);
         return dayjs(itemsRef.current.get(currentMode).currentPeriod)
     }, [currentMode, itemsRef.current, initialDate] );
+
+    const getNumberOfDays = React.useCallback( (mode: CalendarMode) : number => {
+        if (mode === 'calendar') return 30;
+        if (mode === 'month') return 30;
+        if (mode === 'week') return 7;
+        if (mode === 'weekdays') return 7; //will have attribute to decide show weekend or not in timeline list
+        if (mode === 'day') return 1;
+        return mode;
+    } , [] );
 
     React.useImperativeHandle(ref, () => itemsRef.current[currentMode]
     , [currentMode, itemsRef.current]);
@@ -130,56 +141,67 @@ const MixCalendarList = React.forwardRef<CalenderListRef, MixCalendarListProps>(
                 onPressLeft={() => itemsRef.current.get(currentMode).scroll(-1)}
                 onPressRight={() => itemsRef.current.get(currentMode).scroll(1)}
 
-                initialMode={ calendarMode == 'timeline' ? 'timeline' : 'calendar' }
+                calendarModes={ listCalendarModes }
+                initialModeIndex={ initialModeIndex }
                 setCalendarMode={setCurrentMode}
-                setNumberOfDays={setCurrentNumberOfDays}
 
                 canScroll={canScroll}
             />
 
-            <View style={{display : (currentMode === 'calendar' ? 'flex' : 'none') }}>
-                <CalendarList
-                    ref={ node => setItemsRef(node, 'calendar') }
-                    initialDate={ initialDate }
-                    markedDate={ markedList }
+            {
+                listCalendarModes.map( (mode, index) => {
+                    if (typeof mode === 'number' && mode > 10) return null;
+                    if (mode === 'calendar' || mode === 'month')
+                        return (
+                            <View style={{display : (currentMode === mode ? 'flex' : 'none') }} key={index}>
+                                <CalendarList
+                                    ref={ node => setItemsRef(node, mode) }
+                                    initialDate={ initialDate }
+                                    markedDate={ markedList }
 
-                    isSelectRange={ isSelectRange }
-                    onPressDate={ _onPressDate }
-                    onPressRangeDate={ _onPressRangedDate }
-                    onScroll={ _onScroll }
+                                    isSelectRange={ isSelectRange }
+                                    onPressDate={ _onPressDate }
+                                    onPressRangeDate={ _onPressRangedDate }
+                                    onScroll={ _onScroll }
 
-                    showOneWeek = { typeof heightMode === 'number'
-                        ? heightMode < CALENDAR_BODY_HEIGHT
-                        : heightMode === 'short' }
+                                    showOneWeek = { typeof heightMode === 'number'
+                                        ? heightMode < CALENDAR_BODY_HEIGHT
+                                        : heightMode === 'short' }
 
-                    minMonth={ minDate }
-                    maxMonth={ maxDate }
-                    width={ width }
-                    dateNameType={ dateNameType }
-                />
-            </View>
+                                    minMonth={ minDate }
+                                    maxMonth={ maxDate }
+                                    width={ width }
+                                    dateNameType={ dateNameType }
+                                />
+                            </View>
+                        )
+                    else
+                        return (
+                            <View style={{display : (currentMode === mode ? 'flex' : 'none') }} key={index}>
+                                <TimelineList
+                                    ref={ node => setItemsRef(node, mode) }
+                                    initialDate={ initialDate }
+                                    taskList={ taskList }
 
-            <View style={{display : (currentMode === 'timeline' ? 'flex' : 'none') }}>
-                <TimelineList
-                    ref={ node => setItemsRef(node, 'timeline') }
-                    initialDate={ initialDate }
-                    taskList={ taskList }
+                                    onPressDate={ _onPressDate }
+                                    onPressCell={ onPressCell }
+                                    onPressTask={ onPressTask }
+                                    onScroll={ _onScroll }
 
-                    onPressDate={ _onPressDate }
-                    onPressCell={ onPressCell }
-                    onPressTask={ onPressTask }
-                    onScroll={ _onScroll }
+                                    numberOfDays={ getNumberOfDays(mode) }
+                                    showWeekends={ mode === 'week' }
+                                    minPeriod={ minDate }
+                                    maxPeriod={ maxDate }
 
-                    numberOfDays={ currentNumberOfDays }
-                    showWeekends={ showWeekends }
-                    minPeriod={ minDate }
-                    maxPeriod={ maxDate }
+                                    width={ width }
+                                    height={ heightMode}
+                                    dateNameType={ dateNameType }
+                                />
+                            </View>
+                        )
 
-                    width={ width }
-                    height={ heightMode}
-                    dateNameType={ dateNameType }
-                />
-            </View>
+                })
+            }
         </Pressable>
     )
 });

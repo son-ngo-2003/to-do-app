@@ -89,7 +89,7 @@ const TextEditor : React.FC<TextEditorProps> = ({
     }
     ToolbarItems[3] = { //color tool
         ...ToolbarItems[3],
-        onPress: () => () => { setShowToolModal('color'); console.log(123)},
+        onPress: () => () => { setShowToolModal('color');},
         active: ({}) => showToolModal === 'color',
     }
 

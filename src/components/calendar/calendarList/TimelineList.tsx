@@ -27,7 +27,7 @@ import {useTraceUpdate} from "../../../hooks";
 export interface TimelineListProps {
     initialDate?: string | Date | dayjs.Dayjs,
     numberOfDays?: TimelineProps['numberOfDays'],
-    showWeekends?: TimelineProps['showWeekends'],
+    showWeekends?: TimelineProps['showWeekends'], //Only apply for week timeline (numberOfDays = 7)
 
     taskList?: TimelineProps['taskList'],
     minPeriod?: dayjs.Dayjs | string | Date,
@@ -52,7 +52,7 @@ const TimelineList = React.forwardRef<CalenderListRef, TimelineListProps>((
     const {
         initialDate,
         numberOfDays = 7,
-        showWeekends = true, //Only apply for week timeline (numberOfDays = 7)
+        showWeekends = true,
 
         taskList,
 

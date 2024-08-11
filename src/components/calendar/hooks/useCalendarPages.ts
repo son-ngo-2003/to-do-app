@@ -32,7 +32,7 @@ const UseCalendarPages = ({
     }, [referenceOfPeriod, numberOfDays]);
 
     const _minDate = useMemo(() => getPeriod(minDate), [minDate]);
-    const _maxDate = useMemo(() => { console.log(getPeriod(maxDate).format('DD-MM-YYYY')) ; return getPeriod(maxDate)}, [maxDate]);
+    const _maxDate = useMemo(() => getPeriod(maxDate), [maxDate]);
 
     const _generateListDate = useCallback(() => {
         let pages : dayjs.Dayjs[] = [];

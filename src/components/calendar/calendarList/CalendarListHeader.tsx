@@ -4,10 +4,11 @@ import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, {FadeIn} from 'react-native-reanimated';
 
 //components
-import {Layouts, Outlines, Typography} from '../../../styles';
+import { Layouts, Outlines, Typography } from '../../../styles';
 import { MONTH_NAME_FULL } from '../constants';
-import { Icon, ListModal } from '../../atomic';
+import { Icon, ListModal, type ListModalDataType } from '../../atomic';
 import { type ScrollType } from '../type';
+import {type CalendarMode, type MixCalendarListProps} from "./MixCalendarList";
 
 
 type CalendarListProps = {
@@ -18,9 +19,9 @@ type CalendarListProps = {
     onPressLeft: () => void,
     onPressRight: () => void,
 
-    initialMode?: 'calendar' | 'timeline',
-    initialNumberOfDays?: number,
-    setCalendarMode?: (mode: 'calendar' | 'timeline') => void,
+    calendarModes : CalendarMode[]
+    initialModeIndex: number,
+    setCalendarMode?: (mode: CalendarMode) => void,
     setNumberOfDays?: (num: number) => void,
 
     canScroll?: ScrollType
@@ -34,74 +35,63 @@ const CalendarListHeader: React.FC<CalendarListProps> = ({
     onPressLeft = () => {},
     onPressRight = () => {},
 
-    initialMode = 'calendar',
-    initialNumberOfDays = 7,
+    calendarModes,
+    initialModeIndex,
     setCalendarMode,
-    setNumberOfDays,
 
     canScroll = {left: true, right: true},
 }) => {
     const { colors } = useTheme();
 
-    const getIndexOfList = React.useCallback((mode: 'calendar' | 'timeline', numOfDays: number) => {
-        if (mode === 'calendar') return 3;
-        if (mode === 'timeline') {
-            if (numOfDays === 7) return 2;
-            if (numOfDays === 5) return 1;
-            return 0;
-        }
-    }, []);
-
     const [ modalPosition, setModalPosition ] = React.useState({top: 0, right: 0});
-    const [ currentIndex, setCurrentIndex ] = React.useState( getIndexOfList(initialMode, initialNumberOfDays) );
+    const [ currentIndex, setCurrentIndex ] = React.useState( initialModeIndex );
     const [ isShowModal, setIsShowModal ] = React.useState(false);
 
-    const modalDataList = React.useMemo(() => [
-        {
-            label: 'View By Day',
-            icon: <Icon name="view-day-outline" size={20} color={colors.text} library='MaterialCommunityIcons'/>,
+    const getModalDataByMode = React.useCallback((mode: CalendarMode, index: number) : ListModalDataType => {
+        const onPress = () => {
+            setCalendarMode && setCalendarMode(mode);
+            setCurrentIndex(index)
+        }
+        if (mode === 'day' || mode === 1)
+            return ({
+                label: 'View By Day',
+                icon: <Icon name="view-day-outline" size={20} color={colors.text} library='MaterialCommunityIcons'/>,
+                showIfFocused: true,
+                onPress,
+            })
+
+        if (mode === 'weekdays')
+            return  ({
+                label: 'View By Weekdays',
+                icon: <Icon name="numeric-5-box-outline" size={20} color={colors.text} library='MaterialCommunityIcons'/>,
+                showIfFocused: true,
+                onPress,
+            })
+
+        if (mode === 'week' || mode === 7)
+            return  ({
+                label: 'View By Week',
+                icon: <Icon name="numeric-7-box-outline" size={20} color={colors.text} library='MaterialCommunityIcons'/>,
+                showIfFocused: true,
+                onPress,
+            })
+
+        if (mode === 'calendar' || mode === 'month')
+            return  ({
+                label: 'View By Month',
+                icon: <Icon name="calendar-view-month" size={20} color={colors.text} library='MaterialIcons'/>,
+                showIfFocused: true,
+                onPress,
+            })
+
+        return  ({
+            label: `View By ${mode} Days`,
+            icon: <Icon name="text-box-outline" size={20} color={colors.text} library='MaterialCommunityIcons'/>,
             showIfFocused: true,
-            onPress: () => {
-                setCalendarMode && setCalendarMode('timeline');
-                setNumberOfDays && setNumberOfDays(1);
-                setCurrentIndex(0)
-            },
-        },
+            onPress,
+        })
 
-        {
-            label: 'View By Weekdays',
-            icon: <Icon name="numeric-5-box-outline" size={20} color={colors.text} library='MaterialCommunityIcons'/>,
-            showIfFocused: true,
-            onPress: () => {
-                setCalendarMode && setCalendarMode('timeline');
-                setNumberOfDays && setNumberOfDays(5);
-                setCurrentIndex(1)
-            },
-        },
-
-        {
-            label: 'View By Week',
-            icon: <Icon name="numeric-7-box-outline" size={20} color={colors.text} library='MaterialCommunityIcons'/>,
-            showIfFocused: true,
-            onPress: () => {
-                setCalendarMode && setCalendarMode('timeline');
-                setNumberOfDays && setNumberOfDays(7);
-                setCurrentIndex(2)
-            },
-        },
-
-        {
-            label: 'View By Month',
-            icon: <Icon name="calendar-view-month" size={20} color={colors.text} library='MaterialIcons'/>,
-            showIfFocused: true,
-            onPress: () => {
-                setCalendarMode && setCalendarMode('calendar');
-                setCurrentIndex(3)
-            },
-        },
-
-
-    ], [colors.text, setCalendarMode]);
+    }, [colors.text, setCalendarMode, setCurrentIndex]);
 
     return (
         <View style={[styles.customHeader ]}>
@@ -129,20 +119,23 @@ const CalendarListHeader: React.FC<CalendarListProps> = ({
                 >
                     <Icon name="chevron-right" size={20} color={colors.text} library='FontAwesome5'/>
                 </TouchableOpacity>
-
-                <TouchableOpacity onPress={() => setIsShowModal(!isShowModal)}
-                    onLayout={(event) => {
-                        event.target.measure((x, y, width, height, pageX, pageY) => {
-                            setModalPosition({top: pageY, right: Layouts.screen.width - pageX - width});
-                        });
-                    }}
-                >
-                    <Icon name="list" size={28} color={colors.text} library='Entypo'/>
-                </TouchableOpacity>
+                {
+                    calendarModes.length > 1 && (
+                        <TouchableOpacity onPress={() => setIsShowModal(!isShowModal)}
+                            onLayout={(event) => {
+                                event.target.measure((x, y, width, height, pageX, pageY) => {
+                                    setModalPosition({top: pageY, right: Layouts.screen.width - pageX - width});
+                                });
+                            }}
+                        >
+                            <Icon name="list" size={28} color={colors.text} library='Entypo'/>
+                        </TouchableOpacity>
+                    )
+                }
             </View>
 
             <ListModal
-                dataList={modalDataList}
+                dataList={calendarModes.map( (mode, index) => getModalDataByMode(mode, index))}
                 currentIndex={currentIndex}
                 onPressItem={(index) => setCurrentIndex(index)}
                 onPressOverlay={() => setIsShowModal(false)}
