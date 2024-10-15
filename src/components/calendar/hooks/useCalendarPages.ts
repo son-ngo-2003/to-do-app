@@ -27,7 +27,9 @@ const UseCalendarPages = ({
             return dayjs(date).startOf('isoWeek');
         }
 
-        let deltaPeriod = Math.floor( dayjs(date).diff(_referenceOfPeriod, 'days', true) / numberOfDays );
+        let diffDays = dayjs(date).diff(_referenceOfPeriod, 'day')
+        let deltaPeriod = diffDays < 0 ? Math.ceil(diffDays / numberOfDays) : Math.floor(diffDays / numberOfDays);
+
         return _referenceOfPeriod.add( deltaPeriod * numberOfDays, 'days');
     }, [referenceOfPeriod, numberOfDays]);
 

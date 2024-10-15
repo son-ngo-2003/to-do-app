@@ -81,7 +81,7 @@ const TimelineList = React.forwardRef<CalenderListRef, TimelineListProps>((
 
     const referenceOfPeriod = useMemo<dayjs.Dayjs>( () => numberOfDays === 7
                                                                     ? initialDayjs.startOf("isoWeek")
-                                                                    : initialDayjs
+                                                                    : initialDayjs.startOf('date')
                                                         ,[initialDayjs, numberOfDays] ); //references for every start of period
     //TODO: bring initialDayjs and referenceOfPeriod also in useCalendarPages
     const {
@@ -137,7 +137,7 @@ const TimelineList = React.forwardRef<CalenderListRef, TimelineListProps>((
             return;
         }
 
-        const newPeriod =getPeriod ( (typeof _arg === 'number')
+        const newPeriod = getPeriod ( (typeof _arg === 'number')
                             ? dayjs(currentPeriod).add(_arg * numberOfDays, 'days')
                             : dayjs(_arg) );
 

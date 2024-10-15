@@ -3,7 +3,7 @@ import {
     type RecyclerListViewProps
 } from "recyclerlistview";
 import * as React from "react";
-import {useMemo, useState} from "react";
+import {useState} from "react";
 import {NativeScrollEvent, NativeSyntheticEvent} from "react-native";
 
 export interface InfinityListProps
@@ -21,8 +21,6 @@ export interface InfinityListProps
     initialRenderIndex?: number | 'center';
     showIndicator?: boolean;
 }
-
-export type RowRenderer = RecyclerListViewProps['rowRenderer']
 
 const InfinityList = React.forwardRef<any, InfinityListProps>( (
     props,
