@@ -1,6 +1,6 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Message } from './models'
+import { Message } from '../models'
 
 interface StorageServiceType {
     addData:                    <T extends { _id: string, isDeleted: boolean }>  (data: T, type: ModelType, index: number) => Promise<Message<T>>,
@@ -13,14 +13,12 @@ interface StorageServiceType {
 }
 
 const StorageService : StorageServiceType = (() => {
-    let numberOfDocuments: number = 0;
-    const limitDocument: number = 2000;
+    const limitDocument: number = 2000; //TODO: add to constants
 
     async function addData<T extends {_id: string}>
         (data: T, type: ModelType): Promise<Message<T>> {
             try {
-                numberOfDocuments++;
-
+                let numberOfDocuments = (await AsyncStorage.getAllKeys()).length;
                 if (numberOfDocuments >= limitDocument) {
                     throw new Error(`Storage service has reached the limit of ${limitDocument} documents`);
                 }
@@ -30,7 +28,6 @@ const StorageService : StorageServiceType = (() => {
                 return Message.success<T>(data);
             }
             catch (error) {
-                numberOfDocuments--;
                 return Message.failure<T>(error);
             }
     }
@@ -116,8 +113,6 @@ const StorageService : StorageServiceType = (() => {
     async function deleteForceDataByTypeAndId<T extends { _id: string }>
         (type: ModelType, id: string): Promise<Message<T>> {
             try {
-                numberOfDocuments--;
-
                 const key: string = `@${type}:${id}`;
                 const value: string | null = await AsyncStorage.getItem(key);
                 if (!value) return Message.failure('Data not found!');
@@ -126,7 +121,6 @@ const StorageService : StorageServiceType = (() => {
                 return Message.success(JSON.parse(value));
             }
             catch (error) {
-                numberOfDocuments++;
                 return Message.failure(error);
             }
     }

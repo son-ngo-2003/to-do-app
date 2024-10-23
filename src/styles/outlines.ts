@@ -43,3 +43,11 @@ export const shadow: Record<Shadow, ViewStyle> = {
         elevation: 4,
     }
 }
+
+type LineWidth = "hairline" | "thin" | "base" | "thick"
+export const lineWidth: Record<LineWidth, number> = {
+    hairline: StyleSheet.hairlineWidth,
+    thin: 2,
+    base: 3,
+    thick: 5,
+}

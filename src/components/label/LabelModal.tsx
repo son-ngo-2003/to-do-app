@@ -38,7 +38,7 @@ const LabelModal: React.FC<LabelModalProps> = ({
         if (Keyboard.isVisible()) return;
         console.log('Add');
         setIsOpenModal(false);
-        //TODO: call LabelService to add new label and return label -> onAddLabel(label);
+        //TODO: call LabelDAO to add new label and return label -> onAddLabel(label);
     }
 
     const onPressUpdate = () => {

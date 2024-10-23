@@ -75,7 +75,7 @@ export const background: Record<Background, string> = {
 
 type Card = "dark" | "light";
 export const card: Record<Card, string> = {
-    dark: neutral.s800,
+    dark: neutral.s700,
     light: neutral.white,
 }
 

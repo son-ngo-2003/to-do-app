@@ -25,14 +25,16 @@ type TextEditorProps = {
     onChange?: (editor: EditorBridge) => void;
     showToolbar?: boolean;
     enableEdit?: boolean;
+    initialContent?: string;
 }
 
 const TextEditor : React.FC<TextEditorProps> = ({
     autofocus = false, 
-    placeholder='Write something ...', 
-    onChange=()=>{}, 
-    showToolbar=true,
-    enableEdit=true,
+    placeholder= 'Write something ...',
+    onChange,
+    showToolbar= true,
+    enableEdit= true,
+    initialContent='',
 }) => {
     const [ showToolModal, setShowToolModal ] = React.useState<ListToolModalType>('none');
     const { dark, colors } = useTheme();
@@ -46,6 +48,8 @@ const TextEditor : React.FC<TextEditorProps> = ({
         background-color: ${colors.card};
         color: ${colors.text};
         font-family: 'Aleo';
+        text-align: justify;
+        text-justify: inter-word;
     }
     img {
         width: 90%;
@@ -53,6 +57,7 @@ const TextEditor : React.FC<TextEditorProps> = ({
 
     const editor = useEditorBridge({
         autofocus,
+        initialContent,
         avoidIosKeyboard: false,
         bridgeExtensions: [
             ...TenTapStartKit,
@@ -69,7 +74,7 @@ const TextEditor : React.FC<TextEditorProps> = ({
             ...defaultEditorTheme,
             toolbar: dark ? darkToolbarTheme : toolbarTheme,
         },
-        onChange: () => {onChange(editor)},
+        onChange: () => {onChange?.(editor)},
     });
 
     const getLayoutToolbar = (_event: LayoutChangeEvent) => {
@@ -96,11 +101,12 @@ const TextEditor : React.FC<TextEditorProps> = ({
     return (
         <View style={ styles.textEditorContainer } pointerEvents={enableEdit ? 'auto' : 'none'}>
             <View style = { styles.editor}>
-                <RichText editor={editor} 
-                            allowFileAccess={true}
-                            allowFileAccessFromFileURLs={true}
-                            mixedContentMode='always'
-                            />
+                <RichText
+                    editor={editor}
+                    allowFileAccess={true}
+                    allowFileAccessFromFileURLs={true}
+                    mixedContentMode='always'
+                />
             </View>
             <View style={[styles.toolbar]}>
                 <View ref={toolbarRef} onLayout={getLayoutToolbar}>

@@ -1,4 +1,4 @@
-export type RouteName = 'Home' | 'Notes' | 'Labels' | 'Calendar' | 'Tasks' | 'History' | 'Trash';
+export type RouteName = 'Home' | 'Notes' | 'Labels' | 'Calendar' | 'Tasks' | 'History' | 'Trash' | 'Search';
 
 export const listRouteNames : RouteName[] = ['Home', 'Notes', 'Labels', 'Calendar', 'Tasks', 'History', 'Trash'];
 
@@ -42,5 +42,10 @@ export const listIcons : Record<RouteName, IconState> = {
         library: 'MaterialCommunityIcons',
         normal: 'trash-can-outline',
         focused: 'trash-can',
+    },
+    Search: {
+        library: 'Octicons',
+        normal: 'search',
+        focused: 'search',
     }
 }

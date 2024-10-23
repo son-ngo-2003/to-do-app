@@ -1,222 +1,215 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useTheme } from '@react-navigation/native';
+import { DrawerScreenProps } from '@react-navigation/drawer';
 
 //components
 import { LabelSelectItem, AddLabelCard, LabelModal, 
-        NoteCard, NoteModal, TaskItem,
+        NoteCard, NoteModal, TaskItem, TaskTree,
         NoteInTaskItem, AddNoteInTask, TaskProgressCard,
         Calendar, CalendarList, Timeline
 } from '../../components/';
-
+import { Colors, Typography, Layouts } from '../../styles';
+import { type RootStackParamList } from "../../navigation";
 
 //Services
-import { LabelService, NoteService, TaskService } from '../../services';
-import StorageService from '../../services/StorageService'
+import { NoteService, TaskService, LabelService } from '../../services';
 import { Message } from '../../services/models';
 
-import { Colors, Bases, Typography, Layouts } from '../../styles';
-import dayjs from 'dayjs';
-import { CALENDAR_BODY_HEIGHT } from '../../components/calendar/constants';
-import { TaskTimeline, MarkedObject } from '../../components/calendar/type';
+import StorageService from "../../services/DAO/StorageService";
 
-const HomeScreen : React.FC = () => {
-    const [ isOpenModal, setIsOpenModal ] = React.useState<boolean>(false);
-    // const { colors } = useTheme();
-    // const [newLabel, setNewLabel] = React.useState<Label>();
-    // const [newLabel2, setNewLabel2] = React.useState<Label>();
-    // const [newNote, setNewNote] = React.useState<Note>();
-    // const [ newTask, setNewTask ] = React.useState<Task>();
+type Props = DrawerScreenProps<RootStackParamList, 'Home'>;
 
+const HomeScreen : React.FC<Props> = ({navigation}) => {
+    const { colors } = useTheme();
 
-    const markedDate : MarkedObject[] = [
-                        {id: 'Working', color: 'red', date: '2024-04-03'},
-                        {id: 'Study', color: 'green', date: '2024-04-03'},
-                        {id: 'Project', color: 'pink', date: '2024-04-03'},
-                        {id: 'Groceries', color: 'purple', date: '2024-04-03'},
+    const textColor = StyleSheet.flatten({
+        color: colors.text,
+    })
 
-                        {id: 'Working', color: 'red', date: '2024-04-06'},
-                        {id: 'Study', color: 'green', date: '2024-04-06'},
-                    ]
-    
-
-    const taskList : TaskTimeline[] = [
-        {
-            id: 1,
-            start: dayjs({hour: 8, minute: 15}).toDate(),
-            end: dayjs({hour: 12, minute: 0}).toDate(),
-            isAllDay: false,
-    
-            title: 'Title 1',
-            description: 'Description 1',
-            color: 'purple',
-        },
-        {
-            id: 2,
-            start: dayjs({hour: 11, minute: 0}).toDate(),
-            end: dayjs({hour: 12, minute: 0}).toDate(),
-            isAllDay: false,
-    
-            title: 'Title 2',
-            description: 'Description 2',
-            color: 'blue',
-        },
-        {
-            id: 3,
-            start: dayjs({hour: 9, minute: 0}).toDate(),
-            end: dayjs({hour: 14, minute: 0}).toDate(),
-            isAllDay: false,
-    
-            title: 'Title 3',
-            description: 'Description 3',
-            color: 'green',
-        },
-        {
-            id: 4,
-            start: dayjs({hour: 10, minute: 0}).toDate(),
-            end: dayjs({hour: 12, minute: 0}).toDate(),
-            isAllDay: false,
-    
-            title: 'Title 4',
-            description: 'Description 4',
-            color: 'pink',
-        },
-        {
-            id: 5,
-            start: dayjs({hour: 9, minute: 15}).toDate(),
-            end: dayjs({hour: 11, minute: 30}).toDate(),
-            isAllDay: true,
-    
-            title: 'Title 4',
-            description: 'Description 4',
-            color: 'green',
-        }
-        
-    ]
-
-    // React.useEffect(() => {
-    //     StorageService.clearAllData('label');
+    const [ newLabel, setNewLabel] = React.useState<Label>();
+    const [ newLabel2, setNewLabel2] = React.useState<Label>();
+    const [ newLabel3, setNewLabel3] = React.useState<Label>();
+    const [ newNote, setNewNote] = React.useState<Note[]>([]);
+    const [ newTask, setNewTask ] = React.useState<Task[]>([]);
 
 
-    //     const pro1 = LabelService.addLabel({name: "WORKING", color: Colors.primary.orange, numberOfTasks: 4, numberOfCompletedTasks: 3})
-    //     const pro2 = LabelService.addLabel({name: "STUDY", color: Colors.primary.teal});
-    //     const pro3 = LabelService.addLabel({name: "FREE TIME", color: Colors.primary.red});
+    React.useEffect(() => {
+        StorageService.clearAllData('label');
+        StorageService.clearAllData('note');
+        StorageService.clearAllData('task');
 
-    //     Promise.all([pro1, pro2, pro3]).then((messages: Message<Label>[]) => {
-    //         const l1: Label = messages[0].getData();
-    //         const l2: Label = messages[1].getData();
-    //         const l3: Label = messages[2].getData();
+        const pro1 = LabelService.addLabel({name: "WORKING", color: Colors.primary.orange})
+        const pro2 = LabelService.addLabel({name: "STUDY", color: Colors.primary.teal});
+        const pro3 = LabelService.addLabel({name: "FREE TIME", color: Colors.primary.red});
 
-    //         setNewLabel(l1);
-    //         setNewLabel2(l2);
+        Promise.all([pro1, pro2, pro3]).then(async (messages: Message<Label>[]) => {
+            const l1: Label = messages[0].getData();
+            const l2: Label = messages[1].getData();
+            const l3: Label = messages[2].getData();
 
-    //         NoteService.addNote({
-    //             title: "New Note",
-    //             content: "Lorem ipsum dolor sit amet, consecte adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Et netus et malesuada fames ac turpis egestas maecenas. Viverra ipsum nunc aliquet bibendum enim facilisis gravida neque. Felis bibendum ut tristique et egestas quis ipsum. Odio ut enim blandit volutpat maecenas volutpat blandit aliquam. Auctor neque vitae tempus quam pellentesque nec nam.",
-    //             labels: [l1, l2, l3],
-    //         }).then((message: Message<Note>) => {
-    //             setNewNote(message.getData());
-    //         });
+            setNewLabel(l1);
+            setNewLabel2(l2);
+            setNewLabel3(l3);
 
-    //         TaskService.addTask({
-    //             title: "New Task, ah, it i",
-    //             labels: [l1, l2],
-    //             start: new Date(),
-    //             end: new Date(),
-    //             repeat: 'none',
-    //             isAnnouncement: false,
-    //             isCompleted: false,
-    //         }).then((message: Message<Task>) => {
-    //             setNewTask(message.getData());
-    //         });
-    //     });
-    // },[]);
+            const noteMsg1 =  await NoteService.addNote({
+                title: "Note 1",
+                content: "Lorem ipsum dolor sit amet, consecte adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Et netus et malesuada fames ac turpis egestas maecenas. Viverra ipsum nunc aliquet bibendum enim facilisis gravida neque. Felis bibendum ut tristique et egestas quis ipsum. Odio ut enim blandit volutpat maecenas volutpat blandit aliquam. Auctor neque vitae tempus quam pellentesque nec nam.",
+                labels: [l1, l2, l3],
+            });
+            const noteMsg2 = await NoteService.addNote({
+                title: "Note 2",
+                content: "Lorem ipsum dolor sit amet, consecte adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Et netus et malesuada fames ac turpis egestas maecenas. Viverra ipsum nunc aliquet bibendum enim facilisis gravida neque. Felis bibendum ut tristique et egestas quis ipsum. Odio ut enim blandit volutpat maecenas volutpat blandit aliquam. Auctor neque vitae tempus quam pellentesque nec nam.",
+                labels: [l1],
+            });
+            let notes = [noteMsg1.getData(), noteMsg2.getData()];
+            setNewNote( notes );
+
+            const taskMsg1 = await TaskService.addTask({
+                title: "New Task 1, ah, it i",
+                labels: [l1, l2],
+                start: new Date(),
+                end: new Date(),
+                repeat: 'none',
+                isAnnouncement: false,
+                isCompleted: false,
+            });
+            const taskMsg2 = await TaskService.addTask({
+                title: "New Task 2, ah, it i",
+                labels: [l1],
+                start: new Date(),
+                end: new Date(),
+                repeat: 'none',
+                isAnnouncement: false,
+                isCompleted: false,
+            });
+            const taskMsg3 = await TaskService.addTask({
+                title: "New Task 3, ah, it i",
+                labels: [l1, l2, l3],
+                start: new Date(),
+                end: new Date(),
+                repeat: 'none',
+                isAnnouncement: false,
+                isCompleted: false,
+            });
+            let newTasks = [taskMsg1.getData(), taskMsg2.getData(), taskMsg3.getData()];
+            setNewTask( newTasks );
+        });
+    },[]);
+
+    const [ tasksByLabel, setTaskByLabel ] = React.useState<Record<Label['_id'], Task[]>>({});
+    const [ allLabels, setAllLabels ] = React.useState<Label[]>([]);
+    const [ noteOnModal, setNoteOnModal ] = React.useState<Note>();
+    const [ showNoteModal, setShowNoteModal ] = React.useState<boolean>(false);
+
+    React.useEffect( () => {
+        setTimeout(() => {
+            LabelService.getAllLabels().then( async (msg: Message<Label[]>) => {
+                //TODO: home screen show only today 's notes and tasks
+                if (msg.getIsSuccess()) {
+                    const labels = msg.getData();
+                    setAllLabels(labels);
+
+                    Promise.all(labels.map(label => TaskService.getTasksByLabel(label._id, undefined, 3))).then((messages: Message<Task[]>[]) => {
+                        const tasksByLabel: Record<Label['_id'], Task[]> = {};
+                        messages.forEach((msg, index) => {
+                            if (msg.getIsSuccess()) {
+                                tasksByLabel[labels[index]['_id']] = msg.getData();
+                            }
+                        });
+                        setTaskByLabel(tasksByLabel);
+                    });
+                }
+            });
+        }, 500);
+    }, [])
+
 
     return (
-        <View style={styles.container}>
-    
-            {/* <Text style={[styles.title]}>Welcome to the Home Screen!</Text>
-            <View style={{width: '45%'}}>
-                {newLabel && <LabelSelectItem label={newLabel} onPress={()=>{setIsOpenModal(true)}} isSelectedAtFirst/>}
-                {newLabel && <TaskProgressCard label={newLabel} onPress={()=>{}}/>}
+        <View style={[ Layouts.mainContainer ]}>
+            {/* Openning Titre */}
+            <View style={[ Layouts.sectionContainer ]}>
+                <Text style={[ Typography.body.x45, textColor ]}>Welcome back,</Text>
+                <Text style={[ Typography.header.x60, textColor ]}>Let's plan your day!</Text>
+            </View>
 
-            </View> 
-            {   isOpenModal &&
-                <NoteModal
-                    mode="edit"
-                    setIsOpenModal={setIsOpenModal}
-                    note={newNote}
-                    onAddNote={()=>{}}
-                ></NoteModal>
-            }
-            {//newNote && <NoteCard note={newNote} orientation='portrait' showLabels={true}/>
-            }
-            {newNote && <NoteInTaskItem note={newNote}
-                                onPressDelete={() => {}}
-                                onPressItem={() => {}}
-                        />}
-
-            <View style={{width: '70%', marginTop: 20}}>
-                {newTask && <TaskItem task={newTask} 
-                                        onChangeCompletedStatus={(task: Task, isCompleted: boolean) => {
-                                            console.log(isCompleted)
-                                        }}
-                                        onPressDelete={() => {}}
-                                        showLabel={false}
-                />}
-                <AddNoteInTask
-                    onAddNote={() => {}}
-                />
-            </View> */}
-            {/* <CalendarProvider> */}
-                {/* <CalendarList
-                    showOneWeek={isOpenModal}
-                    onPressDate={(date: dayjs.Dayjs) => {}}
-                    markedDate={markedDate}
-                    minMonth={3}
-                    maxMonth={3}
-                    width={Layouts.screen.width - 40}
-                    onPressCalendarList={(e) =>{ e.stopPropagation(); setIsOpenModal(false)}}
-                /> */}
-            {/* </CalendarProvider> */}
-            {/* <Pressable onPress={(e) => {e.stopPropagation(); setIsOpenModal(!isOpenModal)}}>
-                <View>
-                    <Text>Press here!</Text>
+            {/* Today's Notes */}
+            <View style={[Layouts.sectionContainer]}>
+                <View style={[styles.sectionTitleContainer]}>
+                    <Text style={[ Typography.subheader.x40, textColor, { textTransform: 'uppercase' } ]}>Recent Notes</Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('Notes') /*TODO: Press View All will navigate to Notes Screen with ? notes filter*/}>
+                        <Text style={[Typography.body.x40, textColor, { opacity: 0.6, }]}>View All</Text>
+                    </TouchableOpacity>
                 </View>
-            </Pressable> */}
-            <CalendarList
-                // taskList={taskList}
-                minDate={ '2024-08-07' }
-                maxDate={ '2024-11-15' }
-                calendarModes={ ['month', 'week', 5, 'day'] }
-                initialModeIndex = {0}
 
-                // markedDate={markedDate}
-                // minMonth={ '2024-01-01' }
-                // maxMonth={ '2024-09-09' }
-                // showOneWeek = {false}
-                // width={300}
+                <ScrollView style={[styles.noteCardsScroller]} horizontal={true}>
+                    <View style={[styles.noteCardsContainer]}>
+                        {newNote.map((note: Note, index: number) => (
+                            <NoteCard key={index} note={note} orientation={'landscape'} showLabels
+                                onPress={(note) => {setNoteOnModal(note); setShowNoteModal(true);}}
+                            />
+                        ))}
+                    </View>
+                </ScrollView>
 
-                // minPeriod={ '2024-01-01' }
-                // maxPeriod={ '2024-09-09' }
-                // width={300}
-                // onPressDate={() => {}}
-            />
+                {   showNoteModal &&
+                    <NoteModal
+                        mode={'edit'}
+                        note={noteOnModal}
+                        setIsOpenModal={ setShowNoteModal }
+                    />
+                }
+            </View>
+
+            {/* Today's Tasks */}
+            <View style={[Layouts.sectionContainer, {flex: 1}]}>
+                <View style={[styles.sectionTitleContainer]}>
+                    <Text style={[ Typography.subheader.x40, textColor, { textTransform: 'uppercase' } ]}>Today's Tasks</Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('Tasks') /*TODO: Press View All will navigate to Tasks Screen with today tasks filter*/}>
+                        <Text style={[Typography.body.x40, textColor, { opacity: 0.6, }]}>View All</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={[Layouts.fullWidthContainer]}>
+                    <ScrollView style={[styles.tasksScroller]}>
+                        {allLabels.map((label: Label, index: number) => (
+                            <View key={index}>
+                                <Text style={[ Typography.header.x40, { textTransform: 'uppercase', color: label.color } ]}>{label.name}</Text>
+                                <TaskTree
+                                    tasks={ tasksByLabel[label._id] ?? [] }
+                                    showShowMoreButton={true}
+                                    onPressShowMore={ () => console.log('Task Tree (Home): Show More Tasks') }
+
+                                    colorTree={ label.color }
+                                    showLabel={false}
+                                />
+                            </View>
+                        ))}
+                    </ScrollView>
+                </View>
+            </View>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'flex-start',
+    sectionTitleContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 20,
     },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 16,
+    noteCardsScroller: {
+        paddingVertical: 10,
+        overflow: 'visible',
+    },
+    noteCardsContainer: {
+        gap: 20,
+        flexDirection: 'row',
+    },
+    tasksScroller: {
+        overflow: 'hidden',
+        paddingHorizontal: Layouts.MARGIN_HORIZONTAL,
+        marginTop: 5,
     },
 });
 

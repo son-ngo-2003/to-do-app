@@ -12,25 +12,43 @@ type NoteCardProps = {
     note: Note,
     orientation: 'landscape' | 'portrait',
     showLabels?: boolean,
+
+    onPress?: (note: Note) => void,
+    onPressDelete?: (note: Note) => void,
+    onPressEdit?: (note: Note) => void,
 }
 
-const NoteCard: React.FC<NoteCardProps> = ({ note, orientation, showLabels = true }) => {
+const NoteCard: React.FC<NoteCardProps> = ({
+    note,
+    orientation,
+    showLabels = true,
+
+    onPress,
+    onPressDelete,
+    onPressEdit,
+}) => {
     const { colors } = useTheme();
     let dimensions : {width: DimensionValue, height: number} = {width: 240, height: 150};
     orientation === 'portrait' && (dimensions.width = '100%', dimensions.height = 200);
     showLabels && (dimensions.height += 40);
 
     const onPressCard = React.useCallback(() => {
-        console.log(note);
-    },[note]);
+        //TODO:
+        onPress?.(note)
+        console.log("note card: onPressCard");
+    },[onPress, note]);
 
     const onPressDeleteButton = React.useCallback(() => {
-        console.log("delete note")
-    },[]);
+        //TODO:
+        onPressDelete?.(note)
+        console.log("note card: onPressDeleteButton");
+    },[onPressDelete, note]);
 
     const onPressEditButton = React.useCallback(() => {
-        console.log("edit note")
-    },[]);
+        //TODO:
+        onPressEdit?.(note)
+        console.log("note card: onPressEditButton");
+    },[onPressEdit, note]);
 
     return (
         <View  //onPress={onPressCard}

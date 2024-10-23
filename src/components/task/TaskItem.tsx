@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
-import { Text, View, Pressable, StyleSheet } from 'react-native';
+import {Text, View, Pressable, StyleSheet, TouchableOpacity} from 'react-native';
 import { Colors, Typography, Outlines, Animations as Anim } from '../../styles';
 import Animated, 
     { useSharedValue, useAnimatedStyle, interpolateColor, 
@@ -11,6 +11,7 @@ import { Icon } from '../atomic';
 
 type TaskItemProps = {
     task: Task,
+    onPress: () => void,
     onChangeCompletedStatus: (task: Task, isFinished: boolean) => void,
     onPressDelete: (task: Task) => void,
     showLabel?: boolean,
@@ -18,6 +19,7 @@ type TaskItemProps = {
 
 const TaskItem: React.FC<TaskItemProps> = ({ 
     task,
+    onPress,
     onChangeCompletedStatus,
     onPressDelete,
     showLabel = true,
@@ -29,6 +31,8 @@ const TaskItem: React.FC<TaskItemProps> = ({
 
     const onPressItem = () => {
         //TODO: show Task Modal
+        console.log('TaskItem: onPressItem');
+        onPress();
     }
 
     const onPressCompletedItem = () => {
@@ -66,11 +70,15 @@ const TaskItem: React.FC<TaskItemProps> = ({
                         hitSlop={15}
                         onPress={onPressCompletedItem}
                 />
-                <Text style={[Typography.subheader.x30, styles.info,
+
+                <Text style={[Typography.subheader.x30, styles.info, {color: colors.text},
                                 {textDecorationLine: isCompleted ? 'line-through' : 'none'}]}
                         numberOfLines={2}
                     >{`${task.title}`}</Text>
-                <Icon name='minus' size={17} color={colors.text} library='FontAwesome5'/>
+
+                <TouchableOpacity onPress={onPressDeleteItem}>
+                    <Icon name='minus' size={17} color={colors.text} library='FontAwesome5'/>
+                </TouchableOpacity>
             </View>
 
             {

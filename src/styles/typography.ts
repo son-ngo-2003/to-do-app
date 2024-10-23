@@ -5,7 +5,7 @@ import { AleoFont } from "../assets/fonts"
 
 type FontFamily = 'Aleo'
 
-type FontSize = "x10" | "x20" | "x30" | "x40" | "x50" | "x55" | "x60" | "x70"
+type FontSize = "x10" | "x20" | "x30" | "x40" | "x45" | "x50" | "x55" | "x60" | "x70"
 export const fontSize: Record<FontSize, TextStyle> = {
     x10: {
         fontSize: 13,
@@ -18,6 +18,9 @@ export const fontSize: Record<FontSize, TextStyle> = {
     },
     x40: {
         fontSize: 18,
+    },
+    x45: {
+        fontSize: 21,
     },
     x50: {
         fontSize: 24,
@@ -55,7 +58,7 @@ export const letterSpacing: Record<LetterSpacing, number> = {
     x40: 3,
 }
 
-type LineHeight = "x10" | "x20" | "x30" | "x40" | "x50" | "x55" | "x60" | "x70"
+type LineHeight = "x10" | "x20" | "x30" | "x40" | "x45" | "x50" | "x55" | "x60" | "x70"
 export const lineHeight: Record<LineHeight, TextStyle> = {
     x10: {
         lineHeight: 20,
@@ -68,6 +71,9 @@ export const lineHeight: Record<LineHeight, TextStyle> = {
     },
     x40: {
         lineHeight: 26,
+    },
+    x45: {
+        lineHeight: 29,
     },
     x50: {
         lineHeight: 32,
@@ -83,51 +89,56 @@ export const lineHeight: Record<LineHeight, TextStyle> = {
     },
 }
 
-type Header = "x10" | "x20" | "x30" | "x40" | "x50" | "x55" | "x60" | "x70"
+type Header = "x10" | "x20" | "x30" | "x40" | "x45" | "x50" | "x55" | "x60" | "x70"
 export const header: Record<Header, TextStyle> = {
-  x10: {
-    ...fontSize.x10,
-    ...lineHeight.x10,
-    ...fontWeight('Aleo').bold,
-  },
-  x20: {
-    ...fontSize.x20,
-    ...lineHeight.x20,
-    ...fontWeight('Aleo').bold,
-  },
-  x30: {
-    ...fontSize.x30,
-    ...lineHeight.x30,
-    ...fontWeight('Aleo').bold,
-  },
-  x40: {
-    ...fontSize.x40,
-    ...lineHeight.x40,
-    ...fontWeight('Aleo').bold,
-  },
-  x50: {
-    ...fontSize.x50,
-    ...lineHeight.x50,
-    ...fontWeight('Aleo').bold,
-  },
-  x55: {
-    ...fontSize.x55,
-    ...lineHeight.x55,
-    ...fontWeight('Aleo').bold,
-  },
-  x60: {
-    ...fontSize.x60,
-    ...lineHeight.x60,
-    ...fontWeight('Aleo').bold,
-  },
-  x70: {
-    ...fontSize.x70,
-    ...lineHeight.x70,
-    ...fontWeight('Aleo').bold,
-  },
+    x10: {
+        ...fontSize.x10,
+        ...lineHeight.x10,
+        ...fontWeight('Aleo').bold,
+    },
+    x20: {
+        ...fontSize.x20,
+        ...lineHeight.x20,
+        ...fontWeight('Aleo').bold,
+    },
+    x30: {
+        ...fontSize.x30,
+        ...lineHeight.x30,
+        ...fontWeight('Aleo').bold,
+    },
+    x40: {
+        ...fontSize.x40,
+        ...lineHeight.x40,
+        ...fontWeight('Aleo').bold,
+    },
+    x45: {
+        ...fontSize.x45,
+        ...lineHeight.x45,
+        ...fontWeight('Aleo').bold,
+    },
+        x50: {
+        ...fontSize.x50,
+        ...lineHeight.x50,
+        ...fontWeight('Aleo').bold,
+    },
+    x55: {
+        ...fontSize.x55,
+        ...lineHeight.x55,
+        ...fontWeight('Aleo').bold,
+    },
+    x60: {
+        ...fontSize.x60,
+        ...lineHeight.x60,
+        ...fontWeight('Aleo').bold,
+    },
+    x70: {
+        ...fontSize.x70,
+        ...lineHeight.x70,
+        ...fontWeight('Aleo').bold,
+    },
 }
 
-type Subheader = "x10" | "x20" | "x30" | "x40" | "x50" | "x55"
+type Subheader = "x10" | "x20" | "x30" | "x40" | "x45" | "x50" | "x55"
 export const subheader: Record<Subheader, TextStyle> = {
     x10: {
         ...fontSize.x10,
@@ -149,6 +160,11 @@ export const subheader: Record<Subheader, TextStyle> = {
         ...lineHeight.x40,
         ...fontWeight('Aleo').semibold,
     },
+    x45: {
+        ...fontSize.x45,
+        ...lineHeight.x45,
+        ...fontWeight('Aleo').semibold,
+    },
     x50: {
         ...fontSize.x50,
         ...lineHeight.x50,
@@ -161,37 +177,50 @@ export const subheader: Record<Subheader, TextStyle> = {
     }
 }
 
-type Body = "x10" | "x20" | "x30" | "x40" | "x50"
+type Body = "x10" | "x20" | "x30" | "x40" | "x45" | "x50"
 export const body: Record<Body, TextStyle> = {
     x10: {
         ...fontSize.x10,
         ...lineHeight.x10,
         ...fontWeight('Aleo').regular,
-        color: Colors.neutral.s800,
     },
     x20: {
         ...fontSize.x20,
         ...lineHeight.x20,
         ...fontWeight('Aleo').regular,
-        color: Colors.neutral.s800,
     },
     x30: {
         ...fontSize.x30,
         ...lineHeight.x30,
         ...fontWeight('Aleo').regular,
-        color: Colors.neutral.s800,
     },
     x40: {
         ...fontSize.x40,
         ...lineHeight.x40,
         ...fontWeight('Aleo').regular,
-        color: Colors.neutral.s800,
+    },
+    x45: {
+        ...fontSize.x45,
+        ...lineHeight.x45,
+        ...fontWeight('Aleo').regular,
     },
     x50: {
         ...fontSize.x50,
         ...lineHeight.x50,
         ...fontWeight('Aleo').regular,
-        color: Colors.neutral.s800,
+    },
+}
+
+type textTransform = "uppercase" | "lowercase" | "capitalize"
+export const textTransform: Record<textTransform, TextStyle> = {
+    uppercase: {
+        textTransform: "uppercase",
+    },
+    lowercase: {
+        textTransform: "lowercase",
+    },
+    capitalize: {
+        textTransform: "capitalize",
     },
 }
 

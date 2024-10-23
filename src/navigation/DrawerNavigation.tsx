@@ -9,14 +9,18 @@ import { HomeScreen,
 		CalendarScreen, 
 		TasksScreen,
 		HistoryScreen,
-		TrashScreen ,
+		TrashScreen,
+		SearchScreen,
 } from '../screens';
+
+import { AppHeader } from "./components";
 
 //components
 import { DrawerContent, Icon } from '../components';
 import { DimensionValue } from 'react-native';
+import {RootStackParamList} from "./type";
 
-const Drawer = createDrawerNavigator();
+const Drawer = createDrawerNavigator<RootStackParamList>();
 
 const DrawerNavigation = () => {
 
@@ -38,6 +42,7 @@ const DrawerNavigation = () => {
 						  	screenOptions={{
 								drawerStyle: { width: NavigationCst.drawerWidth as DimensionValue },
 								drawerType: 'front',
+								header: (props) => <AppHeader {...props} />,
 						  	}}>
 			<Drawer.Screen  name="Home" component={HomeScreen} 
 							options={getScreenOptions("Home")}/>
@@ -54,6 +59,9 @@ const DrawerNavigation = () => {
 							options={getScreenOptions("History")}/>
 			<Drawer.Screen name="Trash" component={TrashScreen}
 							options={getScreenOptions("Trash")}/>
+
+			<Drawer.Screen name="Search" component={SearchScreen}
+						   options={getScreenOptions("Search")}/>
 		</Drawer.Navigator>
   	);
 }

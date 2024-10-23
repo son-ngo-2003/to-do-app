@@ -8,9 +8,26 @@ export const screen: Record<Screen, number> = {
   height: screenHeight,
 }
 
+export const MARGIN_HORIZONTAL = 20 //TODO: See if should move to constant file
+
 export const mainContainer: ViewStyle = {
-    paddingLeft: 20,
-    paddingRight: 20,
+    marginLeft: MARGIN_HORIZONTAL,
+    marginRight: MARGIN_HORIZONTAL,
+    paddingTop: 10,
+    overflow: 'visible',
+    flex: 1,
+}
+
+export const sectionContainer: ViewStyle = {
+    marginTop: 10,
+    marginBottom: 10,
+    overflow: 'visible',
+}
+
+export const fullWidthContainer: ViewStyle = { //not affected by margin of main container
+    transform: [{translateX: -MARGIN_HORIZONTAL}],
+    width: screen.width,
+    overflow: 'visible',
 }
 
 type SizeGap = 'narrow' | 'normal' | 'large'

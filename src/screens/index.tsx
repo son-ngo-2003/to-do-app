@@ -6,7 +6,8 @@ export {
     TasksScreen,
     CalendarScreen,
     HistoryScreen,
-    TrashScreen
+    TrashScreen,
+    SearchScreen,
 } from './mainScreens'
 
 //constants

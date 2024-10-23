@@ -27,7 +27,7 @@ class Message<T> {
         return this.isSuccess;
     }
 
-    public getData(): any {
+    public getData(): T {
         return this.data;
     }
 

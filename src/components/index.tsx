@@ -13,8 +13,8 @@ export { NoteCard,
         AddNoteInTask,
 } from './note'
 export { TaskItem,
-        TaskProgressCard
-
+        TaskProgressCard,
+        TaskTree,
 } from './task';
 export { Calendar,
         CalendarList,

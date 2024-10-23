@@ -1,11 +1,14 @@
+// import {Note} from "../note";
+// import {Label} from "../label";
+
 interface Task {
     _id: string,
     title: string,
-    note: Note,
+    note?: Note,
     labels: Label[],
 
     start: Date,
-    end: Date, //TODO: think about if a task should have end attribute or not
+    end?: Date, //TODO: think about if a task should have end attribute or not
     isAllDay: boolean,
     repeat: string,
     isAnnouncement: boolean,
@@ -14,6 +17,6 @@ interface Task {
     isCompleted: boolean,
     
     createdAt: Date,
-    updatedAt: Date,
-    completedAt: Date,
+    updatedAt?: Date,
+    completedAt?: Date,
 }

@@ -14,7 +14,6 @@ type NoteModalProps = {
     mode: 'add' | 'edit',
     note?: Note,
     setIsOpenModal: (isOpen: boolean) => void,
-    onAddNote: (note: Note) => void,
 }
 
 const sizeButton : number = 25;
@@ -22,8 +21,7 @@ const sizeButton : number = 25;
 const NoteModal: React.FC<NoteModalProps> = ({ 
     mode, 
     note, 
-    setIsOpenModal, 
-    onAddNote 
+    setIsOpenModal,
 }) => {
     const [ title, setTitle ] = React.useState<string>((mode === 'add' || !note) ? '' :  note.title) ;
     const [ content, setContent ] = React.useState<string>((mode === 'add' || !note) ? '' :  note.content) ;
@@ -33,27 +31,29 @@ const NoteModal: React.FC<NoteModalProps> = ({
 
     const onPressAdd = () => {
         if (Keyboard.isVisible()) return;
-        console.log('Add');
+        console.log('NoteModal: Add');
         setIsOpenModal(false);
         //TODO: get note from service add, and call onAddNote(note)
     }
 
     const onPressUpdate = () => {
         if (Keyboard.isVisible()) return;
-        console.log('Update');
+        console.log('NoteModal: Update');
         setIsOpenModal(false);
+        //TODO: get note from service update, and call onUpdateNote(note)
     }
 
     const onPressCancel = () => {
         if (Keyboard.isVisible()) return;
-        console.log('Cancel');
+        console.log('NoteModal: Cancel');
         setIsOpenModal(false);
     }
 
     const onPressAddLabel = () => {
         if (Keyboard.isVisible()) return;
-        console.log('Add labels');
+        console.log('NoteModal: Add labels');
         setIsOpenModal(false);
+        //TODO:
     };
 
     const onChangeLabels = (newListLabels: Label[]) => {
@@ -91,7 +91,7 @@ const NoteModal: React.FC<NoteModalProps> = ({
                     </View>
 
                     {/* Title  */}
-                    <Text style={[{color: colors.border}]}>
+                    <Text style={[{color: colors.text, opacity: 0.6}]}>
                         {
                             mode === 'add'
                             ? 'Today: ' + todayDate
@@ -117,6 +117,7 @@ const NoteModal: React.FC<NoteModalProps> = ({
                     {/* Content */}
                     <View style={[styles.textEditorContainer]}>
                         <TextEditor
+                            initialContent={content}
                             placeholder='Write something ...'
                             onChange={() => {}} //TODO: check autosave and update this onChange
                         />
