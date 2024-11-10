@@ -10,15 +10,18 @@ export { LabelTag,
 export { NoteCard, 
         NoteModal,
         NoteInTaskItem,
-        AddNoteInTask,
 } from './note'
 export { TaskItem,
         TaskProgressCard,
         TaskTree,
+        TaskModal,
 } from './task';
 export { Calendar,
         CalendarList,
         Timeline,
 } from './calendar';
+export {
+        LightCalendar,
+} from './lightCalendar';
 
 //Add useCallBack to all callback defined in each component

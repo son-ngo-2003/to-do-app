@@ -150,7 +150,7 @@ export const DarkTheme : Theme = {
         background: background.dark,
         card: card.dark,
         text: text.dark,
-        border: neutral.s600,
+        border: neutral.s500,
         notification: primary.yellow,
     }
 }

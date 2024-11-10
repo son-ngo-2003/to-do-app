@@ -49,7 +49,7 @@ const TaskDAO : TaskDAOType = (() => {
             task.createdAt = new Date();
             task.completedAt = task.isCompleted ? new Date() : undefined;
             task._id = generateId();
-
+            task.repeat = task.repeat ?? undefined;
             task.labelIds = task.labelIds ?? [];
             task.noteId = task.noteId ?? undefined;
 

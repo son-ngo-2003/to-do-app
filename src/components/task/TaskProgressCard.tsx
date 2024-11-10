@@ -8,19 +8,25 @@ import { useTheme } from '@react-navigation/native';
 
 type TaskProgressCardProps = {
     label: Label,
+    numberOfNotes : number,
+    numberOfTasks : number,
+    numberOfCompletedTasks : number,
     onPress?: () => void,
 }
 
 const TaskProgressCard: React.FC<TaskProgressCardProps> = ({ 
     label,
+    numberOfNotes,
+    numberOfTasks,
+    numberOfCompletedTasks,
     onPress = () => TaskProgressCard,
 }) => {
 
     const { colors } = useTheme();
 
-    const finishPercent = label.numberOfTasks === 0 
+    const finishPercent = numberOfTasks === 0
                             ? 0
-                            : label.numberOfCompletedTasks / label.numberOfTasks * 100;
+                            : numberOfCompletedTasks / numberOfTasks * 100;
 
     return (
         <Pressable  onPress={onPress}
@@ -31,8 +37,8 @@ const TaskProgressCard: React.FC<TaskProgressCardProps> = ({
                     >{label.name}</Text>
                 </View>
 
-                <Text style={[Typography.body.x10, styles.info, {color: colors.text}]}>{`${label.numberOfNotes} notes`}</Text>
-                <Text style={[Typography.body.x10, styles.info, {color: colors.text}]}>{`${label.numberOfTasks} tasks (${label.numberOfCompletedTasks} completed)`}</Text>
+                <Text style={[Typography.body.x10, styles.info, {color: colors.text}]}>{`${numberOfNotes} notes`}</Text>
+                <Text style={[Typography.body.x10, styles.info, {color: colors.text}]}>{`${numberOfTasks} tasks (${numberOfCompletedTasks} completed)`}</Text>
             </View>
 
             <View style={[styles.progressBar]}>

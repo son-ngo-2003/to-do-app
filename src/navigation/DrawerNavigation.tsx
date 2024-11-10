@@ -18,7 +18,7 @@ import { AppHeader } from "./components";
 //components
 import { DrawerContent, Icon } from '../components';
 import { DimensionValue } from 'react-native';
-import {RootStackParamList} from "./type";
+import { RootStackParamList } from "./type";
 
 const Drawer = createDrawerNavigator<RootStackParamList>();
 

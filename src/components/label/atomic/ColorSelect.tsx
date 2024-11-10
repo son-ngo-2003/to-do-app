@@ -1,9 +1,10 @@
 import * as React from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Colors, Animations as Anim} from '../../../styles';
-import Animated, { useSharedValue } from 'react-native-reanimated';
+import { useSharedValue } from 'react-native-reanimated';
 import { Icon } from '../../atomic';
 import { useTheme } from '@react-navigation/native';
+import {AnimatedPressable} from "../../../helpers/animated";
 
 type ColorSelectProps = {
     color: string,
@@ -24,8 +25,6 @@ const ColorSelect: React.FC<ColorSelectProps> = ({color, index, onPress, current
             opacity.value = Anim.timing<number>(0.3).easeIn.base;
         }
     }, [currentSelectedIndex])
-
-    const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
     return (
         <AnimatedPressable onPress={onPress}

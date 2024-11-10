@@ -7,9 +7,17 @@ import { Icon } from '../atomic';
 
 type LabelCardProps = {
     label: Label,
+    numberOfNotes: number,
+    numberOfTasks: number,
+    numberOfCompletedTasks: number,
 }
 
-const LabelCard: React.FC<LabelCardProps> = ({ label }) => {
+const LabelCard: React.FC<LabelCardProps> = ({
+    label,
+    numberOfNotes,
+    numberOfTasks,
+    numberOfCompletedTasks,
+}) => {
     const onPressCard = React.useCallback(() => {
         console.log(label); //TODO: do this
     },[label]);
@@ -40,8 +48,8 @@ const LabelCard: React.FC<LabelCardProps> = ({ label }) => {
                 <Text style={[Typography.header.x40, styles.heading,]}>{label.name}</Text>
             </View>
 
-            <Text style={[Typography.body.x10, styles.info, ]}>{`${label.numberOfNotes} notes`}</Text>
-            <Text style={[Typography.body.x10, styles.info, ]}>{`${label.numberOfTasks} tasks (${label.numberOfCompletedTasks} completed)`}</Text>
+            <Text style={[Typography.body.x10, styles.info, ]}>{`${numberOfNotes} notes`}</Text>
+            <Text style={[Typography.body.x10, styles.info, ]}>{`${numberOfTasks} tasks (${numberOfCompletedTasks} completed)`}</Text>
             <Text style={[Typography.body.x10, styles.info, ]}>{`Created: ${label.createdAt?.toLocaleDateString()}`}</Text>
         </Pressable>
     )

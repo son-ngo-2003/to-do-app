@@ -8,10 +8,11 @@ import Animated,
 import { LabelsList } from '../label';
 
 import { Icon } from '../atomic';
+import {AnimatedPressable} from "../../helpers/animated";
 
 type TaskItemProps = {
     task: Task,
-    onPress: () => void,
+    onPress: (task: Task) => void,
     onChangeCompletedStatus: (task: Task, isFinished: boolean) => void,
     onPressDelete: (task: Task) => void,
     showLabel?: boolean,
@@ -32,7 +33,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
     const onPressItem = () => {
         //TODO: show Task Modal
         console.log('TaskItem: onPressItem');
-        onPress();
+        onPress(task);
     }
 
     const onPressCompletedItem = () => {
@@ -60,8 +61,6 @@ const TaskItem: React.FC<TaskItemProps> = ({
             ),
         };
     });
-
-    const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
     return (
         <Pressable  onPress={onPressItem} style={[styles.container, {backgroundColor: colors.card}] }>

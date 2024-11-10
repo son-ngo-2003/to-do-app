@@ -5,39 +5,64 @@ import { Colors, Typography, Outlines } from '../../styles';
 import Animated, 
     { ZoomIn
 } from 'react-native-reanimated';
+import { useTraceUpdate} from "../../hooks";
 
 import { Icon } from '../atomic';
+import {AnimatedPressable} from "../../helpers/animated";
 
 type NoteInTaskItemProps = {
-    note: Note,
-    onPressItem: (note: Note) => void,
-    onPressDelete: (note: Note) => void,
+    note?: Note,
+    onPressItemWithNote?: (note: Note) => void,
+    onPressDelete?: (note: Note) => void,
+    onPressAddNote?: () => void,
 }
 
-const NoteInTaskItem: React.FC<NoteInTaskItemProps> = ({ 
-    note,
-    onPressItem,
-    onPressDelete,
-}) => {
+const NoteInTaskItem: React.FC<NoteInTaskItemProps> = (props) => {
+    const {
+        note,
+        onPressItemWithNote,
+        onPressDelete,
+        onPressAddNote,
+    } = props;
+
+    // useTraceUpdate(props);
+
     const { dark, colors } = useTheme();
 
-    const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+    const _onPressDelete = React.useCallback(() => {
+        note && onPressDelete?.(note);
+    }, [ onPressDelete, note]);
+
+    const _onPressAddNote = React.useCallback(() => {
+        onPressAddNote?.();
+    },[ onPressAddNote]);
 
     return (
-        <AnimatedPressable  onPress={() => onPressItem(note)} 
-                            style={[styles.container, 
-                                    {backgroundColor: dark ? Colors.neutral.s800 : Colors.neutral.s100}] }
-                            entering={ZoomIn.springify()}>
-            <Icon name='note-text-outline' size={22} color={colors.text} library='MaterialCommunityIcons'/>
-            <Text style={[Typography.subheader.x30, styles.info]} numberOfLines={2}
-                >{`${note.title}`}</Text>
-            <Pressable onPress={() => onPressDelete(note)}>
-                <Icon name='trash-can-outline' size={24} color={colors.text} library='MaterialCommunityIcons'/>
-            </Pressable>
-        </AnimatedPressable>
+        note
+        ?   <AnimatedPressable  onPress={() => onPressItemWithNote?.(note)}
+                                style={[styles.container,
+                                        {backgroundColor: dark ? Colors.neutral.s500 : Colors.neutral.s100}] }
+                                entering={ ZoomIn.springify().mass(0.65) }
+            >
+                <Icon name='sticky-note-o' size={20} color={colors.text} library='FontAwesome'/>
+                <Text style={[Typography.body.x40, styles.info, {color: colors.text}]} numberOfLines={2}
+                    >{`${note.title}`}</Text>
+                <Pressable onPress={_onPressDelete}>
+                    <Icon name='trash-can-outline' size={24} color={colors.text} library='MaterialCommunityIcons'/>
+                </Pressable>
+            </AnimatedPressable>
+        :   <AnimatedPressable  onPress={_onPressAddNote}
+                                  style={[styles.container,
+                                      {backgroundColor: dark ? Colors.neutral.s500 : Colors.neutral.s100}] }
+                entering={ZoomIn.springify().mass(0.65) }
+            >
+                <Icon name='add-circle-outline' size={20} color={colors.text} library='Ionicons'/>
+                <Text style={[Typography.body.x40, styles.info, {color: colors.text}]} numberOfLines={2}
+                >Add Note To Your Task</Text>
+            </AnimatedPressable>
     )
 }
-export default NoteInTaskItem;
+export default React.memo( NoteInTaskItem );
 
 const styles = StyleSheet.create({
     container: {

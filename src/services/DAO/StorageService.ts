@@ -1,6 +1,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Message } from '../models'
+import {replacer, reviver} from "../../utils/jsonUtil";
 
 interface StorageServiceType {
     addData:                    <T extends { _id: string, isDeleted: boolean }>  (data: T, type: ModelType, index: number) => Promise<Message<T>>,
@@ -23,7 +24,7 @@ const StorageService : StorageServiceType = (() => {
                     throw new Error(`Storage service has reached the limit of ${limitDocument} documents`);
                 }
 
-                const jsonValue = JSON.stringify(data);
+                const jsonValue = JSON.stringify(data, replacer);
                 await AsyncStorage.setItem(`@${type}:${data._id}`, jsonValue);
                 return Message.success<T>(data);
             }
@@ -43,7 +44,7 @@ const StorageService : StorageServiceType = (() => {
                 const listData: T[] = dataJSONValue
                     .map(([_, value]) => {
                         if (value === null) return;
-                        const data: T = JSON.parse(value);
+                        const data: T = JSON.parse(value, reviver);
                         return data;
                     })
                     .filter((data) => data && !data.isDeleted) as T[];
@@ -62,7 +63,7 @@ const StorageService : StorageServiceType = (() => {
                 const value: string | null = await AsyncStorage.getItem(key);
                 if (!value) return Message.failure('Data not found!');
 
-                const data: T = JSON.parse(value);
+                const data: T = JSON.parse(value, reviver);
                 if (!data || data.isDeleted) return Message.failure('Data not found!');
                 return Message.success(data);
             }
@@ -78,12 +79,12 @@ const StorageService : StorageServiceType = (() => {
                 const value: string | null = await AsyncStorage.getItem(key);
                 if (!value) return Message.failure('Data not found!');
 
-                const existingData: T = JSON.parse(value);
+                const existingData: T = JSON.parse(value, reviver);
                 if (!existingData || existingData.isDeleted) return Message.failure('Data not found!');
 
                 const updatedData: T = { ...existingData, ...newData };
 
-                const jsonValue = JSON.stringify(updatedData);
+                const jsonValue = JSON.stringify(updatedData, replacer);
                 await AsyncStorage.setItem(key, jsonValue);
                 return Message.success(updatedData);
             }
@@ -98,10 +99,10 @@ const StorageService : StorageServiceType = (() => {
                 const key: string = `@${type}:${id}`;
                 const value: string | null = await AsyncStorage.getItem(key);
                 if (!value) return Message.failure('Data not found!');
-                const data: T = JSON.parse(value);
+                const data: T = JSON.parse(value, reviver);
                 
                 data.isDeleted = true;
-                const jsonValue = JSON.stringify(data);
+                const jsonValue = JSON.stringify(data, replacer);
                 await AsyncStorage.setItem(key, jsonValue);
                 return Message.success(data);
             }
@@ -118,7 +119,7 @@ const StorageService : StorageServiceType = (() => {
                 if (!value) return Message.failure('Data not found!');
 
                 await AsyncStorage.removeItem(key);
-                return Message.success(JSON.parse(value));
+                return Message.success(JSON.parse(value, reviver));
             }
             catch (error) {
                 return Message.failure(error);

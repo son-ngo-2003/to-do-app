@@ -21,6 +21,7 @@
     "expo": "^51.0.24",
     "expo-blur": "~13.0.2",
     "expo-font": "^12.0.9",
+    "expo-haptics": "~13.0.1",
     "expo-image-picker": "^15.0.7",
     "expo-splash-screen": "^0.27.5",
     "expo-status-bar": "~1.12.1",
@@ -34,6 +35,7 @@
     "react-native-screens": "3.31.1",
     "react-native-vector-icons": "^10.0.3",
     "react-native-webview": "13.8.6",
+    "react-native-wheely": "^0.6.0",
     "recyclerlistview": "^4.2.1"
   },
   "devDependencies": {

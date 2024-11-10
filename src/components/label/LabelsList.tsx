@@ -20,7 +20,7 @@ type LabelsListProps = {
 const LabelsList : React.FC<LabelsListProps> = ({
     withAddButton,
     withDeleteButton,
-    setListLabels = () => {},
+    setListLabels,
     choseLabelsList,
 }) => {
     const plusButtonRef = React.useRef<View>(null);
@@ -30,12 +30,12 @@ const LabelsList : React.FC<LabelsListProps> = ({
 
     const onPressDeleteLabel = (label: Label) => {
         const newListLabels = choseLabelsList.filter((l) => l._id !=  label._id);
-        setListLabels(newListLabels);
+        setListLabels?.(newListLabels);
     }
 
     const onPressAddLabelTag = (label: Label) => {
         const newListLabels = [...choseLabelsList, label];
-        setListLabels(newListLabels);
+        setListLabels?.(newListLabels);
     }
 
     const getLayoutPlusButton = (_event: LayoutChangeEvent) => {
@@ -44,6 +44,7 @@ const LabelsList : React.FC<LabelsListProps> = ({
             plusButtonRef.current?.measureInWindow((pagex, pagey) => {
                 setPlusButtonPos({x: pagex, y: pagey});
             });
+
         }, 300);
     }
 

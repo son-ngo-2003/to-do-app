@@ -9,11 +9,16 @@ import Animated, { ZoomInEasyDown} from 'react-native-reanimated';
 import { Icon, Overlay, KeyboardOptimizeView } from '../atomic';
 import { LabelsList } from '../label';
 import { TextEditor } from '../textEditor';
+import {EditorBridge} from "@10play/tentap-editor";
 
 type NoteModalProps = {
     mode: 'add' | 'edit',
     note?: Note,
     setIsOpenModal: (isOpen: boolean) => void,
+
+    onAddNote?: (note: Partial<Note>) => void,
+    onUpdateNote?: (note: Partial<Note>) => void,
+    onCancel?: (draftNote: Partial<Note>) => void,
 }
 
 const sizeButton : number = 25;
@@ -22,6 +27,10 @@ const NoteModal: React.FC<NoteModalProps> = ({
     mode, 
     note, 
     setIsOpenModal,
+
+    onAddNote,
+    onUpdateNote,
+    onCancel,
 }) => {
     const [ title, setTitle ] = React.useState<string>((mode === 'add' || !note) ? '' :  note.title) ;
     const [ content, setContent ] = React.useState<string>((mode === 'add' || !note) ? '' :  note.content) ;
@@ -33,32 +42,43 @@ const NoteModal: React.FC<NoteModalProps> = ({
         if (Keyboard.isVisible()) return;
         console.log('NoteModal: Add');
         setIsOpenModal(false);
-        //TODO: get note from service add, and call onAddNote(note)
+        onAddNote?.({
+            title: title,
+            content: content,
+            labels: listLabels,
+        })
     }
 
     const onPressUpdate = () => {
         if (Keyboard.isVisible()) return;
         console.log('NoteModal: Update');
         setIsOpenModal(false);
-        //TODO: get note from service update, and call onUpdateNote(note)
+        onUpdateNote?.({
+            title: title,
+            content: content,
+            labels: listLabels,
+        })
     }
 
     const onPressCancel = () => {
         if (Keyboard.isVisible()) return;
         console.log('NoteModal: Cancel');
         setIsOpenModal(false);
+        onCancel?.({
+            title: title,
+            content: content,
+            labels: listLabels,
+        })
     }
 
-    const onPressAddLabel = () => {
-        if (Keyboard.isVisible()) return;
-        console.log('NoteModal: Add labels');
-        setIsOpenModal(false);
-        //TODO:
-    };
+    const onChangeTextEditor = (editor: EditorBridge) => {
+        editor.getHTML().then((html) => {
+            setContent(html);
+        });
+    }
 
     const onChangeLabels = (newListLabels: Label[]) => {
         setListLabels(newListLabels);
-        //TODO: base on auto save then auto update this to storage
     }
 
     return (
@@ -119,7 +139,7 @@ const NoteModal: React.FC<NoteModalProps> = ({
                         <TextEditor
                             initialContent={content}
                             placeholder='Write something ...'
-                            onChange={() => {}} //TODO: check autosave and update this onChange
+                            onChange={onChangeTextEditor} //TODO: check autosave and update this onChange
                         />
                     </View>
 

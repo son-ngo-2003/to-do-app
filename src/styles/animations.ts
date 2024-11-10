@@ -58,10 +58,10 @@ type SpringType = 'base';
 export function spring<T extends AnimatableValue> (toValue: T) : Record<SpringType, Record<DurationType, T>> {
     return {         
         base: {
-            fast: withSpring<T>(toValue, {duration: duration.fast, dampingRatio: 0.3, reduceMotion: ReduceMotion.System,}),
-            base: withSpring<T>(toValue, {duration: duration.base, dampingRatio: 0.45, reduceMotion: ReduceMotion.System,}),
-            slow: withSpring<T>(toValue, {duration: duration.slow, dampingRatio: 0.55, reduceMotion: ReduceMotion.System,}),
-            glacial: withSpring<T>(toValue, {duration: duration.glacial, dampingRatio: 0.65, reduceMotion: ReduceMotion.System,}),
+            fast: withSpring<T>(toValue, {duration: duration.fast + 100, dampingRatio: 0.3, reduceMotion: ReduceMotion.System,}),
+            base: withSpring<T>(toValue, {duration: duration.base + 100, dampingRatio: 0.45, reduceMotion: ReduceMotion.System,}),
+            slow: withSpring<T>(toValue, {duration: duration.slow + 100, dampingRatio: 0.55, reduceMotion: ReduceMotion.System,}),
+            glacial: withSpring<T>(toValue, {duration: duration.glacial + 100, dampingRatio: 0.65, reduceMotion: ReduceMotion.System,}),
         },
     }
 }

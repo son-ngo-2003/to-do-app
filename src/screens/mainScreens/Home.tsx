@@ -5,8 +5,8 @@ import { DrawerScreenProps } from '@react-navigation/drawer';
 
 //components
 import { LabelSelectItem, AddLabelCard, LabelModal, 
-        NoteCard, NoteModal, TaskItem, TaskTree,
-        NoteInTaskItem, AddNoteInTask, TaskProgressCard,
+        NoteCard, NoteModal, TaskItem,
+        NoteInTaskItem, TaskProgressCard, TaskModal, TaskTree,
         Calendar, CalendarList, Timeline
 } from '../../components/';
 import { Colors, Typography, Layouts } from '../../styles';
@@ -27,9 +27,6 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
         color: colors.text,
     })
 
-    const [ newLabel, setNewLabel] = React.useState<Label>();
-    const [ newLabel2, setNewLabel2] = React.useState<Label>();
-    const [ newLabel3, setNewLabel3] = React.useState<Label>();
     const [ newNote, setNewNote] = React.useState<Note[]>([]);
     const [ newTask, setNewTask ] = React.useState<Task[]>([]);
 
@@ -48,10 +45,6 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
             const l2: Label = messages[1].getData();
             const l3: Label = messages[2].getData();
 
-            setNewLabel(l1);
-            setNewLabel2(l2);
-            setNewLabel3(l3);
-
             const noteMsg1 =  await NoteService.addNote({
                 title: "Note 1",
                 content: "Lorem ipsum dolor sit amet, consecte adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Et netus et malesuada fames ac turpis egestas maecenas. Viverra ipsum nunc aliquet bibendum enim facilisis gravida neque. Felis bibendum ut tristique et egestas quis ipsum. Odio ut enim blandit volutpat maecenas volutpat blandit aliquam. Auctor neque vitae tempus quam pellentesque nec nam.",
@@ -65,33 +58,38 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
             let notes = [noteMsg1.getData(), noteMsg2.getData()];
             setNewNote( notes );
 
+
             const taskMsg1 = await TaskService.addTask({
                 title: "New Task 1, ah, it i",
+                note: notes[0],
                 labels: [l1, l2],
                 start: new Date(),
                 end: new Date(),
-                repeat: 'none',
+                repeat: {value: 5, unit: 'day'},
                 isAnnouncement: false,
                 isCompleted: false,
             });
             const taskMsg2 = await TaskService.addTask({
                 title: "New Task 2, ah, it i",
+                note: notes[0],
                 labels: [l1],
                 start: new Date(),
                 end: new Date(),
-                repeat: 'none',
+                repeat: undefined,
                 isAnnouncement: false,
                 isCompleted: false,
             });
             const taskMsg3 = await TaskService.addTask({
                 title: "New Task 3, ah, it i",
+                note: notes[0],
                 labels: [l1, l2, l3],
                 start: new Date(),
                 end: new Date(),
-                repeat: 'none',
+                repeat: undefined,
                 isAnnouncement: false,
                 isCompleted: false,
             });
+
             let newTasks = [taskMsg1.getData(), taskMsg2.getData(), taskMsg3.getData()];
             setNewTask( newTasks );
         });
@@ -100,14 +98,18 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
     const [ tasksByLabel, setTaskByLabel ] = React.useState<Record<Label['_id'], Task[]>>({});
     const [ allLabels, setAllLabels ] = React.useState<Label[]>([]);
     const [ noteOnModal, setNoteOnModal ] = React.useState<Note>();
+    const [ taskOnModal, setTaskOnModal ] = React.useState<Task>();
     const [ showNoteModal, setShowNoteModal ] = React.useState<boolean>(false);
+    const [ showTaskModal, setShowTaskModal ] = React.useState<boolean>(false);
 
     React.useEffect( () => {
+        // TODO: get notes
         setTimeout(() => {
             LabelService.getAllLabels().then( async (msg: Message<Label[]>) => {
                 //TODO: home screen show only today 's notes and tasks
                 if (msg.getIsSuccess()) {
                     const labels = msg.getData();
+
                     setAllLabels(labels);
 
                     Promise.all(labels.map(label => TaskService.getTasksByLabel(label._id, undefined, 3))).then((messages: Message<Task[]>[]) => {
@@ -118,6 +120,7 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                             }
                         });
                         setTaskByLabel(tasksByLabel);
+
                     });
                 }
             });
@@ -177,6 +180,8 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                                 <Text style={[ Typography.header.x40, { textTransform: 'uppercase', color: label.color } ]}>{label.name}</Text>
                                 <TaskTree
                                     tasks={ tasksByLabel[label._id] ?? [] }
+                                    onPressTask = { (task) => {setTaskOnModal(task); setShowTaskModal(true);} }
+
                                     showShowMoreButton={true}
                                     onPressShowMore={ () => console.log('Task Tree (Home): Show More Tasks') }
 
@@ -187,6 +192,16 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                         ))}
                     </ScrollView>
                 </View>
+
+                {   showTaskModal &&
+                    <TaskModal
+                        mode={'edit'}
+                        task={ taskOnModal }
+                        setIsOpenModal={ setShowTaskModal }
+
+                        onPressUpdateTask={ () => console.log('Task Modal (Home): Delete Task') }
+                    />
+                }
             </View>
         </View>
     );
