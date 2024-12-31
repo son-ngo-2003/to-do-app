@@ -1,12 +1,12 @@
 import * as React from 'react';
 import {useTheme} from '@react-navigation/native';
 import {Keyboard, Pressable, StyleSheet, Text, TextInput, View} from 'react-native';
-import {Bases, Layouts, Outlines, Typography} from '../../styles';
+import {Bases, Colors, Layouts, Outlines, Typography} from '../../styles';
 import Modal from 'react-native-modal';
 import { debounce } from "lodash";
 
 //components
-import {Icon, KeyboardOptimizeView, Overlay} from '../atomic';
+import {Icon, KeyboardDismissableView, Overlay} from '../atomic';
 import {LabelsList} from '../label';
 import {TextEditor} from '../textEditor';
 import {EditorBridge} from "@10play/tentap-editor";
@@ -15,6 +15,7 @@ import AlertModal from "../atomic/AlertModal";
 import formReducer, {FormAction, FormActionKind} from "../../reducers/formReducer";
 import {createInitialNote, fromStateToNote, isStateOfNote} from "../../helpers/formState";
 import {NoteFormState} from "../../types/formStateType";
+import useNotesData from "../../hooks/dataHooks/useNotesData";
 
 type NoteModalProps = {
     mode: 'add' | 'edit',
@@ -23,7 +24,7 @@ type NoteModalProps = {
 
     onAddNote?: (note: Partial<Note>) => void, //only Partial<Note> cause id, createdAt, updatedAt, completedAt will be added by service, not by user
     onUpdateNote?: (note: Partial<Note>) => void,
-    onCancel?: (draftNote: Partial<Note>, alert: AlertFunctionType) => Promise<any>,
+    onCancel?: (draftNote: Partial<Note>, isEdited: boolean, alert: AlertFunctionType) => Promise<any>,
         //when press turn off modal or when press outside of modal, draft note is what user has changed but not yet press add or update
         //alert is a function to show alert modal, it will be used to ask user if they want to save changes or not
         //onCancel should return called alert function (which return a promise) to wait for user response
@@ -35,11 +36,17 @@ type NoteModalProps = {
     onModalWillShow?: () => void,
 }
 
+export type NoteModalRef = {
+    close: () => void,
+}
+
+type ButtonMode = 'add' | 'edit' | 'loading' | 'added' | 'edited';
+
 const sizeButton : number = 25;
 
-const NoteModal: React.FC<NoteModalProps> = ({ 
+const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
     mode,
-    note, 
+    note,
     visible = true,
 
     onAddNote,
@@ -51,9 +58,12 @@ const NoteModal: React.FC<NoteModalProps> = ({
     onModalWillHide,
     onModalShow,
     onModalWillShow,
-}) => {
+}, ref) => {
+    const { addNote, updateNote } = useNotesData(false);
+    const [ originalNote, setOriginalNote ] = React.useState<Note | undefined>(note);
     const [ noteFormState, dispatch ] = React.useReducer(formReducer<NoteFormState>, note, createInitialNote);
     const [ isEdited, setIsEdited ] = React.useState<boolean>(false);
+    const [ buttonMode, setButtonMode ] = React.useState<ButtonMode>(mode);
     const { colors } = useTheme();
     const todayDate: string = (new Date()).toLocaleDateString();
 
@@ -62,26 +72,62 @@ const NoteModal: React.FC<NoteModalProps> = ({
         modalVisible, alertProps
     } = useAlertProvider();
 
-    const onPressAdd = React.useCallback( () => {
-        if (Keyboard.isVisible()) return;
-        onAddNote?.(fromStateToNote(noteFormState));
-    }, [onAddNote, noteFormState]);
-
-    const onPressUpdate = React.useCallback(() => {
-        if (Keyboard.isVisible()) return;
-        onUpdateNote?.(fromStateToNote(noteFormState));
-    }, [onUpdateNote, noteFormState]);
-
-    const onPressCancel = React.useCallback(() => {
-        if (Keyboard.isVisible()) return;
-        return onCancel?.(fromStateToNote(noteFormState), alert)
-    }, [onCancel, alert, noteFormState]);
-
     const dispatchNoteForm = React.useCallback( (action: FormAction<NoteFormState>) => {
         dispatch(action);
         const newNoteFromState = formReducer<NoteFormState>(noteFormState, action);
         onChangeNote?.(fromStateToNote(newNoteFromState));
     },[dispatch, noteFormState, onChangeNote]);
+
+    const onPressAdd = React.useCallback( async () => {
+        try {
+            setButtonMode('loading');
+
+            const note = fromStateToNote(noteFormState);
+            const newNote = await addNote(note);
+            dispatchNoteForm({type: FormActionKind.UPDATE_ALL, payload: createInitialNote(newNote)});
+            setOriginalNote(newNote);
+            onAddNote?.(note);
+
+            setButtonMode('added');
+        } catch (e) {
+            console.error(e);
+            await alert({
+                type: 'error',
+                title: 'Error',
+                message: 'An error occurred while adding note!',
+            });
+
+            setButtonMode('add');
+        }
+
+    }, [onAddNote, noteFormState, setButtonMode, addNote, alert, setOriginalNote, dispatchNoteForm]);
+
+    const onPressUpdate = React.useCallback( async () => {
+        try {
+            setButtonMode('loading');
+
+            const note = fromStateToNote(noteFormState);
+            const newNote = await updateNote?.(note);
+            dispatchNoteForm({type: FormActionKind.UPDATE_ALL, payload: createInitialNote(newNote)});
+            setOriginalNote(newNote);
+            onUpdateNote?.(note);
+
+            setButtonMode('edited');
+        } catch (e) {
+            console.error(e);
+            await alert({
+                type: 'error',
+                title: 'Error',
+                message: 'An error occurred while updating note!',
+            });
+
+            setButtonMode('edit');
+        }
+    }, [noteFormState, setButtonMode, updateNote, alert, setOriginalNote, dispatchNoteForm, onUpdateNote]);
+
+    const onPressCancel = React.useCallback( async () => {
+        return onCancel?.(fromStateToNote(noteFormState), isEdited, alert)
+    }, [onCancel, alert, noteFormState, isEdited]);
 
     const onChangeTitle = React.useCallback((newTitle: string) => {
         dispatchNoteForm({type: FormActionKind.UPDATE_TEXT, payload: {field: 'title', value: newTitle}});
@@ -97,48 +143,74 @@ const NoteModal: React.FC<NoteModalProps> = ({
         dispatchNoteForm({type: FormActionKind.UPDATE_LIST, payload: {field: 'labels', value: newListLabels}});
     }, [dispatchNoteForm]);
 
+    const renderButton = React.useCallback((type: ButtonMode) => {
+        let icon : React.ReactNode;
+        let onPressButton : () => void = () => {};
+        switch (type) {
+            case 'add':
+                icon = (<Icon name="plus" size={sizeButton} color={colors.text} library='Octicons'/>);
+                onPressButton = onPressAdd;
+                break;
+            case 'edit':
+                icon = (<Icon name="cloud-upload" size={sizeButton} color={colors.text} library='SimpleLineIcons'/>);
+                onPressButton = onPressUpdate;
+                break;
+            case 'loading':
+                icon = (<Icon name="ActivityIndicator" size={sizeButton} color={colors.text} library='Ionicons'/>);
+                break;
+            case 'added':
+                icon = (<Icon name="checkbox-marked-circle-plus-outline" size={sizeButton} color={Colors.success.s400} library='MaterialCommunityIcons'/>);
+                break;
+            case 'edited':
+                icon = (<Icon name="cloud-check-outline" size={sizeButton} color={Colors.success.s400} library='MaterialCommunityIcons'/>);
+                break;
+        }
+        return (
+            <Pressable
+                onPress={onPressButton}
+                hitSlop={6} disabled={!isEdited} style={{opacity: isEdited ? 1 : 0.5}}>
+                {icon}
+            </Pressable>
+        )
+    }, [colors.text, onPressAdd, onPressUpdate, isEdited]);
+
+    React.useImperativeHandle(ref, () => ({
+        close: onPressCancel,
+    }), [onPressCancel]);
+
     React.useEffect(() => {
+        setOriginalNote(note);
         if (note) {
             dispatchNoteForm({type: FormActionKind.UPDATE_ALL, payload: createInitialNote(note)});
         }
     }, [note]);
 
     const checkIsEdited = debounce(() => {
-        if (!note) return setIsEdited(true);
-
-        const isEdited =!note || !isStateOfNote(noteFormState, note);
-        console.log('isEdited', isEdited);
+        const isEdited =!originalNote || !isStateOfNote(noteFormState, originalNote);
         setIsEdited(isEdited);
-    }, 500);
+        if (isEdited && (buttonMode === 'edited' || buttonMode === 'added')) {
+            setButtonMode('edit');
+        }
+    }, 400);
 
     React.useEffect(() => {
         checkIsEdited();
     }, [noteFormState]);
 
     return (
-        <KeyboardOptimizeView>
-            <Modal isVisible={visible} hasBackdrop={true} avoidKeyboard={false}
+        <Modal isVisible={visible} hasBackdrop={true} avoidKeyboard={false}
                    animationIn={'fadeInUpBig'} animationInTiming={500} animationOut={'fadeOutDownBig'} animationOutTiming={500}
                    onModalHide={onModalHide} onModalWillHide={onModalWillHide} onModalShow={onModalShow} onModalWillShow={onModalWillShow}
 
                    customBackdrop={<Overlay onPress={onPressCancel} background={'highOpacity'}/>}
             >
+                <KeyboardDismissableView>
                 {/* Modal parts */}
                 <View style={[styles.modalContainer, {backgroundColor: colors.card}]}>
-                        
+
                     {/* Add/Edit and Close Buttons */}
                     <View style={[styles.buttonsContainer]}>
-                        {
-                            mode === 'add'
-                            ? 
-                                (<Pressable  onPress={onPressAdd} hitSlop={6} disabled={!isEdited} style={{opacity: isEdited ? 1 : 0.5}}>
-                                    <Icon name="plus" size={sizeButton} color={colors.text} library='Octicons'/>
-                                </Pressable>)
-                            :
-                                (<Pressable  onPress={onPressUpdate} hitSlop={6} disabled={!isEdited} style={{opacity: isEdited ? 1 : 0.5}}>
-                                    <Icon name="cloud-upload" size={sizeButton} color={colors.text} library='SimpleLineIcons'/>
-                                </Pressable>)
-                        }
+                        {renderButton(buttonMode)}
 
                         <Pressable  onPress={onPressCancel} hitSlop={6}>
                             <Icon name="window-close" size={sizeButton} color={colors.text} library='MaterialCommunityIcons'/>
@@ -187,10 +259,11 @@ const NoteModal: React.FC<NoteModalProps> = ({
                         visible={modalVisible}
                     />
                 }
-            </Modal>
-        </KeyboardOptimizeView>
+            </KeyboardDismissableView>
+        </Modal>
     )
-}
+});
+
 export default NoteModal;
 
 const styles = StyleSheet.create({

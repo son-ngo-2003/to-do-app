@@ -5,11 +5,13 @@ function KeyboardOptimizeHOC (
     Comp: ComponentType<PropsWithChildren<KeyboardAvoidingViewProps>>
 ) {
     return ( {children, ...props}: React.PropsWithChildren<ViewProps> ) => (
-        <ScrollView contentContainerStyle={{flexGrow: 1}}
-                    keyboardShouldPersistTaps='handled'
-                    keyboardDismissMode = "on-drag"
+        <ScrollView
+                contentContainerStyle={{flexGrow: 1, justifyContent: 'center'}}
+                keyboardShouldPersistTaps='handled'
+                keyboardDismissMode = "on-drag"
         >
-            <Comp {...props} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+            <Comp {...props} behavior={Platform.OS === "ios" ? "padding" : "height"}
+            >
                 {children}
             </Comp>
         </ScrollView>

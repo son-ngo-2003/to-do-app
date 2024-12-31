@@ -128,6 +128,27 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
         });
     }, [setCurrentModal]);
 
+    const onCancelNoteModal = React.useCallback((draftNote: Partial<Note>, isEdited: boolean, alert: AlertFunctionType) => {
+        if (!isEdited) {
+            setCurrentModal('none');
+            return Promise.resolve();
+        }
+
+        return alert({
+            type: 'confirm',
+            title: 'Discard Changes',
+            message: 'Are you sure you want to discard changes?',
+            primaryButton: {
+                text: 'Discard',
+                onPress: () => {console.log('Note Modal (Home): Discard Note'); setCurrentModal('none')}
+            },
+            secondaryButton: {
+                text: 'Cancel',
+                onPress: () => {console.log('Note Modal (Home): Cancel Discard Note')}
+            }
+        });
+    }, [setCurrentModal]);
+
     const onPressNoteInTask = React.useCallback((note: Note) => {
         taskModalRef.current?.close().then(( alertButtonResult ) => {
             if (alertButtonResult === undefined) return;
@@ -233,7 +254,7 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                     <NoteModal
                         mode={ 'edit' }
                         note={ noteOnModal }
-                        onCancel={() => { setCurrentModal('none'); return Promise.resolve(); }}
+                        onCancel={ onCancelNoteModal }
                     />,
 
                     <TaskModal
@@ -242,9 +263,6 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                         mode={'edit'}
                         task={ taskOnModal }
                         onPressNote={ onPressNoteInTask }
-
-                        onPressAddTask={ () => {console.log('Task Modal (Home): Add Task'); setCurrentModal('none')} }
-                        onPressUpdateTask={ () => {console.log('Task Modal (Home): Update Task'); setCurrentModal('none')} }
                         onCancel={onCancelTaskModal}
                     />
                 ]}

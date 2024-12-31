@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, StyleSheet, LayoutChangeEvent, } from 'react-native';
-import { CoreBridge, PlaceholderBridge, TenTapStartKit, 
-        RichText, Toolbar, 
-        useEditorBridge, defaultEditorTheme,
-        ImageBridge,
-        EditorBridge,
+import {View, StyleSheet, LayoutChangeEvent} from 'react-native';
+import {
+    CoreBridge, PlaceholderBridge, TenTapStartKit,
+    RichText, Toolbar,
+    useEditorBridge, defaultEditorTheme,
+    ImageBridge,
+    EditorBridge,
 } from '@10play/tentap-editor';
 import { useTheme } from '@react-navigation/native';
 
@@ -15,6 +16,7 @@ import { toolbarTheme, darkToolbarTheme } from './toolbarTheme';
 //components
 import InsertToolList from './InsertToolList';
 import ColorToolList from './ColorToolList';
+import {eventEmitter, EventNames} from "../../utils/eventUtil";
 
 
 type ListToolModalType = 'none' | 'insert' | 'color';
@@ -98,6 +100,15 @@ const TextEditor : React.FC<TextEditorProps> = ({
         active: ({}) => showToolModal === 'color',
     }
 
+    React.useEffect(() => {
+        const eventListener = eventEmitter.on(EventNames.DismissKeyboard, () => {
+            editor.blur();
+        });
+        return () => {
+            eventEmitter.remove(EventNames.DismissKeyboard, eventListener);
+        }
+    }, []);
+
     return (
         <View style={ styles.textEditorContainer } pointerEvents={enableEdit ? 'auto' : 'none'}>
             <View style = { styles.editor}>
@@ -117,7 +128,7 @@ const TextEditor : React.FC<TextEditorProps> = ({
                 {   showToolModal === 'insert' &&
                     <InsertToolList
                         editor={editor}
-                        style={{ bottom: Layouts.screen.height - toolbarPos.y - 1, 
+                        style={{ bottom: Layouts.screen.height - toolbarPos.y - 1,
                                     left: toolbarPos.x + 50}}
                         onPressOverlay={() => setShowToolModal('none')}
                     />  }
@@ -125,7 +136,7 @@ const TextEditor : React.FC<TextEditorProps> = ({
                 {   showToolModal === 'color' &&
                     <ColorToolList
                         editor={editor}
-                        style={{ bottom: Layouts.screen.height - toolbarPos.y - 1, 
+                        style={{ bottom: Layouts.screen.height - toolbarPos.y - 1,
                                     left: toolbarPos.x + 100}}
                         onPressOverlay={() => setShowToolModal('none')}
                     />

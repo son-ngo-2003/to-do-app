@@ -1,4 +1,5 @@
 interface TaskFormState {
+    _id?: string;
     title: string;
     note?: Note;
     labels: Label[];
@@ -11,6 +12,7 @@ interface TaskFormState {
 }
 
 interface NoteFormState {
+    _id?: string;
     title: string;
     content: string;
     labels: Label[];

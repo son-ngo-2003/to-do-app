@@ -8,6 +8,7 @@ import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons'
 import Feather from 'react-native-vector-icons/Feather'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import React from "react";
+import {ActivityIndicator} from "react-native";
 
 type IconProps = {
     name: string,
@@ -15,7 +16,24 @@ type IconProps = {
     color: string,
     library: string,
 }
+
+const ActivityIndicatorWithSize = (size: number, color: string) => {
+    if (size < 30) {
+        return <ActivityIndicator size="small" color={color}
+            style={{transform: [{scale: size / 20.0}]}} // 20 is the default size of small ActivityIndicator
+        />;
+    } else {
+        return <ActivityIndicator size="large" color={color}
+            style={{transform: [{scale: size / 36.0}]}} // 36 is the default size of large ActivityIndicator
+        />;
+    }
+}
+
 const Icon : React.FC<IconProps> = ({name, size, color, library}) => {
+    if (name === 'ActivityIndicator') {
+        return ActivityIndicatorWithSize(size, color);
+    }
+
     switch (library) {
         case 'Ionicons':
             return <Ionicons name={name} size={size} color={color} />;

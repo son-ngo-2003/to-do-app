@@ -21,6 +21,11 @@ type FormAction<T> =
 
 function formReducer<T extends FormState> (state : T, action: FormAction<T>) : T {
     const { type, payload } = action;
+
+    if ((payload as any)?.field === '_id') {
+        throw new Error('Cannot update _id field');
+    }
+
     switch(type) {
         case FormActionKind.UPDATE_ALL:
             return {
