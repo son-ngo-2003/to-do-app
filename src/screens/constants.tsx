@@ -25,7 +25,7 @@ export const listIcons : Record<RouteName, IconState> = {
     },
     Calendar: {
         library: 'Ionicons',
-        normal: 'lightCalendar-outline',
+        normal: 'calendar-outline',
         focused: 'calendar',
     },
     Tasks: {

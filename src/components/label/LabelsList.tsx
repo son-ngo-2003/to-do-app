@@ -14,14 +14,14 @@ type LabelsListProps = {
     withAddButton: boolean,
     withDeleteButton: boolean,
     setListLabels?: (newChoseLabels: Label[]) => void,
-    choseLabelsList: Label[],
+    chosenLabelsList: Label[],
 }
 
 const LabelsList : React.FC<LabelsListProps> = ({
     withAddButton,
     withDeleteButton,
     setListLabels,
-    choseLabelsList,
+    chosenLabelsList,
 }) => {
     const plusButtonRef = React.useRef<View>(null);
     const [ plusButtonPos, setPlusButtonPos ] = React.useState<{x: number, y: number}>({x: 0, y: 0});
@@ -29,12 +29,12 @@ const LabelsList : React.FC<LabelsListProps> = ({
     const [ isShowModal, setIsShowModal ] = React.useState<boolean>(false);
 
     const onPressDeleteLabel = (label: Label) => {
-        const newListLabels = choseLabelsList.filter((l) => l._id !=  label._id);
+        const newListLabels = chosenLabelsList.filter((l) => l._id !=  label._id);
         setListLabels?.(newListLabels);
     }
 
     const onPressAddLabelTag = (label: Label) => {
-        const newListLabels = [...choseLabelsList, label];
+        const newListLabels = [...chosenLabelsList, label];
         setListLabels?.(newListLabels);
     }
 
@@ -50,14 +50,14 @@ const LabelsList : React.FC<LabelsListProps> = ({
 
     return (
         <View style={[styles.labelsPart]}>
-            { choseLabelsList.length 
+            { chosenLabelsList.length
                 ?
                     <ScrollView style={[styles.labelsContainer]}
                                 contentContainerStyle={styles.labelsContentContainer}
                                 horizontal
                                 showsHorizontalScrollIndicator={false}
                                 >
-                        {choseLabelsList.map((label: Label, index) => (
+                        {chosenLabelsList.map((label: Label, index) => (
                             <LabelTag key={index} text={label.name} color={label.color}
                                         onPressDeleteButton={
                                             withDeleteButton 
@@ -95,7 +95,7 @@ const LabelsList : React.FC<LabelsListProps> = ({
             {
                 isShowModal &&
                 <LabelSelectModal
-                    choseLabelsList={choseLabelsList}
+                    chosenLabelsList={chosenLabelsList}
                     style = {{top: plusButtonPos.y - 10, right: Layouts.screen.width - plusButtonPos.x - 20, maxHeight: 300}}
                     onPressCancel = {() => {setIsShowModal(false)}}
                     onPressOnLabel = {(label: Label, isSelected: boolean) => {

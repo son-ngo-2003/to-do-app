@@ -7,7 +7,8 @@ import { DrawerScreenProps } from '@react-navigation/drawer';
 import { LabelSelectItem, AddLabelCard, LabelModal, 
         NoteCard, NoteModal, TaskItem,
         NoteInTaskItem, TaskProgressCard, TaskModal, TaskTree,
-        Calendar, CalendarList, Timeline
+        Calendar, CalendarList, Timeline,
+        SequentialModals
 } from '../../components/';
 import { Colors, Typography, Layouts } from '../../styles';
 import { type RootStackParamList } from "../../navigation";
@@ -17,6 +18,9 @@ import { NoteService, TaskService, LabelService } from '../../services';
 import { Message } from '../../services/models';
 
 import StorageService from "../../services/DAO/StorageService";
+import {AlertFunctionType} from "../../hooks";
+import {TaskModalRef} from "../../components/task/TaskModal";
+import {ALERT_OPTION_NOT_SAVED_FOR_TASK_MODAL} from "../../constant";
 
 type Props = DrawerScreenProps<RootStackParamList, 'Home'>;
 
@@ -99,12 +103,42 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
     const [ allLabels, setAllLabels ] = React.useState<Label[]>([]);
     const [ noteOnModal, setNoteOnModal ] = React.useState<Note>();
     const [ taskOnModal, setTaskOnModal ] = React.useState<Task>();
-    const [ showNoteModal, setShowNoteModal ] = React.useState<boolean>(false);
-    const [ showTaskModal, setShowTaskModal ] = React.useState<boolean>(false);
+    const [ currentModal, setCurrentModal ] = React.useState<'note' | 'task' | 'none'>('none');
+    const taskModalRef = React.useRef<TaskModalRef>(null);
+
+    const onCancelTaskModal = React.useCallback((draftTask: Partial<Task>, alert: AlertFunctionType) => {
+        return alert({
+            ...ALERT_OPTION_NOT_SAVED_FOR_TASK_MODAL,
+
+            primaryButton: {
+                ...ALERT_OPTION_NOT_SAVED_FOR_TASK_MODAL.primaryButton,
+                onPress: () => {
+                    console.log('Task Modal (Home): Save Task');
+                    setCurrentModal('none')
+                },
+            },
+
+            secondaryButton: {
+                ...ALERT_OPTION_NOT_SAVED_FOR_TASK_MODAL.secondaryButton,
+                onPress: () => {
+                    console.log('Task Modal (Home): Discard Task');
+                    setCurrentModal('none')
+                },
+            },
+        });
+    }, [setCurrentModal]);
+
+    const onPressNoteInTask = React.useCallback((note: Note) => {
+        taskModalRef.current?.close().then(( alertButtonResult ) => {
+            if (alertButtonResult === undefined) return;
+            setNoteOnModal(note);
+            setCurrentModal('note');
+        })
+    }, [setNoteOnModal, taskModalRef.current, setCurrentModal]);
 
     React.useEffect( () => {
         // TODO: get notes
-        setTimeout(() => {
+        setTimeout(async () => {
             LabelService.getAllLabels().then( async (msg: Message<Label[]>) => {
                 //TODO: home screen show only today 's notes and tasks
                 if (msg.getIsSuccess()) {
@@ -127,6 +161,9 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
         }, 500);
     }, [])
 
+    React.useEffect(() => {
+        console.log('Current Modal: ', currentModal);
+    }, [currentModal]);
 
     return (
         <View style={[ Layouts.mainContainer ]}>
@@ -149,19 +186,13 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                     <View style={[styles.noteCardsContainer]}>
                         {newNote.map((note: Note, index: number) => (
                             <NoteCard key={index} note={note} orientation={'landscape'} showLabels
-                                onPress={(note) => {setNoteOnModal(note); setShowNoteModal(true);}}
+                                onPress={(note) => {setNoteOnModal(note); setCurrentModal('note');}}
                             />
                         ))}
                     </View>
                 </ScrollView>
 
-                {   showNoteModal &&
-                    <NoteModal
-                        mode={'edit'}
-                        note={noteOnModal}
-                        setIsOpenModal={ setShowNoteModal }
-                    />
-                }
+
             </View>
 
             {/* Today's Tasks */}
@@ -180,7 +211,7 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                                 <Text style={[ Typography.header.x40, { textTransform: 'uppercase', color: label.color } ]}>{label.name}</Text>
                                 <TaskTree
                                     tasks={ tasksByLabel[label._id] ?? [] }
-                                    onPressTask = { (task) => {setTaskOnModal(task); setShowTaskModal(true);} }
+                                    onPressTask = { (task) => {setTaskOnModal(task); setCurrentModal('task');} }
 
                                     showShowMoreButton={true}
                                     onPressShowMore={ () => console.log('Task Tree (Home): Show More Tasks') }
@@ -193,16 +224,31 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                     </ScrollView>
                 </View>
 
-                {   showTaskModal &&
+            </View>
+
+            {/*  Modals  */}
+            <SequentialModals
+                currentIndex={ currentModal === 'note' ? 0 : currentModal === 'task' ? 1 : undefined }
+                modals={[
+                    <NoteModal
+                        mode={ 'edit' }
+                        note={ noteOnModal }
+                        onCancel={() => { setCurrentModal('none'); return Promise.resolve(); }}
+                    />,
+
                     <TaskModal
+                        ref={taskModalRef}
+
                         mode={'edit'}
                         task={ taskOnModal }
-                        setIsOpenModal={ setShowTaskModal }
+                        onPressNote={ onPressNoteInTask }
 
-                        onPressUpdateTask={ () => console.log('Task Modal (Home): Delete Task') }
+                        onPressAddTask={ () => {console.log('Task Modal (Home): Add Task'); setCurrentModal('none')} }
+                        onPressUpdateTask={ () => {console.log('Task Modal (Home): Update Task'); setCurrentModal('none')} }
+                        onCancel={onCancelTaskModal}
                     />
-                }
-            </View>
+                ]}
+            />
         </View>
     );
 };

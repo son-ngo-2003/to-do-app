@@ -7,6 +7,7 @@ import { dayjsSetup } from './src/helpers/dayjs';
 import AppNavigator from './src/navigation/AppNavigator';
 
 import fonts from './src/assets/fonts/'
+import {AlertProvider} from "./src/hooks/uiHooks/useAlert";
 
 export default function App() {
     dayjsSetup();

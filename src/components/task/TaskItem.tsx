@@ -86,7 +86,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
                     <LabelsList
                         withAddButton={false}
                         withDeleteButton={false}
-                        choseLabelsList={task.labels}
+                        chosenLabelsList={task.labels}
                     />
                 </View>
             }

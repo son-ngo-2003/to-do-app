@@ -6,7 +6,7 @@ import { Layouts } from "../../styles";
 type OverlayProps = {
     background: "transparent" | "lowOpacity" | "highOpacity",
     isBlur?: boolean,
-    onPress: () => void,
+    onPress?: () => void,
 }
 
 const Overlay: React.FC<OverlayProps> = ({ background, onPress, isBlur = false }) => {

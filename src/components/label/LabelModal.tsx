@@ -8,12 +8,17 @@ import Animated, { ZoomInEasyDown } from 'react-native-reanimated';
 //components
 import { Icon, Overlay, KeyboardOptimizeView } from '../atomic';
 import { ColorSelect } from './atomic/';
+import {useAlertProvider, useLabelsData} from "../../hooks";
+import AlertModal from "../atomic/AlertModal";
 
 type LabelModalProps = {
     mode: 'add' | 'edit',
     label?: Label,
-    setIsOpenModal: (isOpen: boolean) => void,
+
     onAddLabel?: (label: Label) => void,
+    onUpdateLabel?: (label: Label) => void,
+    onCancel?: (draftLabel: Partial<Label>) => void,
+
     visible: boolean,
 }
 
@@ -21,39 +26,76 @@ const sizeButton : number = 23;
 
 const LabelModal: React.FC<LabelModalProps> = ({ 
     mode, 
-    label, 
-    setIsOpenModal,
+    label,
+
     onAddLabel,
+    onUpdateLabel,
+    onCancel,
+
     visible=true,
 }) => {
+    const { loading, error, addLabel, updateLabel } = useLabelsData(false);
     const [ name, setName ] = React.useState<string>((mode === 'add' || !label) ? '' :  label.name) ;
     const [ indexColorSelected, setIndexColor ] = React.useState<number>(   
                                                         (mode === 'add' || !label)
                                                             ? -1
                                                             : Colors.listColor.findIndex( (color) => label.color === color ) 
                                                     ) ;
-    const { colors } = useTheme();
 
-    const onPressAdd = () => {
+    const { colors } = useTheme();
+    const {
+        alert, alertProps,
+        hidePopUp, modalVisible
+    } = useAlertProvider();
+
+    const onPressAdd = async () => {
         if (Keyboard.isVisible()) return;
-        console.log('Add');
-        setIsOpenModal(false);
-        //TODO: call LabelDAO to add new label and return label -> onAddLabel(label);
+        const newLabel = await addLabel({name, color: Colors.listColor[indexColorSelected]});
+        onAddLabel?.(newLabel);
     }
 
-    const onPressUpdate = () => {
+    const onPressUpdate = async () => {
         if (Keyboard.isVisible()) return;
-        console.log('Update');
-        setIsOpenModal(false);
-        //TODO: onPressUpdateLabel();
+        const newLabel = await updateLabel({name, color: Colors.listColor[indexColorSelected]});
+        onUpdateLabel?.(newLabel);
     }
 
     const onPressCancel = () => {
         if (Keyboard.isVisible()) return;
-        console.log('Cancel');
-        setIsOpenModal(false);
-        // TODO: onPressCancel()
+        onCancel?.({name, color: Colors.listColor[indexColorSelected]});
     }
+
+    React.useEffect(() => {
+        if (mode === 'edit' && !label) {
+            console.error('LabelModal: label is required when mode is edit');
+        }
+    }, []);
+
+    React.useEffect(() => {
+        if (loading) {
+            alert({
+                title: 'Loading...',
+                message: 'Please wait. We are processing your request.', //move to constant
+                type: 'info',
+            });
+        }
+        if (error) {
+            alert({
+                title: 'An error occurred',
+                message: error,
+                type: 'error',
+                //TODO: cause primaryButton is 'Try again', so adjust on onPressPrimary here
+            });
+        }
+        if (!loading) {
+            hidePopUp();
+            alert({
+                title: 'Success',
+                message: 'Your label has been successfully added.', //move to constant
+                type: 'confirm',
+            })
+        }
+    }, [loading, error]);
 
     return (
         <Modal transparent={true} animationType='fade' visible={visible}>
@@ -100,7 +142,15 @@ const LabelModal: React.FC<LabelModalProps> = ({
                                     currentSelectedIndex={indexColorSelected}
                                     onPress={() => setIndexColor(-1)}/>
                     </View>
-                </Animated.View>            
+                </Animated.View>
+
+                {
+                    alertProps &&
+                    <AlertModal
+                        {...alertProps}
+                        visible={modalVisible}
+                    />
+                }
 
             </KeyboardOptimizeView>
         </Modal>

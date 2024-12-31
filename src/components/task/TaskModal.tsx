@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
 import {
-    Pressable, View, TextInput, StyleSheet, Modal, Text,
+    Pressable, View, TextInput, StyleSheet, Text,
     Switch, TouchableOpacity
 } from 'react-native';
 import dayjs from "dayjs";
@@ -9,11 +9,17 @@ import Animated, {
     interpolateColor, LayoutAnimationConfig,
     useAnimatedStyle,
     useSharedValue,
-    ZoomInEasyDown
 } from 'react-native-reanimated';
+import Modal from 'react-native-modal';
 
 //components
-import {ColumnsWheelPicker, Icon, Overlay, TimeWheelPicker} from '../atomic';
+import {
+    ColumnsWheelPicker,
+    Icon,
+    KeyboardDismissableView,
+    Overlay,
+    TimeWheelPicker
+} from '../atomic';
 import { LabelsList } from '../label';
 import { NoteInTaskItem } from "../note";
 import formReducer, {FormAction, FormActionKind} from "../../reducers/formReducer";
@@ -22,58 +28,75 @@ import { LightCalendar } from "../lightCalendar";
 
 
 import { CALENDAR_BODY_HEIGHT } from "../lightCalendar/constants";
-import { Typography, Outlines, Layouts, Bases, Colors, Animations as Anim} from '../../styles';
+import { Typography, Outlines, Colors, Animations as Anim} from '../../styles';
 import {paddedNumber, toPrintAsPlural} from "../../utils/baseUtil";
 import {AnimatedPressable} from "../../helpers/animated";
 import {createInitialTask, fromStateToTask} from "../../helpers/formState";
+import {type AlertFunctionType, useAlertProvider} from "../../hooks";
+import AlertModal, {AlertModalProps} from "../atomic/AlertModal";
 
 type TaskModalProps = {
     mode: 'add' | 'edit', //TODO: add a noti text in case of create a new task but start time in the past
     task?: Task,
-    setIsOpenModal: (isOpen: boolean) => void,
+    visible?: boolean,
+    onPressNote?: (note: Note) => void,
 
     onPressAddTask?: (task: Partial<Task>) => void, //only Partial<Task> cause id, createdAt, updatedAt, completedAt will be added by service, not by user
     onPressUpdateTask?: (task: Partial<Task>) => void,
-    onCancel?: (draftTask: Partial<Task>) => void, //when press turn off modal or when press outside of modal, draft task is what user has changed but not yet press add or update
+    onCancel?: (draftTask: Partial<Task>, alert: AlertFunctionType) => Promise<any>,
+        //when press turn off modal or when press outside of modal, draft task is what user has changed but not yet press add or update
+        //alert is a function to show alert modal, it will be used to ask user if they want to save changes or not
     onChangeTask?: (task: Partial<Task>) => void, //this will call every time there is a change in at least one field of the task, avoid this, only use final value when user press update (onPressUpdate)
+
+    onModalHide?: () => void,
+    onModalWillHide?: () => void,
+    onModalShow?: () => void,
+    onModalWillShow?: () => void,
+}
+
+export type TaskModalRef = {
+    close: () => Promise<any>,
 }
 
 const sizeButton = 25;
 const wheelPickerHeight = 90;
 
-const TaskModal: React.FC<TaskModalProps> = ({
+const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
     mode, 
     task, 
-    setIsOpenModal,
+    visible = true,
+    onPressNote,
 
     onPressAddTask,
     onPressUpdateTask,
     onCancel,
     onChangeTask,
-}) => {
+
+    onModalHide,
+    onModalWillHide,
+    onModalShow,
+    onModalWillShow,
+}, ref) => {
     const [ taskFormState, dispatch ] = React.useReducer(formReducer<TaskFormState>, task, createInitialTask);
     const [ taskRepeat, setTaskRepeat ] = React.useState<RepeatAttributeType>( task?.repeat || {value: 1, unit: 'day'} );
-    const { colors } = useTheme();
     const [ showWheelPicker, setShowWheelPicker ] = React.useState<'none' | 'pick-start' | 'pick-end' | 'lightCalendar-start' | 'lightCalendar-end' | 'restart'>('none');
-    const rightSectionWidth = React.useRef(0);
-    const heightPickerStart = useSharedValue<number>(0);
-    const heightPickerEnd = useSharedValue<number>(0);
-    const heightPickerRepeat = useSharedValue<number>(0);
     const repeatOpacity = useSharedValue<number>( taskFormState.repeat ? 1 : 0.3 );
 
+    const {
+        alert,
+        modalVisible, alertProps,
+    } = useAlertProvider();
+
     const onPressAdd = () => {
-        setIsOpenModal(false);
         onPressAddTask?.(fromStateToTask(taskFormState));
     }
 
     const onPressUpdate = () => {
-        setIsOpenModal(false);
         onPressUpdateTask?.(fromStateToTask(taskFormState));
     }
 
-    const onPressCancel = () => {
-        setIsOpenModal(false);
-        onCancel?.(fromStateToTask(taskFormState));
+    const onPressCancel = async () => {
+        return onCancel?.(fromStateToTask(taskFormState), alert);
     }
 
     const dispatchTaskForm = React.useCallback( (action: FormAction) => {
@@ -130,9 +153,24 @@ const TaskModal: React.FC<TaskModalProps> = ({
         dispatchTaskForm({type: FormActionKind.DELETE_ELEMENT, payload: {field: 'note'}});
     }, [dispatchTaskForm])
 
-    // ================================= UI PARTS =================================
+    React.useImperativeHandle(ref, () => ({
+        close: onPressCancel,
+    }), [onPressCancel]);
 
+    React.useEffect(() => {
+        console.log('TaskModal: task', task);
+        if (task) {
+            dispatchTaskForm({type: FormActionKind.UPDATE_ALL, payload: createInitialTask(task)});
+        }
+    }, [task]);
+
+    // ================================= UI PARTS =================================
+    const { colors } = useTheme();
     const colorProgress = useSharedValue<number>(  taskFormState.isCompleted ? 1 : 0);
+    const rightSectionWidth = React.useRef(0);
+    const heightPickerStart = useSharedValue<number>(0);
+    const heightPickerEnd = useSharedValue<number>(0);
+    const heightPickerRepeat = useSharedValue<number>(0);
 
     const onPressCompletedCheckbox = () => {
         dispatchTaskForm({type: FormActionKind.TOGGLE_CHECKBOX, payload: {field: 'isCompleted'}});
@@ -182,15 +220,14 @@ const TaskModal: React.FC<TaskModalProps> = ({
     }, [showWheelPicker]);
 
     return (
-        <Modal transparent={true} animationType='fade'>
-            <View style={styles.container}>
-                <Overlay onPress={onPressCancel} background={'highOpacity'}/>
+        <KeyboardDismissableView>
+            <Modal isVisible={visible} hasBackdrop={true} avoidKeyboard={false}
+                   animationIn={'fadeInUpBig'} animationInTiming={500} animationOut={'fadeOutDownBig'} animationOutTiming={500}
+                   onModalHide={onModalHide} onModalWillHide={onModalWillHide} onModalShow={onModalShow} onModalWillShow={onModalWillShow}
 
-                {/* Modal parts */}
-                <Animated.View style={[styles.modalContainer, {backgroundColor: colors.card}]}
-                            entering={ZoomInEasyDown}
-                >
-                        
+                   customBackdrop={<Overlay onPress={onPressCancel} background={'highOpacity'}/>}
+            >
+                <View style={[styles.modalContainer, {backgroundColor: colors.card}]}>
                     {/* Add/Edit and Close Buttons */}
                     <View style={[styles.twoItemsRow]}>
                         <View style={{flexDirection: 'row', gap: 5, alignItems: 'center'}}>
@@ -232,7 +269,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                         withAddButton={true}
                         withDeleteButton={true}
                         setListLabels={(newLabels) => onChangeLabels(newLabels)}
-                        choseLabelsList={taskFormState.listLabels}
+                        chosenLabelsList={taskFormState.listLabels}
                     />
 
                     <View style={[styles.decorationLine, {backgroundColor: colors.border}]}/>
@@ -406,25 +443,28 @@ const TaskModal: React.FC<TaskModalProps> = ({
                     <LayoutAnimationConfig skipEntering skipExiting>
                         <NoteInTaskItem
                             note={taskFormState.note}
-                            // onPressItemWithNote={ (note) => console.log('Press note') }
+                            onPressItemWithNote={ onPressNote } //TODO
                             onPressDelete={onPressDeleteNote}
-                            // onPressAddNote={}
+                            // onPressAddNote={} //TODO: navigate to search screen
                         />
                     </LayoutAnimationConfig>
 
-                </Animated.View>            
-
-            </View>
-        </Modal>
+                    {
+                        alertProps &&
+                        <AlertModal
+                            {...alertProps}
+                            visible={ modalVisible}
+                        />
+                    }
+                </View>
+            </Modal>
+        </KeyboardDismissableView>
     )
-}
+});
+
 export default React.memo(TaskModal);
 
 const styles = StyleSheet.create({
-    container: {
-        ...Bases.centerItem.all,
-        ...Layouts.screen,
-    },
     modalContainer: {
         width: '90%',
         alignSelf: 'center',

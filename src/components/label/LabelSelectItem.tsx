@@ -9,19 +9,16 @@ import Animated,
 type LabelSelectItemProps = {
     label: Label,
     onPress: (label: Label, isSelected: boolean) => void,
-    isSelectedAtFirst: boolean,
+    isSelected: boolean,
 }
 
-const LabelSelectItem: React.FC<LabelSelectItemProps> = ({ label, onPress, isSelectedAtFirst }) => {
-    const [ isSelected, setIsSelected ] = React.useState<boolean>(isSelectedAtFirst);
+const LabelSelectItem: React.FC<LabelSelectItemProps> = ({ label, onPress, isSelected }) => {
     const { colors } = useTheme();
-    const colorProgress = useSharedValue<number>( isSelectedAtFirst ? 1 : 0);
+    const colorProgress = useSharedValue<number>( isSelected ? 1 : 0);
 
-    const onPressItem = () => {
-        onPress(label,!isSelected);
-        setIsSelected(!isSelected);
-        colorProgress.value = Anim.timing<number>(1-colorProgress.value).easeIn.base;
-    }
+    const onPressItem = React.useCallback(() => {
+        onPress(label, isSelected);
+    }, [onPress, label, isSelected]);
 
     const containerAnimatedStyles = useAnimatedStyle(() => {
         return {
@@ -40,6 +37,10 @@ const LabelSelectItem: React.FC<LabelSelectItemProps> = ({ label, onPress, isSel
             ),
         };
     });
+
+    React.useEffect(() => {
+        colorProgress.value = Anim.timing<number>(isSelected ? 1 : 0).easeIn.base;
+    }, [isSelected]);
 
     return (
         <Pressable  onPress={onPressItem}>

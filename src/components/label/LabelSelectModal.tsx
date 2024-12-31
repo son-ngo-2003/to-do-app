@@ -9,44 +9,50 @@ import LabelModal from "./LabelModal";
 import LabelSelectItem from "./LabelSelectItem";
 
 //services
-import { LabelService } from '../../services';
 import { useTheme } from '@react-navigation/native';
+import {useAlertProvider, useLabelsData} from "../../hooks";
+import AlertModal from "../atomic/AlertModal";
 
 
 type LabelSelectModalProps = {
     onPressOnLabel: (label: Label, isSelected: boolean) => void,
-    choseLabelsList: Label[],
+    chosenLabelsList: Label[],
     style: ViewStyle,
     onPressCancel: () => void,
 }
 
 const LabelSelectModal : React.FC<LabelSelectModalProps> = ({
     onPressOnLabel,
-    choseLabelsList,
+    chosenLabelsList,
     style,
     onPressCancel,
 }) => {
-    const [ allLabels, setAllLabels ] = React.useState<Label[]>([]);
+    const { data: allLabels, loading, error } = useLabelsData();
+    const [ chosenLabels, setChosenLabels ] = React.useState<Label[]>(chosenLabelsList);
     const [ isShowAddLabelModal, setShowAddLabelModal ] = React.useState<boolean>(false);
     const { colors } = useTheme();
+    const {
+        alert, alertProps,
+        hidePopUp, modalVisible
+    } = useAlertProvider();
 
-    const dataList : ListModalDataType[] =
-        allLabels.map((label : Label, index) => (
-            () => 
-            <View style={styles.itemStyle} key={index}>
-                <LabelSelectItem
-                    label={label}
-                    onPress={onPressOnLabel}
-                    isSelectedAtFirst={ choseLabelsList.findIndex((l) => l._id === label._id) !== -1 }
-                ></LabelSelectItem>
-            </View>
-    ));
+    const dataList : ListModalDataType[] = React.useMemo (() =>
+        allLabels.map((label: Label, index) => (
+            () =>
+                <View style={styles.itemStyle} key={index}>
+                    <LabelSelectItem
+                        label={label}
+                        onPress={onPressOnLabel}
+                        isSelected={chosenLabels.findIndex((l) => l._id === label._id) !== -1}
+                    ></LabelSelectItem>
+                </View>
+        ))
+    , [allLabels, onPressOnLabel, chosenLabels]);
 
-    const onAddLabel = (newLabel: Label) => {
-        const newAllLabels = [...allLabels, newLabel];
-        setAllLabels(newAllLabels);
-        //TODO: check if need to do anything else
-    }
+    const onAddLabel = React.useCallback( (newLabel: Label) => {
+        allLabels.unshift(newLabel);
+        setChosenLabels([...chosenLabels, newLabel]);
+    }, [allLabels, setChosenLabels, chosenLabels]);
 
     const Header : React.FC = () => {
         return (
@@ -59,13 +65,28 @@ const LabelSelectModal : React.FC<LabelSelectModalProps> = ({
                             <Icon name="window-close" size={26} color={colors.text} library='MaterialCommunityIcons'/>
                 </Pressable>
             </View>
-    )}
+    )};
 
     React.useEffect(() => {
-        LabelService.getAllLabels().then((message) => {
-            setAllLabels(message.getData());
-        });
-    },[]);
+        if (loading) {
+            alert({
+                title: 'Loading...',
+                message: 'Retrieving data', //move to constant
+                type: 'info',
+            });
+        }
+        if (error) {
+            alert({
+                title: 'An error occurred',
+                message: error,
+                type: 'error',
+                //TODO: cause primaryButton is 'Try again', so adjust on onPressPrimary here
+            });
+        }
+        if (!loading) {
+            hidePopUp();
+        }
+    }, [loading, error]);
 
     return (
         <View>
@@ -82,10 +103,17 @@ const LabelSelectModal : React.FC<LabelSelectModalProps> = ({
             />
             <LabelModal
                 mode='add'
-                setIsOpenModal={setShowAddLabelModal}
                 onAddLabel={onAddLabel}
                 visible={isShowAddLabelModal}
             />
+
+            {
+                alertProps &&
+                <AlertModal
+                    {...alertProps}
+                    visible={modalVisible}
+                />
+            }
         </View>
     )
 }

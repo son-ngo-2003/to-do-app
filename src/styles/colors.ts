@@ -67,6 +67,11 @@ export const warning: Record<Warning, string> = {
     s400: primary.yellow,
 }
 
+type Info = "s400"
+export const info: Record<Info, string> = {
+    s400: primary.blue,
+}
+
 type Background = "dark" | "light";
 export const background: Record<Background, string> = {
     dark: neutral.s900,

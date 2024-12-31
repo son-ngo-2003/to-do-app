@@ -1,5 +1,15 @@
 export { DrawerContent } from './drawer';
-export { Icon, Overlay } from './atomic';
+export { Icon,
+        Overlay,
+        KeyboardOptimizeView,
+        KeyboardDismissableView,
+        ListModal,
+        SyncedScrollView,
+        TimeWheelPicker,
+        ColumnsWheelPicker,
+        AlertModal ,
+        SequentialModals
+} from './atomic';
 export { LabelTag, 
         LabelCard, AddLabelCard, 
         LabelSelectItem, 

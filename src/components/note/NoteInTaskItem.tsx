@@ -33,10 +33,6 @@ const NoteInTaskItem: React.FC<NoteInTaskItemProps> = (props) => {
         note && onPressDelete?.(note);
     }, [ onPressDelete, note]);
 
-    const _onPressAddNote = React.useCallback(() => {
-        onPressAddNote?.();
-    },[ onPressAddNote]);
-
     return (
         note
         ?   <AnimatedPressable  onPress={() => onPressItemWithNote?.(note)}
@@ -51,7 +47,7 @@ const NoteInTaskItem: React.FC<NoteInTaskItemProps> = (props) => {
                     <Icon name='trash-can-outline' size={24} color={colors.text} library='MaterialCommunityIcons'/>
                 </Pressable>
             </AnimatedPressable>
-        :   <AnimatedPressable  onPress={_onPressAddNote}
+        :   <AnimatedPressable  onPress={onPressAddNote}
                                   style={[styles.container,
                                       {backgroundColor: dark ? Colors.neutral.s500 : Colors.neutral.s100}] }
                 entering={ZoomIn.springify().mass(0.65) }
