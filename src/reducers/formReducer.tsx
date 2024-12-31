@@ -10,16 +10,16 @@ enum FormActionKind {
     DELETE_ELEMENT,
 }
 
-type FormAction =
-    | { type: FormActionKind.UPDATE_ALL, payload: FormState }
-    | { type: FormActionKind.UPDATE_TEXT, payload: { field: keyof FormState; value: string } }
-    | { type: FormActionKind.TOGGLE_CHECKBOX; payload: { field: keyof FormState } }
-    | { type: FormActionKind.UPDATE_LIST; payload: { field: keyof FormState; value: any[]} }
-    | { type: FormActionKind.UPDATE_DATE; payload: { field: keyof FormState; value: Date } }
-    | { type: FormActionKind.UPDATE_ELEMENT; payload: { field: keyof FormState; value: Note | Label | Task | RepeatAttributeType } }
-    | { type: FormActionKind.DELETE_ELEMENT; payload: { field: keyof FormState } };
+type FormAction<T> =
+    | { type: FormActionKind.UPDATE_ALL, payload: T }
+    | { type: FormActionKind.UPDATE_TEXT, payload: { field: keyof T; value: string } }
+    | { type: FormActionKind.TOGGLE_CHECKBOX; payload: { field: keyof T } }
+    | { type: FormActionKind.UPDATE_LIST; payload: { field: keyof T; value: any[]} }
+    | { type: FormActionKind.UPDATE_DATE; payload: { field: keyof T; value: Date } }
+    | { type: FormActionKind.UPDATE_ELEMENT; payload: { field: keyof T; value: Note | Label | Task | RepeatAttributeType } }
+    | { type: FormActionKind.DELETE_ELEMENT; payload: { field: keyof T } };
 
-function formReducer<T extends FormState> (state : T, action: FormAction) : T {
+function formReducer<T extends FormState> (state : T, action: FormAction<T>) : T {
     const { type, payload } = action;
     switch(type) {
         case FormActionKind.UPDATE_ALL:

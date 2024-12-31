@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
 import {
     Pressable, View, TextInput, StyleSheet, Text,
-    Switch, TouchableOpacity
+    Switch, TouchableOpacity, Keyboard
 } from 'react-native';
 import dayjs from "dayjs";
 import Animated, {
@@ -88,27 +88,29 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
     } = useAlertProvider();
 
     const onPressAdd = () => {
+        if (Keyboard.isVisible()) return;
         onPressAddTask?.(fromStateToTask(taskFormState));
     }
 
     const onPressUpdate = () => {
+        if (Keyboard.isVisible()) return;
         onPressUpdateTask?.(fromStateToTask(taskFormState));
     }
 
     const onPressCancel = async () => {
+        if (Keyboard.isVisible()) return;
         return onCancel?.(fromStateToTask(taskFormState), alert);
     }
 
-    const dispatchTaskForm = React.useCallback( (action: FormAction) => {
+    const dispatchTaskForm = React.useCallback( (action: FormAction<TaskFormState>) => {
         dispatch(action);
         const newTaskFromState = formReducer<TaskFormState>(taskFormState, action);
         onChangeTask?.(fromStateToTask(newTaskFromState));
     },[dispatch, taskFormState, onChangeTask]);
 
-    const onChangeLabels = (newListLabels: Label[]) => {
+    const onChangeLabels = React.useCallback((newListLabels: Label[]) => {
         dispatchTaskForm({type: FormActionKind.UPDATE_LIST, payload: {field: 'listLabels', value: newListLabels}});
-        //TODO: base on auto save then auto update this to storage
-    }
+    }, [dispatchTaskForm]);
 
     const onChangeTime = React.useCallback((time: {hour: number, minute: number, second?: number}) => {
         const isFor = showWheelPicker === 'pick-start' || showWheelPicker === 'lightCalendar-start' ? 'start' : 'end';
@@ -158,7 +160,6 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
     }), [onPressCancel]);
 
     React.useEffect(() => {
-        console.log('TaskModal: task', task);
         if (task) {
             dispatchTaskForm({type: FormActionKind.UPDATE_ALL, payload: createInitialTask(task)});
         }

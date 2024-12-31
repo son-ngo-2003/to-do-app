@@ -10,6 +10,12 @@ interface TaskFormState {
     isCompleted: boolean;
 }
 
-type FormState = TaskFormState;
+interface NoteFormState {
+    title: string;
+    content: string;
+    listLabels: Label[];
+}
 
-export type { FormState, TaskFormState };
+type FormState = TaskFormState | NoteFormState;
+
+export type { FormState, TaskFormState, NoteFormState };

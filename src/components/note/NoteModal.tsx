@@ -1,17 +1,19 @@
 import * as React from 'react';
-import { useTheme } from '@react-navigation/native';
-import { Pressable, View, TextInput, StyleSheet, Text,
-         Keyboard } from 'react-native';
-import { Typography, Outlines, Layouts, Bases} from '../../styles';
+import {useTheme} from '@react-navigation/native';
+import {Keyboard, Pressable, StyleSheet, Text, TextInput, View} from 'react-native';
+import {Bases, Layouts, Outlines, Typography} from '../../styles';
 import Modal from 'react-native-modal';
 
 //components
-import { Icon, Overlay, KeyboardOptimizeView } from '../atomic';
-import { LabelsList } from '../label';
-import { TextEditor } from '../textEditor';
+import {Icon, KeyboardOptimizeView, Overlay} from '../atomic';
+import {LabelsList} from '../label';
+import {TextEditor} from '../textEditor';
 import {EditorBridge} from "@10play/tentap-editor";
-import {useAlertProvider, type AlertFunctionType} from "../../hooks";
-import AlertModal, {AlertModalProps} from "../atomic/AlertModal";
+import {type AlertFunctionType, useAlertProvider} from "../../hooks";
+import AlertModal from "../atomic/AlertModal";
+import formReducer, {FormAction, FormActionKind} from "../../reducers/formReducer";
+import {createInitialNote, fromStateToNote} from "../../helpers/formState";
+import {NoteFormState} from "../../types/formStateType";
 
 type NoteModalProps = {
     mode: 'add' | 'edit',
@@ -49,9 +51,7 @@ const NoteModal: React.FC<NoteModalProps> = ({
     onModalShow,
     onModalWillShow,
 }) => {
-    const [ title, setTitle ] = React.useState<string>((mode === 'add' || !note) ? '' :  note.title) ;
-    const [ content, setContent ] = React.useState<string>((mode === 'add' || !note) ? '' :  note.content) ;
-    const [ listLabels, setListLabels ] = React.useState<Label[]>((mode === 'add' || !note) ? [] :  note.labels) ;
+    const [ noteFormState, dispatch ] = React.useReducer(formReducer<NoteFormState>, note, createInitialNote);
     const { colors } = useTheme();
     const todayDate: string = (new Date()).toLocaleDateString();
 
@@ -62,65 +62,42 @@ const NoteModal: React.FC<NoteModalProps> = ({
 
     const onPressAdd = React.useCallback( () => {
         if (Keyboard.isVisible()) return;
-        onAddNote?.({
-            title: title,
-            content: content,
-            labels: listLabels,
-        })
-    }, [onAddNote, title, content, listLabels]);
+        onAddNote?.(fromStateToNote(noteFormState));
+    }, [onAddNote, noteFormState]);
 
     const onPressUpdate = React.useCallback(() => {
         if (Keyboard.isVisible()) return;
-        onUpdateNote?.({
-            title: title,
-            content: content,
-            labels: listLabels,
-        })
-    }, [onUpdateNote, title, content, listLabels]);
+        onUpdateNote?.(fromStateToNote(noteFormState));
+    }, [onUpdateNote, noteFormState]);
 
     const onPressCancel = React.useCallback(() => {
         if (Keyboard.isVisible()) return;
-        return onCancel?.({
-            title: title,
-            content: content,
-            labels: listLabels,
-        }, alert)
-    }, [onCancel, title, content, listLabels, alert]);
+        return onCancel?.(fromStateToNote(noteFormState), alert)
+    }, [onCancel, alert, noteFormState]);
+
+    const dispatchNoteForm = React.useCallback( (action: FormAction<NoteFormState>) => {
+        dispatch(action);
+        const newNoteFromState = formReducer<NoteFormState>(noteFormState, action);
+        onChangeNote?.(fromStateToNote(newNoteFromState));
+    },[dispatch, noteFormState, onChangeNote]);
 
     const onChangeTitle = React.useCallback((newTitle: string) => {
-        setTitle(newTitle);
-        onChangeNote?.({
-            title: title,
-            content: content,
-            labels: listLabels,
-        });
-    },[setTitle, onChangeNote, title, content, listLabels])
+        dispatchNoteForm({type: FormActionKind.UPDATE_TEXT, payload: {field: 'title', value: newTitle}});
+    },[dispatchNoteForm])
 
     const onChangeTextEditor = React.useCallback((editor: EditorBridge) => {
         editor.getHTML().then((html) => {
-            setContent(html);
-            onChangeNote?.({
-                title: title,
-                content: content,
-                labels: listLabels,
-            });
+            dispatchNoteForm({type: FormActionKind.UPDATE_TEXT, payload: {field: 'content', value: html}});
         });
-    }, [setContent, onChangeNote, title, content, listLabels]);
+    }, [dispatchNoteForm]);
 
     const onChangeLabels = React.useCallback((newListLabels: Label[]) => {
-        setListLabels(newListLabels);
-        onChangeNote?.({
-            title: title,
-            content: content,
-            labels: listLabels,
-        });
-    }, [setListLabels, onChangeNote, title, content, listLabels]);
+        dispatchNoteForm({type: FormActionKind.UPDATE_LIST, payload: {field: 'listLabels', value: newListLabels}});
+    }, [dispatchNoteForm]);
 
     React.useEffect(() => {
         if (note) {
-            setTitle(note.title);
-            setContent(note.content);
-            setListLabels(note.labels);
+            dispatchNoteForm({type: FormActionKind.UPDATE_ALL, payload: createInitialNote(note)});
         }
     }, [note]);
 
@@ -165,7 +142,7 @@ const NoteModal: React.FC<NoteModalProps> = ({
                         }
                     </Text>
                     <TextInput style={[styles.title, {color: colors.text}]} multiline={true}
-                                onChangeText={onChangeTitle} value={title}
+                                onChangeText={onChangeTitle} value={noteFormState.title}
                                 placeholder='Press here to add title to your note'/>
 
                     {/* Labels */}
@@ -173,7 +150,7 @@ const NoteModal: React.FC<NoteModalProps> = ({
                         withAddButton={true}
                         withDeleteButton={true}
                         setListLabels={(newLabels) => onChangeLabels(newLabels)}
-                        chosenLabelsList={listLabels}
+                        chosenLabelsList={noteFormState.listLabels}
                     />
 
                     <View style={[styles.decorationLine, {backgroundColor: colors.border}]}></View>
@@ -181,7 +158,7 @@ const NoteModal: React.FC<NoteModalProps> = ({
                     {/* Content */}
                     <View style={[styles.textEditorContainer]}>
                         <TextEditor
-                            initialContent={content}
+                            initialContent={noteFormState.content}
                             placeholder='Write something ...'
                             onChange={onChangeTextEditor} //TODO: check autosave and update this onChange
                         />

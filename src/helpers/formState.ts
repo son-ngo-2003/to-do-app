@@ -1,4 +1,4 @@
-import {TaskFormState} from "../types/formStateType";
+import {NoteFormState, TaskFormState} from "../types/formStateType";
 import {getNextEntireHour} from "../utils/dateUtil";
 
 const createInitialTask = (task: Task | undefined): TaskFormState => ({
@@ -25,7 +25,21 @@ const fromStateToTask = (taskFormState: TaskFormState): Partial<Task> => ({
     isCompleted: taskFormState.isCompleted,
 });
 
+const createInitialNote = (note: Note | undefined): NoteFormState => ({
+    title: note?.title || '',
+    content: note?.content || '',
+    listLabels: note?.labels || [],
+});
+
+const fromStateToNote = (noteFormState: NoteFormState): Partial<Note> => ({
+    title: noteFormState.title,
+    content: noteFormState.content,
+    labels: noteFormState.listLabels,
+});
+
 export {
     createInitialTask,
+    createInitialNote,
     fromStateToTask,
+    fromStateToNote,
 }
