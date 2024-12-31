@@ -1,0 +1,269 @@
+diff --git a/node_modules/react-native-modal/dist/modal.d.ts b/node_modules/react-native-modal/dist/modal.d.ts
+index b63bcfc..5e11047 100644
+--- a/node_modules/react-native-modal/dist/modal.d.ts
++++ b/node_modules/react-native-modal/dist/modal.d.ts
+@@ -14,42 +14,47 @@ declare type State = {
+     isSwipeable: boolean;
+     pan: OrNull<Animated.ValueXY>;
+ };
++/*
++* The patch file sets the typings of defaultProps correctly since they are all required here when they shouldn't be.
++* Reference issue: https://github.com/react-native-modal/react-native-modal/issues/653
++*
++ */
+ declare const defaultProps: {
+-    animationIn: "bounce" | "flash" | "jello" | "pulse" | "rotate" | "rubberBand" | "shake" | "swing" | "tada" | "wobble" | "bounceIn" | "bounceInDown" | "bounceInUp" | "bounceInLeft" | "bounceInRight" | "bounceOut" | "bounceOutDown" | "bounceOutUp" | "bounceOutLeft" | "bounceOutRight" | "fadeIn" | "fadeInDown" | "fadeInDownBig" | "fadeInUp" | "fadeInUpBig" | "fadeInLeft" | "fadeInLeftBig" | "fadeInRight" | "fadeInRightBig" | "fadeOut" | "fadeOutDown" | "fadeOutDownBig" | "fadeOutUp" | "fadeOutUpBig" | "fadeOutLeft" | "fadeOutLeftBig" | "fadeOutRight" | "fadeOutRightBig" | "flipInX" | "flipInY" | "flipOutX" | "flipOutY" | "lightSpeedIn" | "lightSpeedOut" | "slideInDown" | "slideInUp" | "slideInLeft" | "slideInRight" | "slideOutDown" | "slideOutUp" | "slideOutLeft" | "slideOutRight" | "zoomIn" | "zoomInDown" | "zoomInUp" | "zoomInLeft" | "zoomInRight" | "zoomOut" | "zoomOutDown" | "zoomOutUp" | "zoomOutLeft" | "zoomOutRight" | animatable.CustomAnimation<import("react-native").TextStyle & ViewStyle & import("react-native").ImageStyle>;
+-    animationInTiming: number;
+-    animationOut: "bounce" | "flash" | "jello" | "pulse" | "rotate" | "rubberBand" | "shake" | "swing" | "tada" | "wobble" | "bounceIn" | "bounceInDown" | "bounceInUp" | "bounceInLeft" | "bounceInRight" | "bounceOut" | "bounceOutDown" | "bounceOutUp" | "bounceOutLeft" | "bounceOutRight" | "fadeIn" | "fadeInDown" | "fadeInDownBig" | "fadeInUp" | "fadeInUpBig" | "fadeInLeft" | "fadeInLeftBig" | "fadeInRight" | "fadeInRightBig" | "fadeOut" | "fadeOutDown" | "fadeOutDownBig" | "fadeOutUp" | "fadeOutUpBig" | "fadeOutLeft" | "fadeOutLeftBig" | "fadeOutRight" | "fadeOutRightBig" | "flipInX" | "flipInY" | "flipOutX" | "flipOutY" | "lightSpeedIn" | "lightSpeedOut" | "slideInDown" | "slideInUp" | "slideInLeft" | "slideInRight" | "slideOutDown" | "slideOutUp" | "slideOutLeft" | "slideOutRight" | "zoomIn" | "zoomInDown" | "zoomInUp" | "zoomInLeft" | "zoomInRight" | "zoomOut" | "zoomOutDown" | "zoomOutUp" | "zoomOutLeft" | "zoomOutRight" | animatable.CustomAnimation<import("react-native").TextStyle & ViewStyle & import("react-native").ImageStyle>;
+-    animationOutTiming: number;
+-    avoidKeyboard: boolean;
+-    coverScreen: boolean;
+-    hasBackdrop: boolean;
+-    backdropColor: string;
+-    backdropOpacity: number;
+-    backdropTransitionInTiming: number;
+-    backdropTransitionOutTiming: number;
+-    customBackdrop: React.ReactNode;
+-    useNativeDriver: boolean;
+-    deviceHeight: number | null;
+-    deviceWidth: number | null;
+-    hideModalContentWhileAnimating: boolean;
+-    propagateSwipe: boolean | ((event: GestureResponderEvent, gestureState: PanResponderGestureState) => boolean);
++    animationIn?: "bounce" | "flash" | "jello" | "pulse" | "rotate" | "rubberBand" | "shake" | "swing" | "tada" | "wobble" | "bounceIn" | "bounceInDown" | "bounceInUp" | "bounceInLeft" | "bounceInRight" | "bounceOut" | "bounceOutDown" | "bounceOutUp" | "bounceOutLeft" | "bounceOutRight" | "fadeIn" | "fadeInDown" | "fadeInDownBig" | "fadeInUp" | "fadeInUpBig" | "fadeInLeft" | "fadeInLeftBig" | "fadeInRight" | "fadeInRightBig" | "fadeOut" | "fadeOutDown" | "fadeOutDownBig" | "fadeOutUp" | "fadeOutUpBig" | "fadeOutLeft" | "fadeOutLeftBig" | "fadeOutRight" | "fadeOutRightBig" | "flipInX" | "flipInY" | "flipOutX" | "flipOutY" | "lightSpeedIn" | "lightSpeedOut" | "slideInDown" | "slideInUp" | "slideInLeft" | "slideInRight" | "slideOutDown" | "slideOutUp" | "slideOutLeft" | "slideOutRight" | "zoomIn" | "zoomInDown" | "zoomInUp" | "zoomInLeft" | "zoomInRight" | "zoomOut" | "zoomOutDown" | "zoomOutUp" | "zoomOutLeft" | "zoomOutRight" | animatable.CustomAnimation<import("react-native").TextStyle & ViewStyle & import("react-native").ImageStyle>;
++    animationInTiming?: number;
++    animationOut?: "bounce" | "flash" | "jello" | "pulse" | "rotate" | "rubberBand" | "shake" | "swing" | "tada" | "wobble" | "bounceIn" | "bounceInDown" | "bounceInUp" | "bounceInLeft" | "bounceInRight" | "bounceOut" | "bounceOutDown" | "bounceOutUp" | "bounceOutLeft" | "bounceOutRight" | "fadeIn" | "fadeInDown" | "fadeInDownBig" | "fadeInUp" | "fadeInUpBig" | "fadeInLeft" | "fadeInLeftBig" | "fadeInRight" | "fadeInRightBig" | "fadeOut" | "fadeOutDown" | "fadeOutDownBig" | "fadeOutUp" | "fadeOutUpBig" | "fadeOutLeft" | "fadeOutLeftBig" | "fadeOutRight" | "fadeOutRightBig" | "flipInX" | "flipInY" | "flipOutX" | "flipOutY" | "lightSpeedIn" | "lightSpeedOut" | "slideInDown" | "slideInUp" | "slideInLeft" | "slideInRight" | "slideOutDown" | "slideOutUp" | "slideOutLeft" | "slideOutRight" | "zoomIn" | "zoomInDown" | "zoomInUp" | "zoomInLeft" | "zoomInRight" | "zoomOut" | "zoomOutDown" | "zoomOutUp" | "zoomOutLeft" | "zoomOutRight" | animatable.CustomAnimation<import("react-native").TextStyle & ViewStyle & import("react-native").ImageStyle>;
++    animationOutTiming?: number;
++    avoidKeyboard?: boolean;
++    coverScreen?: boolean;
++    hasBackdrop?: boolean;
++    backdropColor?: string;
++    backdropOpacity?: number;
++    backdropTransitionInTiming?: number;
++    backdropTransitionOutTiming?: number;
++    customBackdrop?: React.ReactNode;
++    useNativeDriver?: boolean;
++    deviceHeight?: number | null;
++    deviceWidth?: number | null;
++    hideModalContentWhileAnimating?: boolean;
++    propagateSwipe?: boolean | ((event: GestureResponderEvent, gestureState: PanResponderGestureState) => boolean);
+     isVisible: boolean;
+-    panResponderThreshold: number;
+-    swipeThreshold: number;
+-    onModalShow: () => void;
+-    onModalWillShow: () => void;
++    panResponderThreshold?: number;
++    swipeThreshold?: number;
++    onModalShow?: () => void;
++    onModalWillShow?: () => void;
+     onModalHide: () => void;
+-    onModalWillHide: () => void;
+-    onBackdropPress: () => void;
+-    onBackButtonPress: () => void;
+-    scrollTo: OrNull<(e: any) => void>;
+-    scrollOffset: number;
+-    scrollOffsetMax: number;
+-    scrollHorizontal: boolean;
+-    statusBarTranslucent: boolean;
+-    supportedOrientations: ("landscape" | "portrait" | "portrait-upside-down" | "landscape-left" | "landscape-right")[];
++    onModalWillHide?: () => void;
++    onBackdropPress?: () => void;
++    onBackButtonPress?: () => void;
++    scrollTo?: OrNull<(e: any) => void>;
++    scrollOffset?: number;
++    scrollOffsetMax?: number;
++    scrollHorizontal?: boolean;
++    statusBarTranslucent?: boolean;
++    supportedOrientations?: ("landscape" | "portrait" | "portrait-upside-down" | "landscape-left" | "landscape-right")[];
+ };
+ export declare type ModalProps = ViewProps & {
+-    children: React.ReactNode;
++    children?: React.ReactNode;
+     onSwipeStart?: (gestureState: PanResponderGestureState) => void;
+     onSwipeMove?: (percentageShown: number, gestureState: PanResponderGestureState) => void;
+     onSwipeComplete?: (params: OnSwipeCompleteParams, gestureState: PanResponderGestureState) => void;
+@@ -65,91 +70,91 @@ export declare type ModalProps = ViewProps & {
+ } & typeof defaultProps;
+ export declare class ReactNativeModal extends React.Component<ModalProps, State> {
+     static propTypes: {
+-        animationIn: PropTypes.Requireable<string | object>;
+-        animationInTiming: PropTypes.Requireable<number>;
+-        animationOut: PropTypes.Requireable<string | object>;
+-        animationOutTiming: PropTypes.Requireable<number>;
+-        avoidKeyboard: PropTypes.Requireable<boolean>;
+-        coverScreen: PropTypes.Requireable<boolean>;
+-        hasBackdrop: PropTypes.Requireable<boolean>;
+-        backdropColor: PropTypes.Requireable<string>;
+-        backdropOpacity: PropTypes.Requireable<number>;
+-        backdropTransitionInTiming: PropTypes.Requireable<number>;
+-        backdropTransitionOutTiming: PropTypes.Requireable<number>;
+-        customBackdrop: PropTypes.Requireable<PropTypes.ReactNodeLike>;
+-        children: PropTypes.Validator<string | number | boolean | {} | PropTypes.ReactElementLike | PropTypes.ReactNodeArray>;
+-        deviceHeight: PropTypes.Requireable<number>;
+-        deviceWidth: PropTypes.Requireable<number>;
++        animationIn?: PropTypes.Requireable<string | object>;
++        animationInTiming?: PropTypes.Requireable<number>;
++        animationOut?: PropTypes.Requireable<string | object>;
++        animationOutTiming?: PropTypes.Requireable<number>;
++        avoidKeyboard?: PropTypes.Requireable<boolean>;
++        coverScreen?: PropTypes.Requireable<boolean>;
++        hasBackdrop?: PropTypes.Requireable<boolean>;
++        backdropColor?: PropTypes.Requireable<string>;
++        backdropOpacity?: PropTypes.Requireable<number>;
++        backdropTransitionInTiming?: PropTypes.Requireable<number>;
++        backdropTransitionOutTiming?: PropTypes.Requireable<number>;
++        customBackdrop?: PropTypes.Requireable<PropTypes.ReactNodeLike>;
++        children?: PropTypes.Validator<string | number | boolean | {} | PropTypes.ReactElementLike | PropTypes.ReactNodeArray>;
++        deviceHeight?: PropTypes.Requireable<number>;
++        deviceWidth?: PropTypes.Requireable<number>;
+         isVisible: PropTypes.Validator<boolean>;
+-        hideModalContentWhileAnimating: PropTypes.Requireable<boolean>;
+-        propagateSwipe: PropTypes.Requireable<boolean | ((...args: any[]) => any)>;
+-        onModalShow: PropTypes.Requireable<(...args: any[]) => any>;
+-        onModalWillShow: PropTypes.Requireable<(...args: any[]) => any>;
++        hideModalContentWhileAnimating?: PropTypes.Requireable<boolean>;
++        propagateSwipe?: PropTypes.Requireable<boolean | ((...args: any[]) => any)>;
++        onModalShow?: PropTypes.Requireable<(...args: any[]) => any>;
++        onModalWillShow?: PropTypes.Requireable<(...args: any[]) => any>;
+         onModalHide: PropTypes.Requireable<(...args: any[]) => any>;
+-        onModalWillHide: PropTypes.Requireable<(...args: any[]) => any>;
+-        onBackButtonPress: PropTypes.Requireable<(...args: any[]) => any>;
+-        onBackdropPress: PropTypes.Requireable<(...args: any[]) => any>;
+-        panResponderThreshold: PropTypes.Requireable<number>;
+-        onSwipeStart: PropTypes.Requireable<(...args: any[]) => any>;
+-        onSwipeMove: PropTypes.Requireable<(...args: any[]) => any>;
+-        onSwipeComplete: PropTypes.Requireable<(...args: any[]) => any>;
+-        onSwipeCancel: PropTypes.Requireable<(...args: any[]) => any>;
+-        swipeThreshold: PropTypes.Requireable<number>;
+-        swipeDirection: PropTypes.Requireable<string | (string | null | undefined)[]>;
+-        useNativeDriver: PropTypes.Requireable<boolean>;
+-        useNativeDriverForBackdrop: PropTypes.Requireable<boolean>;
+-        style: PropTypes.Requireable<any>;
+-        scrollTo: PropTypes.Requireable<(...args: any[]) => any>;
+-        scrollOffset: PropTypes.Requireable<number>;
+-        scrollOffsetMax: PropTypes.Requireable<number>;
+-        scrollHorizontal: PropTypes.Requireable<boolean>;
+-        supportedOrientations: PropTypes.Requireable<(string | null | undefined)[]>;
++        onModalWillHide?: PropTypes.Requireable<(...args: any[]) => any>;
++        onBackButtonPress?: PropTypes.Requireable<(...args: any[]) => any>;
++        onBackdropPress?: PropTypes.Requireable<(...args: any[]) => any>;
++        panResponderThreshold?: PropTypes.Requireable<number>;
++        onSwipeStart?: PropTypes.Requireable<(...args: any[]) => any>;
++        onSwipeMove?: PropTypes.Requireable<(...args: any[]) => any>;
++        onSwipeComplete?: PropTypes.Requireable<(...args: any[]) => any>;
++        onSwipeCancel?: PropTypes.Requireable<(...args: any[]) => any>;
++        swipeThreshold?: PropTypes.Requireable<number>;
++        swipeDirection?: PropTypes.Requireable<string | (string | null | undefined)[]>;
++        useNativeDriver?: PropTypes.Requireable<boolean>;
++        useNativeDriverForBackdrop?: PropTypes.Requireable<boolean>;
++        style?: PropTypes.Requireable<any>;
++        scrollTo?: PropTypes.Requireable<(...args: any[]) => any>;
++        scrollOffset?: PropTypes.Requireable<number>;
++        scrollOffsetMax?: PropTypes.Requireable<number>;
++        scrollHorizontal?: PropTypes.Requireable<boolean>;
++        supportedOrientations?: PropTypes.Requireable<(string | null | undefined)[]>;
+     };
+     static defaultProps: {
+-        animationIn: "bounce" | "flash" | "jello" | "pulse" | "rotate" | "rubberBand" | "shake" | "swing" | "tada" | "wobble" | "bounceIn" | "bounceInDown" | "bounceInUp" | "bounceInLeft" | "bounceInRight" | "bounceOut" | "bounceOutDown" | "bounceOutUp" | "bounceOutLeft" | "bounceOutRight" | "fadeIn" | "fadeInDown" | "fadeInDownBig" | "fadeInUp" | "fadeInUpBig" | "fadeInLeft" | "fadeInLeftBig" | "fadeInRight" | "fadeInRightBig" | "fadeOut" | "fadeOutDown" | "fadeOutDownBig" | "fadeOutUp" | "fadeOutUpBig" | "fadeOutLeft" | "fadeOutLeftBig" | "fadeOutRight" | "fadeOutRightBig" | "flipInX" | "flipInY" | "flipOutX" | "flipOutY" | "lightSpeedIn" | "lightSpeedOut" | "slideInDown" | "slideInUp" | "slideInLeft" | "slideInRight" | "slideOutDown" | "slideOutUp" | "slideOutLeft" | "slideOutRight" | "zoomIn" | "zoomInDown" | "zoomInUp" | "zoomInLeft" | "zoomInRight" | "zoomOut" | "zoomOutDown" | "zoomOutUp" | "zoomOutLeft" | "zoomOutRight" | animatable.CustomAnimation<import("react-native").TextStyle & ViewStyle & import("react-native").ImageStyle>;
+-        animationInTiming: number;
+-        animationOut: "bounce" | "flash" | "jello" | "pulse" | "rotate" | "rubberBand" | "shake" | "swing" | "tada" | "wobble" | "bounceIn" | "bounceInDown" | "bounceInUp" | "bounceInLeft" | "bounceInRight" | "bounceOut" | "bounceOutDown" | "bounceOutUp" | "bounceOutLeft" | "bounceOutRight" | "fadeIn" | "fadeInDown" | "fadeInDownBig" | "fadeInUp" | "fadeInUpBig" | "fadeInLeft" | "fadeInLeftBig" | "fadeInRight" | "fadeInRightBig" | "fadeOut" | "fadeOutDown" | "fadeOutDownBig" | "fadeOutUp" | "fadeOutUpBig" | "fadeOutLeft" | "fadeOutLeftBig" | "fadeOutRight" | "fadeOutRightBig" | "flipInX" | "flipInY" | "flipOutX" | "flipOutY" | "lightSpeedIn" | "lightSpeedOut" | "slideInDown" | "slideInUp" | "slideInLeft" | "slideInRight" | "slideOutDown" | "slideOutUp" | "slideOutLeft" | "slideOutRight" | "zoomIn" | "zoomInDown" | "zoomInUp" | "zoomInLeft" | "zoomInRight" | "zoomOut" | "zoomOutDown" | "zoomOutUp" | "zoomOutLeft" | "zoomOutRight" | animatable.CustomAnimation<import("react-native").TextStyle & ViewStyle & import("react-native").ImageStyle>;
+-        animationOutTiming: number;
+-        avoidKeyboard: boolean;
+-        coverScreen: boolean;
+-        hasBackdrop: boolean;
+-        backdropColor: string;
+-        backdropOpacity: number;
+-        backdropTransitionInTiming: number;
+-        backdropTransitionOutTiming: number;
+-        customBackdrop: React.ReactNode;
+-        useNativeDriver: boolean;
+-        deviceHeight: number | null;
+-        deviceWidth: number | null;
+-        hideModalContentWhileAnimating: boolean;
+-        propagateSwipe: boolean | ((event: GestureResponderEvent, gestureState: PanResponderGestureState) => boolean);
+-        isVisible: boolean;
+-        panResponderThreshold: number;
+-        swipeThreshold: number;
+-        onModalShow: () => void;
+-        onModalWillShow: () => void;
+-        onModalHide: () => void;
+-        onModalWillHide: () => void;
+-        onBackdropPress: () => void;
+-        onBackButtonPress: () => void;
+-        scrollTo: OrNull<(e: any) => void>;
+-        scrollOffset: number;
+-        scrollOffsetMax: number;
+-        scrollHorizontal: boolean;
+-        statusBarTranslucent: boolean;
+-        supportedOrientations: ("landscape" | "portrait" | "portrait-upside-down" | "landscape-left" | "landscape-right")[];
++        animationIn?: "bounce" | "flash" | "jello" | "pulse" | "rotate" | "rubberBand" | "shake" | "swing" | "tada" | "wobble" | "bounceIn" | "bounceInDown" | "bounceInUp" | "bounceInLeft" | "bounceInRight" | "bounceOut" | "bounceOutDown" | "bounceOutUp" | "bounceOutLeft" | "bounceOutRight" | "fadeIn" | "fadeInDown" | "fadeInDownBig" | "fadeInUp" | "fadeInUpBig" | "fadeInLeft" | "fadeInLeftBig" | "fadeInRight" | "fadeInRightBig" | "fadeOut" | "fadeOutDown" | "fadeOutDownBig" | "fadeOutUp" | "fadeOutUpBig" | "fadeOutLeft" | "fadeOutLeftBig" | "fadeOutRight" | "fadeOutRightBig" | "flipInX" | "flipInY" | "flipOutX" | "flipOutY" | "lightSpeedIn" | "lightSpeedOut" | "slideInDown" | "slideInUp" | "slideInLeft" | "slideInRight" | "slideOutDown" | "slideOutUp" | "slideOutLeft" | "slideOutRight" | "zoomIn" | "zoomInDown" | "zoomInUp" | "zoomInLeft" | "zoomInRight" | "zoomOut" | "zoomOutDown" | "zoomOutUp" | "zoomOutLeft" | "zoomOutRight" | animatable.CustomAnimation<import("react-native").TextStyle & ViewStyle & import("react-native").ImageStyle>;
++        animationInTiming?: number;
++        animationOut?: "bounce" | "flash" | "jello" | "pulse" | "rotate" | "rubberBand" | "shake" | "swing" | "tada" | "wobble" | "bounceIn" | "bounceInDown" | "bounceInUp" | "bounceInLeft" | "bounceInRight" | "bounceOut" | "bounceOutDown" | "bounceOutUp" | "bounceOutLeft" | "bounceOutRight" | "fadeIn" | "fadeInDown" | "fadeInDownBig" | "fadeInUp" | "fadeInUpBig" | "fadeInLeft" | "fadeInLeftBig" | "fadeInRight" | "fadeInRightBig" | "fadeOut" | "fadeOutDown" | "fadeOutDownBig" | "fadeOutUp" | "fadeOutUpBig" | "fadeOutLeft" | "fadeOutLeftBig" | "fadeOutRight" | "fadeOutRightBig" | "flipInX" | "flipInY" | "flipOutX" | "flipOutY" | "lightSpeedIn" | "lightSpeedOut" | "slideInDown" | "slideInUp" | "slideInLeft" | "slideInRight" | "slideOutDown" | "slideOutUp" | "slideOutLeft" | "slideOutRight" | "zoomIn" | "zoomInDown" | "zoomInUp" | "zoomInLeft" | "zoomInRight" | "zoomOut" | "zoomOutDown" | "zoomOutUp" | "zoomOutLeft" | "zoomOutRight" | animatable.CustomAnimation<import("react-native").TextStyle & ViewStyle & import("react-native").ImageStyle>;
++        animationOutTiming?: number;
++        avoidKeyboard?: boolean;
++        coverScreen?: boolean;
++        hasBackdrop?: boolean;
++        backdropColor?: string;
++        backdropOpacity?: number;
++        backdropTransitionInTiming?: number;
++        backdropTransitionOutTiming?: number;
++        customBackdrop?: React.ReactNode;
++        useNativeDriver?: boolean;
++        deviceHeight?: number | null;
++        deviceWidth?: number | null;
++        hideModalContentWhileAnimating?: boolean;
++        propagateSwipe?: boolean | ((event: GestureResponderEvent, gestureState: PanResponderGestureState) => boolean);
++        isVisible?: boolean;
++        panResponderThreshold?: number;
++        swipeThreshold?: number;
++        onModalShow?: () => void;
++        onModalWillShow?: () => void;
++        onModalHide?: () => void;
++        onModalWillHide?: () => void;
++        onBackdropPress?: () => void;
++        onBackButtonPress?: () => void;
++        scrollTo?: OrNull<(e: any) => void>;
++        scrollOffset?: number;
++        scrollOffsetMax?: number;
++        scrollHorizontal?: boolean;
++        statusBarTranslucent?: boolean;
++        supportedOrientations?: ("landscape" | "portrait" | "portrait-upside-down" | "landscape-left" | "landscape-right")[];
+     };
+-    state: State;
+-    isTransitioning: boolean;
+-    inSwipeClosingState: boolean;
+-    currentSwipingDirection: OrNull<Direction>;
+-    animationIn: string;
+-    animationOut: string;
+-    backdropRef: any;
+-    contentRef: any;
+-    panResponder: OrNull<PanResponderInstance>;
+-    didUpdateDimensionsEmitter: OrNull<EmitterSubscription>;
+-    interactionHandle: OrNull<number>;
++    state?: State;
++    isTransitioning?: boolean;
++    inSwipeClosingState?: boolean;
++    currentSwipingDirection?: OrNull<Direction>;
++    animationIn?: string;
++    animationOut?: string;
++    backdropRef?: any;
++    contentRef?: any;
++    panResponder?: OrNull<PanResponderInstance>;
++    didUpdateDimensionsEmitter?: OrNull<EmitterSubscription>;
++    interactionHandle?: OrNull<number>;
+     constructor(props: ModalProps);
+     static getDerivedStateFromProps(nextProps: Readonly<ModalProps>, state: State): {
+         isVisible: boolean;
+diff --git a/node_modules/react-native-modal/dist/modal.js b/node_modules/react-native-modal/dist/modal.js
+index 80f4e75..2e15e0e 100644
+--- a/node_modules/react-native-modal/dist/modal.js
++++ b/node_modules/react-native-modal/dist/modal.js
+@@ -383,7 +383,9 @@ export class ReactNativeModal extends React.Component {
+                             this.setState({
+                                 isVisible: false,
+                             }, () => {
++                                const animationHandle = InteractionManager.createInteractionHandle();
+                                 this.props.onModalHide();
++                                setTimeout(() => InteractionManager.clearInteractionHandle(animationHandle), 200);
+                             });
+                         });
+                     }

@@ -31,9 +31,10 @@ import { CALENDAR_BODY_HEIGHT } from "../lightCalendar/constants";
 import { Typography, Outlines, Colors, Animations as Anim} from '../../styles';
 import {paddedNumber, toPrintAsPlural} from "../../utils/baseUtil";
 import {AnimatedPressable} from "../../helpers/animated";
-import {createInitialTask, fromStateToTask} from "../../helpers/formState";
+import {createInitialTask, fromStateToTask, isStateOfTask} from "../../helpers/formState";
 import {type AlertFunctionType, useAlertProvider} from "../../hooks";
 import AlertModal, {AlertModalProps} from "../atomic/AlertModal";
+import {debounce} from "lodash";
 
 type TaskModalProps = {
     mode: 'add' | 'edit', //TODO: add a noti text in case of create a new task but start time in the past
@@ -79,6 +80,7 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
 }, ref) => {
     const [ taskFormState, dispatch ] = React.useReducer(formReducer<TaskFormState>, task, createInitialTask);
     const [ taskRepeat, setTaskRepeat ] = React.useState<RepeatAttributeType>( task?.repeat || {value: 1, unit: 'day'} );
+    const [ isEdited, setIsEdited ] = React.useState<boolean>(false);
     const [ showWheelPicker, setShowWheelPicker ] = React.useState<'none' | 'pick-start' | 'pick-end' | 'lightCalendar-start' | 'lightCalendar-end' | 'restart'>('none');
     const repeatOpacity = useSharedValue<number>( taskFormState.repeat ? 1 : 0.3 );
 
@@ -109,7 +111,7 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
     },[dispatch, taskFormState, onChangeTask]);
 
     const onChangeLabels = React.useCallback((newListLabels: Label[]) => {
-        dispatchTaskForm({type: FormActionKind.UPDATE_LIST, payload: {field: 'listLabels', value: newListLabels}});
+        dispatchTaskForm({type: FormActionKind.UPDATE_LIST, payload: {field: 'labels', value: newListLabels}});
     }, [dispatchTaskForm]);
 
     const onChangeTime = React.useCallback((time: {hour: number, minute: number, second?: number}) => {
@@ -164,6 +166,15 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
             dispatchTaskForm({type: FormActionKind.UPDATE_ALL, payload: createInitialTask(task)});
         }
     }, [task]);
+
+    const checkIsEdited = debounce(() => {
+        const isEdited = !task || isStateOfTask(taskFormState, task);
+        setIsEdited(isEdited);
+    }, 500);
+
+    React.useEffect(() => {
+        checkIsEdited();
+    }, [taskFormState]);
 
     // ================================= UI PARTS =================================
     const { colors } = useTheme();
@@ -243,11 +254,11 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
                             {
                                 mode === 'add'
                                 ?
-                                    (<Pressable  onPress={onPressAdd} hitSlop={6}>
+                                    (<Pressable  onPress={onPressAdd} hitSlop={6} disabled={!isEdited} style={{opacity: isEdited ? 1 : 0.5}}>
                                         <Icon name="plus" size={sizeButton} color={colors.text} library='Octicons'/>
                                     </Pressable>)
                                 :
-                                    (<Pressable  onPress={onPressUpdate} hitSlop={6}>
+                                    (<Pressable  onPress={onPressUpdate} hitSlop={6} disabled={!isEdited} style={{opacity: isEdited ? 1 : 0.5}}>
                                         <Icon name="cloud-upload" size={sizeButton} color={colors.text} library='SimpleLineIcons'/>
                                     </Pressable>)
                             }
@@ -270,7 +281,7 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
                         withAddButton={true}
                         withDeleteButton={true}
                         setListLabels={(newLabels) => onChangeLabels(newLabels)}
-                        chosenLabelsList={taskFormState.listLabels}
+                        chosenLabelsList={taskFormState.labels}
                     />
 
                     <View style={[styles.decorationLine, {backgroundColor: colors.border}]}/>

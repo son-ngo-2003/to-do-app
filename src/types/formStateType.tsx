@@ -1,7 +1,7 @@
 interface TaskFormState {
     title: string;
     note?: Note;
-    listLabels: Label[];
+    labels: Label[];
     startDate: Date;
     endDate: Date;
     isAllDay: boolean;
@@ -13,7 +13,7 @@ interface TaskFormState {
 interface NoteFormState {
     title: string;
     content: string;
-    listLabels: Label[];
+    labels: Label[];
 }
 
 type FormState = TaskFormState | NoteFormState;

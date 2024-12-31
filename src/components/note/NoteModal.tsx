@@ -3,6 +3,7 @@ import {useTheme} from '@react-navigation/native';
 import {Keyboard, Pressable, StyleSheet, Text, TextInput, View} from 'react-native';
 import {Bases, Layouts, Outlines, Typography} from '../../styles';
 import Modal from 'react-native-modal';
+import { debounce } from "lodash";
 
 //components
 import {Icon, KeyboardOptimizeView, Overlay} from '../atomic';
@@ -12,7 +13,7 @@ import {EditorBridge} from "@10play/tentap-editor";
 import {type AlertFunctionType, useAlertProvider} from "../../hooks";
 import AlertModal from "../atomic/AlertModal";
 import formReducer, {FormAction, FormActionKind} from "../../reducers/formReducer";
-import {createInitialNote, fromStateToNote} from "../../helpers/formState";
+import {createInitialNote, fromStateToNote, isStateOfNote} from "../../helpers/formState";
 import {NoteFormState} from "../../types/formStateType";
 
 type NoteModalProps = {
@@ -52,6 +53,7 @@ const NoteModal: React.FC<NoteModalProps> = ({
     onModalWillShow,
 }) => {
     const [ noteFormState, dispatch ] = React.useReducer(formReducer<NoteFormState>, note, createInitialNote);
+    const [ isEdited, setIsEdited ] = React.useState<boolean>(false);
     const { colors } = useTheme();
     const todayDate: string = (new Date()).toLocaleDateString();
 
@@ -92,7 +94,7 @@ const NoteModal: React.FC<NoteModalProps> = ({
     }, [dispatchNoteForm]);
 
     const onChangeLabels = React.useCallback((newListLabels: Label[]) => {
-        dispatchNoteForm({type: FormActionKind.UPDATE_LIST, payload: {field: 'listLabels', value: newListLabels}});
+        dispatchNoteForm({type: FormActionKind.UPDATE_LIST, payload: {field: 'labels', value: newListLabels}});
     }, [dispatchNoteForm]);
 
     React.useEffect(() => {
@@ -100,6 +102,18 @@ const NoteModal: React.FC<NoteModalProps> = ({
             dispatchNoteForm({type: FormActionKind.UPDATE_ALL, payload: createInitialNote(note)});
         }
     }, [note]);
+
+    const checkIsEdited = debounce(() => {
+        if (!note) return setIsEdited(true);
+
+        const isEdited =!note || !isStateOfNote(noteFormState, note);
+        console.log('isEdited', isEdited);
+        setIsEdited(isEdited);
+    }, 500);
+
+    React.useEffect(() => {
+        checkIsEdited();
+    }, [noteFormState]);
 
     return (
         <KeyboardOptimizeView>
@@ -117,11 +131,11 @@ const NoteModal: React.FC<NoteModalProps> = ({
                         {
                             mode === 'add'
                             ? 
-                                (<Pressable  onPress={onPressAdd} hitSlop={6}>
+                                (<Pressable  onPress={onPressAdd} hitSlop={6} disabled={!isEdited} style={{opacity: isEdited ? 1 : 0.5}}>
                                     <Icon name="plus" size={sizeButton} color={colors.text} library='Octicons'/>
                                 </Pressable>)
                             :
-                                (<Pressable  onPress={onPressUpdate} hitSlop={6}>
+                                (<Pressable  onPress={onPressUpdate} hitSlop={6} disabled={!isEdited} style={{opacity: isEdited ? 1 : 0.5}}>
                                     <Icon name="cloud-upload" size={sizeButton} color={colors.text} library='SimpleLineIcons'/>
                                 </Pressable>)
                         }
@@ -150,7 +164,7 @@ const NoteModal: React.FC<NoteModalProps> = ({
                         withAddButton={true}
                         withDeleteButton={true}
                         setListLabels={(newLabels) => onChangeLabels(newLabels)}
-                        chosenLabelsList={noteFormState.listLabels}
+                        chosenLabelsList={noteFormState.labels}
                     />
 
                     <View style={[styles.decorationLine, {backgroundColor: colors.border}]}></View>
