@@ -2,9 +2,10 @@ import React from 'react';
 import { StyleSheet, ViewStyle, View, Pressable } from 'react-native';
 
 //components & styles
-import { ListModal, Icon,
-        type ListModalDataType
-    } from '../atomic';
+import {
+    ListModal, Icon,
+    type ListModalDataType, SequentialModals
+} from '../atomic';
 import LabelModal from "./LabelModal";
 import LabelSelectItem from "./LabelSelectItem";
 
@@ -15,6 +16,7 @@ import AlertModal from "../atomic/AlertModal";
 
 
 type LabelSelectModalProps = {
+    visible?: boolean,
     onPressOnLabel: (label: Label, isSelected: boolean) => void,
     chosenLabelsList: Label[],
     style: ViewStyle,
@@ -22,19 +24,19 @@ type LabelSelectModalProps = {
 }
 
 const LabelSelectModal : React.FC<LabelSelectModalProps> = ({
+    visible = true,
     onPressOnLabel,
     chosenLabelsList,
     style,
     onPressCancel,
 }) => {
     const { data: allLabels, loading, error } = useLabelsData();
-    const [ chosenLabels, setChosenLabels ] = React.useState<Label[]>(chosenLabelsList);
-    const [ isShowAddLabelModal, setShowAddLabelModal ] = React.useState<boolean>(false);
+    const [ modalShow, setModalShow ] = React.useState<'listLabel' | 'addLabel' | 'none'>(visible ? 'listLabel' : 'none');
     const { colors } = useTheme();
-    const {
-        alert, alertProps,
-        hidePopUp, modalVisible
-    } = useAlertProvider();
+    // const {
+    //     alert, alertProps,
+    //     hidePopUp, modalVisible
+    // } = useAlertProvider();
 
     const dataList : ListModalDataType[] = React.useMemo (() =>
         allLabels.map((label: Label, index) => (
@@ -43,21 +45,22 @@ const LabelSelectModal : React.FC<LabelSelectModalProps> = ({
                     <LabelSelectItem
                         label={label}
                         onPress={onPressOnLabel}
-                        isSelected={chosenLabels.findIndex((l) => l._id === label._id) !== -1}
+                        isSelected={chosenLabelsList.findIndex((l) => l._id === label._id) !== -1}
                     ></LabelSelectItem>
                 </View>
         ))
-    , [allLabels, onPressOnLabel, chosenLabels]);
+    , [allLabels, onPressOnLabel, chosenLabelsList]);
 
     const onAddLabel = React.useCallback( (newLabel: Label) => {
         allLabels.unshift(newLabel);
-        setChosenLabels([...chosenLabels, newLabel]);
-    }, [allLabels, setChosenLabels, chosenLabels]);
+        onPressOnLabel(newLabel, false);
+        setModalShow('listLabel');
+    }, [allLabels, onPressOnLabel, setModalShow]);
 
     const Header : React.FC = () => {
         return (
             <View style={styles.header}>
-                <Pressable  onPress={() => setShowAddLabelModal(true)} hitSlop={6}>
+                <Pressable  onPress={() => setModalShow('addLabel')} hitSlop={6}>
                     <Icon name="plus-circle" size={20} color={colors.text} library='FontAwesome5'/>
                 </Pressable>
 
@@ -68,52 +71,55 @@ const LabelSelectModal : React.FC<LabelSelectModalProps> = ({
     )};
 
     React.useEffect(() => {
-        if (loading) {
-            alert({
-                title: 'Loading...',
-                message: 'Retrieving data', //move to constant
-                type: 'info',
-            });
-        }
-        if (error) {
-            alert({
-                title: 'An error occurred',
-                message: error,
-                type: 'error',
-                //TODO: cause primaryButton is 'Try again', so adjust on onPressPrimary here
-            });
-        }
-        if (!loading) {
-            hidePopUp();
-        }
+        //TODO: add alert for loading and error
     }, [loading, error]);
+
+    const getIndexOfModal = (modal: 'listLabel' | 'addLabel' | 'none') => {
+        switch (modal) {
+            case 'listLabel':
+                return 0;
+            case 'addLabel':
+                return 1;
+            case 'none':
+                return -1;
+            default:
+                return 0;
+        }
+    }
+
+    React.useEffect(() => {
+        if (!visible) {
+            setModalShow('none');
+        } else {
+            setModalShow('listLabel');
+        }
+    }, [visible]);
 
     return (
         <View>
-            <ListModal
-                dataList={dataList}
-                containerStyle={{
-                    ...style,
-                    ...StyleSheet.flatten(styles.container),
-                }}
-                typeOverlay='lowOpacity'
-                onPressOverlay={onPressCancel}
-                headerComponent={() => <Header/>}
-                visible={!isShowAddLabelModal}
-            />
-            <LabelModal
-                mode='add'
-                onAddLabel={onAddLabel}
-                visible={isShowAddLabelModal}
+            <SequentialModals
+                currentIndex={getIndexOfModal(modalShow)}
+                modals={[
+                    <ListModal
+                        dataList={dataList}
+                        containerStyle={{
+                            ...style,
+                            ...StyleSheet.flatten(styles.container),
+                        }}
+                        typeOverlay='highOpacity'
+                        onPressOverlay={onPressCancel}
+                        headerComponent={() => <Header/>}
+                    />,
+
+                    <LabelModal
+                        mode='add'
+                        onAddLabel={onAddLabel}
+                        onCancel={() => {setModalShow('listLabel'); return Promise.resolve();}}
+                    />
+                ]}
             />
 
-            {
-                alertProps &&
-                <AlertModal
-                    {...alertProps}
-                    visible={modalVisible}
-                />
-            }
+
         </View>
     )
 }

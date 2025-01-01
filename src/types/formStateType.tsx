@@ -18,6 +18,12 @@ interface NoteFormState {
     labels: Label[];
 }
 
-type FormState = TaskFormState | NoteFormState;
+interface LabelFormState {
+    _id?: string;
+    name: string;
+    color: string;
+}
 
-export type { FormState, TaskFormState, NoteFormState };
+type FormState = TaskFormState | NoteFormState | LabelFormState;
+
+export type { FormState, TaskFormState, NoteFormState, LabelFormState };

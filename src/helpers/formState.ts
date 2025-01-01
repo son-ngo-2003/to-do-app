@@ -1,4 +1,4 @@
-import {NoteFormState, TaskFormState} from "../types/formStateType";
+import {LabelFormState, NoteFormState, TaskFormState} from "../types/formStateType";
 import {getNextEntireHour} from "../utils/dateUtil";
 
 const createInitialTask = (task: Task | undefined): TaskFormState => ({
@@ -61,11 +61,32 @@ const isStateOfNote = (noteState: NoteFormState, note: Note): boolean => {
         noteState._id === note._id;
 }
 
+const createInitialLabel = (label: Label | undefined): LabelFormState => ({
+    _id: label?._id || '',
+    name: label?.name || '',
+    color: label?.color || '',
+});
+
+const fromStateToLabel = (labelFormState: LabelFormState): Partial<Label> => ({
+    _id: labelFormState._id,
+    name: labelFormState.name,
+    color: labelFormState.color,
+});
+
+const isStateOfLabel = (labelState: LabelFormState, label: Label): boolean => {
+    return labelState.name === label.name &&
+        labelState.color === label.color &&
+        labelState._id === label._id;
+}
+
 export {
     createInitialTask,
     createInitialNote,
+    createInitialLabel,
     fromStateToTask,
     fromStateToNote,
+    fromStateToLabel,
     isStateOfTask,
     isStateOfNote,
+    isStateOfLabel,
 }

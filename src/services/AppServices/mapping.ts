@@ -26,7 +26,7 @@ const Mapping : MappingType = (() => {
 
         const _labelIds = entity.labelIds;
         const labels: Label[] = await Promise.all(_labelIds.map( async labelId => {
-            const labelMsg: Message<Label> = await LabelDAO.getLabelByID(labelId);
+            const labelMsg: Message<Label> = await LabelDAO.getLabelById(labelId);
             if (!labelMsg.getIsSuccess()) {
                 throw new Error(labelMsg.getError());
             }
@@ -40,7 +40,7 @@ const Mapping : MappingType = (() => {
     async function noteFromEntity(entity: NoteEntity): Promise<Note> {
         const _labelIds = entity.labelIds;
         const labels: Label[] = await Promise.all(_labelIds.map( async labelId => {
-            const labelMsg: Message<Label> = await LabelDAO.getLabelByID(labelId);
+            const labelMsg: Message<Label> = await LabelDAO.getLabelById(labelId);
             if (!labelMsg.getIsSuccess()) {
                 throw new Error(labelMsg.getError());
             }

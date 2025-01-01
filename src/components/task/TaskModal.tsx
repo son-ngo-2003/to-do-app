@@ -13,7 +13,7 @@ import Animated, {
 
 //components
 import {
-    BaseModal,
+    BaseModal, ButtonMode,
     ColumnsWheelPicker,
     Icon,
     KeyboardDismissableView, ModalButton,
@@ -63,8 +63,6 @@ type TaskModalProps = {
 export type TaskModalRef = {
     close: () => Promise<any>,
 }
-
-type ButtonMode = 'add' | 'edit' | 'loading' | 'added' | 'edited';
 
 const sizeButton = 25;
 const wheelPickerHeight = 90;
@@ -146,13 +144,11 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
                 title: 'Error',
                 message: 'An error occurred while updating task!',
             });
-
             setButtonMode('edit');
         }
     }, [taskFormState, setButtonMode, updateTask, alert, setOriginalTask, dispatchTaskForm, onUpdateTask]);
 
     const onPressCancel = React.useCallback(async () => {
-        console.log(isEdited);
         return onCancel?.(fromStateToTask(taskFormState), isEdited, alert);
     }, [onCancel, alert, taskFormState, isEdited]);
 
@@ -325,7 +321,7 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
                     <LabelsList
                         withAddButton={true}
                         withDeleteButton={true}
-                        setListLabels={(newLabels) => onChangeLabels(newLabels)}
+                        onChangeList={onChangeLabels}
                         chosenLabelsList={taskFormState.labels}
                     />
 

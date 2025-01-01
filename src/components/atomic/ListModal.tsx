@@ -4,6 +4,7 @@ import { useTheme } from '@react-navigation/native';
 import { Bases, Layouts, Outlines } from '../../styles';
 
 import Overlay from './Overlay';
+import BaseModal from "./BaseModal";
 
 export type ListModalDataType = {
     label: string,
@@ -24,6 +25,11 @@ type ListModalProps = {
     containerStyle?: ViewStyle,
     listContainerStyle?: ViewStyle,
     itemStyle?: ViewStyle,
+
+    onModalHide?: () => void,
+    onModalWillHide?: () => void,
+    onModalShow?: () => void,
+    onModalWillShow?: () => void,
 }
 
 const ListModal : React.FC<ListModalProps> = ({
@@ -38,17 +44,26 @@ const ListModal : React.FC<ListModalProps> = ({
     listContainerStyle,
     itemStyle,
     typeOverlay = "transparent",
+
+    onModalHide,
+    onModalWillHide,
+    onModalShow,
+    onModalWillShow,
 }) => {
     const { colors } = useTheme();
 
     return (
-        <Modal style={[styles.modal]} transparent={true} animationType='fade'
-                visible={visible}
+        <BaseModal isVisible={visible} hasBackdrop={true} avoidKeyboard={true}
+                   animationIn={'fadeInRight'} animationInTiming={500} animationOut={'fadeOutRight'} animationOutTiming={300}
+                   onModalHide={onModalHide} onModalWillHide={onModalWillHide} onModalShow={onModalShow} onModalWillShow={onModalWillShow}
+
+                   customBackdrop={<Overlay onPress={onPressOverlay} background={typeOverlay}/>}
         >
-            <Overlay onPress={onPressOverlay} background={typeOverlay}/>
-            <View style = {[styles.listContainer, 
+
+            <View style = {[styles.listContainer,
                             {backgroundColor: colors.card, borderColor: colors.border}, 
-                            containerStyle]}>
+                            containerStyle
+            ]}>
                 {headerComponent && headerComponent()}
                 <ScrollView style={[listContainerStyle]}>
                     {dataList.map((data : ListModalDataType, index: number) => {
@@ -74,7 +89,7 @@ const ListModal : React.FC<ListModalProps> = ({
                     })}
                 </ScrollView>
             </View>
-        </Modal>
+        </BaseModal>
     );
 }
 
@@ -92,6 +107,7 @@ const styles = StyleSheet.create({
         paddingVertical: 5,
         overflow: 'hidden',
         position: 'absolute',
+        transform: [{translateX: 0}, {translateY: 0}],
     },
     itemItem: {
         flexDirection: 'row',

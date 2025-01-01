@@ -9,44 +9,45 @@ import LabelTag from './LabelTag';
 import { useTheme } from '@react-navigation/native';
 import { Layouts, Typography } from '../../styles';
 
-
 type LabelsListProps = {
     withAddButton: boolean,
     withDeleteButton: boolean,
-    setListLabels?: (newChoseLabels: Label[]) => void,
+    onChangeList: (newChoseLabels: Label[]) => void,
     chosenLabelsList: Label[],
 }
 
 const LabelsList : React.FC<LabelsListProps> = ({
     withAddButton,
     withDeleteButton,
-    setListLabels,
+    onChangeList,
     chosenLabelsList,
 }) => {
     const plusButtonRef = React.useRef<View>(null);
-    const [ plusButtonPos, setPlusButtonPos ] = React.useState<{x: number, y: number}>({x: 0, y: 0});
+    const [plusButtonPos, setPlusButtonPos] = React.useState<{ x: number; y: number }>({ x: 0, y: 0 });
     const { colors } = useTheme();
-    const [ isShowModal, setIsShowModal ] = React.useState<boolean>(false);
+    const [isShowModal, setIsShowModal] = React.useState<boolean>(false);
 
-    const onPressDeleteLabel = (label: Label) => {
-        const newListLabels = chosenLabelsList.filter((l) => l._id !=  label._id);
-        setListLabels?.(newListLabels);
-    }
+    const onPressDeleteLabel = React.useCallback((label: Label) => {
+        const newListLabels = chosenLabelsList.filter((l) => l._id != label._id);
+        onChangeList(newListLabels);
+    }, [chosenLabelsList, onChangeList]);
 
-    const onPressAddLabelTag = (label: Label) => {
+    const onPressAddLabelTag = React.useCallback((label: Label) => {
         const newListLabels = [...chosenLabelsList, label];
-        setListLabels?.(newListLabels);
-    }
+        onChangeList(newListLabels);
+    }, [chosenLabelsList, onChangeList]);
 
-    const getLayoutPlusButton = (_event: LayoutChangeEvent) => {
-        //const {width, height} = event.nativeEvent.layout;
-        setTimeout(() => { //wait until finish transition of modal
+    const onPressLabelInModal = React.useCallback((label: Label, isSelected: boolean) => {
+        isSelected ? onPressDeleteLabel(label) : onPressAddLabelTag(label);
+    }, [onPressAddLabelTag, onPressDeleteLabel]);
+
+    const getLayoutPlusButton = React.useCallback((_event: LayoutChangeEvent) => {
+        setTimeout(() => {
             plusButtonRef.current?.measureInWindow((pagex, pagey) => {
-                setPlusButtonPos({x: pagex, y: pagey});
+                setPlusButtonPos({ x: pagex, y: pagey });
             });
-
         }, 300);
-    }
+    }, [plusButtonRef.current, setPlusButtonPos]);
 
     return (
         <View style={[styles.labelsPart]}>
@@ -60,7 +61,7 @@ const LabelsList : React.FC<LabelsListProps> = ({
                         {chosenLabelsList.map((label: Label, index) => (
                             <LabelTag key={index} text={label.name} color={label.color}
                                         onPressDeleteButton={
-                                            withDeleteButton 
+                                            withDeleteButton
                                             ? () => {onPressDeleteLabel(label)}
                                             : undefined
                                         }/>
@@ -75,15 +76,15 @@ const LabelsList : React.FC<LabelsListProps> = ({
                                 withAddButton
                                 ? "Add label to your note"
                                 : ""
-                            }   
-                            
+                            }
+
                         </Text>
                     </Pressable>
             }
             {
                 withAddButton &&
-                <Pressable onPress={()=>{setIsShowModal(true)}}
-                            ref={plusButtonRef} 
+                <Pressable onPress={()=>{setIsShowModal(true); console.log('add button ', isShowModal)}}
+                            ref={plusButtonRef}
                             onLayout={getLayoutPlusButton}
                             style = {{ paddingLeft: 6}}
                             hitSlop={20}
@@ -92,24 +93,18 @@ const LabelsList : React.FC<LabelsListProps> = ({
                 </Pressable>
             }
 
-            {
-                isShowModal &&
-                <LabelSelectModal
-                    chosenLabelsList={chosenLabelsList}
-                    style = {{top: plusButtonPos.y - 10, right: Layouts.screen.width - plusButtonPos.x - 20, maxHeight: 300}}
-                    onPressCancel = {() => {setIsShowModal(false)}}
-                    onPressOnLabel = {(label: Label, isSelected: boolean) => {
-                        isSelected 
-                            ? onPressAddLabelTag(label) 
-                            : onPressDeleteLabel(label);
-                    }}
-                />
-            }
+            <LabelSelectModal
+                visible={isShowModal}
+                chosenLabelsList={chosenLabelsList}
+                style = {{top: plusButtonPos.y - 85, right: Layouts.screen.width - plusButtonPos.x - 50, maxHeight: 300}}
+                onPressCancel = {() => {setIsShowModal(false); console.log('close button ', isShowModal)}}
+                onPressOnLabel = {onPressLabelInModal}
+            />
         </View>
     )
 }
 
-export default LabelsList;
+export default React.memo(LabelsList);
 
 const styles = StyleSheet.create({
     labelsContainer: {

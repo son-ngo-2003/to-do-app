@@ -25,6 +25,22 @@ const useLabelsData = (
         }
     };
 
+    const getLabelById = async (id: string) => {
+        try {
+            setLoading(true);
+            const msg = await LabelService.getLabelById(id);
+            if (!msg.getIsSuccess()) throw new Error(msg.getError());
+            return msg.getData();
+        } catch (e) {
+            let errorMessage = "Error getting label by id";
+            if (e instanceof Error) errorMessage = e.message;
+            setError(errorMessage);
+            throw e; // Re-throw the error to propagate it if needed
+        } finally {
+            setLoading(false);
+        }
+    }
+
     const addLabel = async (label: Partial<Label>) => {
         try {
             setLoading(true);
@@ -80,7 +96,7 @@ const useLabelsData = (
         if (toFetchAllData) fetchLabels();
     }, []);
 
-    return { data, loading, error, addLabel, updateLabel, deleteLabel };
+    return { data, loading, error, addLabel, updateLabel, deleteLabel, getLabelById };
 };
 
 export default useLabelsData;

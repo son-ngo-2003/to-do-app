@@ -25,7 +25,7 @@ interface TaskDAOType {
 }
 
 function validateTask(task: Partial<Task>) {
-    //TODO: consider use 'yup' for validation
+    //TODO: consider use 'yup' for validation, and also use validation for updateTask
     if (!task.title) {
         throw new Error('Task title is required');
     }
@@ -48,6 +48,14 @@ function validateTask(task: Partial<Task>) {
     }
     if (task.isAllDay === undefined) {
         throw new Error('Task isAllDay is required');
+    }
+
+    //check if task has same label in labels
+    if (task.labels && task.labels.length > 1) {
+        const labelIds = task.labels.map(label => label._id);
+        if (labelIds.length !== new Set(labelIds).size) {
+            throw new Error('Task has same label in labels');
+        }
     }
 }
 

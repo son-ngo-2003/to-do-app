@@ -6,7 +6,7 @@ import { Colors } from "../../styles";
 interface LabelDAOType {
     addLabel:           (label: Partial<LabelEntity>) => Promise<Message<LabelEntity>>,
     getAllLabels:       () => Promise<Message<LabelEntity[]>>,
-    getLabelByID:       (_id: string) => Promise<Message<LabelEntity>>,
+    getLabelById:       (_id: string) => Promise<Message<LabelEntity>>,
     getLabelsByName:    (name: string) => Promise<Message<LabelEntity[]>>,
     //TODO: get deleted labels
     updateLabelById:    (_id: string, newData: Partial<LabelEntity>) => Promise<Message<LabelEntity>>,
@@ -52,7 +52,7 @@ const LabelDAO : LabelDAOType = (() => {
         }
     }
 
-    async function getLabelByID(id: string) : Promise<Message<LabelEntity>> {
+    async function getLabelById(id: string) : Promise<Message<LabelEntity>> {
         try {
             return await StorageService.getDataByTypeAndId<LabelEntity>('label', id);
         } catch (error) {
@@ -93,7 +93,7 @@ const LabelDAO : LabelDAOType = (() => {
     return {
         addLabel,
         getAllLabels,
-        getLabelByID,
+        getLabelById,
         getLabelsByName,
         updateLabelById,
         deleteLabelById,

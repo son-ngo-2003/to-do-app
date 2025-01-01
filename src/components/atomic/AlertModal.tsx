@@ -1,13 +1,12 @@
 import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
-import {Pressable, View, StyleSheet, Modal, Text, ActivityIndicator} from 'react-native';
+import {Pressable, View, StyleSheet, Text, ActivityIndicator} from 'react-native';
 import {Typography, Outlines, Layouts, Bases, Colors} from '../../styles';
-import Animated, { ZoomInEasyDown} from 'react-native-reanimated';
+import BaseModal from "./BaseModal";
 
 //components
 import { Icon, Overlay } from '../atomic';
 import { AlertType } from "../../hooks";
-import {useEffect} from "react";
 
 const PRIMARY_BUTTON_TEXT = { //TODO: move to constant
     confirm: 'Confirm',
@@ -59,6 +58,11 @@ export type AlertModalProps = {
 
     useCancel?: boolean, // If true, pressing X or outside of modal will close modal and call onPressCancel
     onPressCancel?: () => void, //In case useCancel: Call onPressCancel when user close by pressing X or outside of modal, if not provided, onSecondaryPress will be called instead
+
+    onModalHide?: () => void,
+    onModalWillHide?: () => void,
+    onModalShow?: () => void,
+    onModalWillShow?: () => void,
 }
 
 const sizeButton : number = 25;
@@ -76,6 +80,11 @@ const AlertModal: React.FC<AlertModalProps> = ({
 
     useCancel = true ,
     onPressCancel,
+
+    onModalHide,
+    onModalWillHide,
+    onModalShow,
+    onModalWillShow,
 }) => {
     const { colors } = useTheme();
 
@@ -95,14 +104,16 @@ const AlertModal: React.FC<AlertModalProps> = ({
     , [buttonInfo.secondaryText, buttonInfo.primaryText]);
 
     return (
-        <Modal transparent={true} animationType='fade' visible={visible}>
+        <BaseModal isVisible={visible} hasBackdrop={true} avoidKeyboard={true}
+                   animationIn={'fadeInUpBig'} animationInTiming={500} animationOut={'fadeOutDownBig'} animationOutTiming={500}
+                   onModalHide={onModalHide} onModalWillHide={onModalWillHide} onModalShow={onModalShow} onModalWillShow={onModalWillShow}
+
+                   customBackdrop={<Overlay onPress={useCancel ? (onPressCancel ?? secondaryButton?.onPress ) : undefined} background={'highOpacity'}/>}
+        >
             <View style={[styles.container]}>
-                <Overlay onPress={useCancel ? (onPressCancel ?? secondaryButton?.onPress ) : undefined} background={'highOpacity'}/>
 
                 {/* Modal parts */}
-                <Animated.View style={[styles.modalContainer, {backgroundColor: colors.card}]}
-                               entering={ZoomInEasyDown}
-                >
+                <View style={[styles.modalContainer, {backgroundColor: colors.card}]}>
 
                     {/* Close Buttons */}
                     {
@@ -154,9 +165,9 @@ const AlertModal: React.FC<AlertModalProps> = ({
 
                     }
 
-                </Animated.View>
+                </View>
             </View>
-        </Modal>
+        </BaseModal>
     )
 }
 export default AlertModal;

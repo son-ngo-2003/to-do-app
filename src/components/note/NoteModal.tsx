@@ -205,7 +205,7 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
                     <LabelsList
                         withAddButton={true}
                         withDeleteButton={true}
-                        setListLabels={onChangeLabels}
+                        onChangeList={onChangeLabels}
                         chosenLabelsList={noteFormState.labels}
                     />
 
