@@ -104,9 +104,12 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
 
     const [ tasksByLabel, setTaskByLabel ] = React.useState<Record<Label['_id'], Task[]>>({});
     const [ allLabels, setAllLabels ] = React.useState<Label[]>([]);
-    const [ noteOnModal, setNoteOnModal ] = React.useState<Note>();
-    const [ taskOnModal, setTaskOnModal ] = React.useState<Task>();
+
+    const [ modalNoteId, setModalNoteId ] = React.useState<Note['_id']>();
+    const [ modalTaskId, setModalTaskId ] = React.useState<Task['_id']>();
     const [ currentModal, setCurrentModal ] = React.useState<'note' | 'task' | 'none'>('none');
+    const [ currentMode, setCurrentMode ] = React.useState<'add' | 'edit'>('edit');
+
     const taskModalRef = React.useRef<TaskModalRef>(null);
 
     const onCancelTaskModal = React.useCallback((draftTask: Partial<Task>,  isEdited: boolean,  alert: AlertFunctionType) => {
@@ -158,10 +161,10 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
     const onPressNoteInTask = React.useCallback((note: Note) => {
         taskModalRef.current?.close().then(( alertButtonResult ) => {
             if (alertButtonResult === undefined) return;
-            setNoteOnModal(note);
+            setModalNoteId(note._id);
             setCurrentModal('note');
         })
-    }, [setNoteOnModal, taskModalRef.current, setCurrentModal]);
+    }, [taskModalRef.current, setCurrentModal, setModalNoteId]);
 
     React.useEffect( () => {
         // TODO: get notes
@@ -188,10 +191,6 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
         }, 500);
     }, [])
 
-    React.useEffect(() => {
-        console.log('Current Modal: ', currentModal);
-    }, [currentModal]);
-
     return (
         <View style={[ Layouts.mainContainer ]}>
             {/* Openning Titre */}
@@ -213,7 +212,7 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                     <View style={[styles.noteCardsContainer]}>
                         {newNote.map((note: Note, index: number) => (
                             <NoteCard key={index} note={note} orientation={'landscape'} showLabels
-                                onPress={(note) => {setNoteOnModal(note); setCurrentModal('note');}}
+                                onPress={(note) => {setModalNoteId(note._id); setCurrentModal('note');}}
                             />
                         ))}
                     </View>
@@ -238,7 +237,7 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                                 <Text style={[ Typography.header.x40, { textTransform: 'uppercase', color: label.color } ]}>{label.name}</Text>
                                 <TaskTree
                                     tasks={ tasksByLabel[label._id] ?? [] }
-                                    onPressTask = { (task) => {setTaskOnModal(task); setCurrentModal('task');} }
+                                    onPressTask = { (task) => {setModalTaskId(task._id); setCurrentModal('task');} }
 
                                     showShowMoreButton={true}
                                     onPressShowMore={ () => console.log('Task Tree (Home): Show More Tasks') }
@@ -258,16 +257,16 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                 currentIndex={ currentModal === 'note' ? 0 : currentModal === 'task' ? 1 : undefined }
                 modals={[
                     <NoteModal
-                        mode={ 'edit' }
-                        note={ noteOnModal }
+                        mode={ currentMode }
+                        noteId={ modalNoteId }
                         onCancel={ onCancelNoteModal }
                     />,
 
                     <TaskModal
                         ref={taskModalRef}
 
-                        mode={'edit'}
-                        task={ taskOnModal }
+                        mode={ currentMode }
+                        taskId={ modalTaskId }
                         onPressNote={ onPressNoteInTask }
                         onCancel={onCancelTaskModal}
                     />

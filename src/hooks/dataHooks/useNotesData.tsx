@@ -12,7 +12,6 @@ const useNotesData = (
     const fetchNotes = async () => {
         try {
             setLoading(true);
-
             const msg = await NoteService.getAllNotes();
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
             setData(msg.getData());
@@ -20,6 +19,22 @@ const useNotesData = (
             let errorMessage = "Error fetching notes";
             if (e instanceof Error) errorMessage = e.message;
             setError(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getNoteById = async (id: string) => {
+        try {
+            setLoading(true);
+            const msg = await NoteService.getNoteById(id);
+            if (!msg.getIsSuccess()) throw new Error(msg.getError());
+            return msg.getData();
+        } catch (e) {
+            let errorMessage = "Error fetching note by id";
+            if (e instanceof Error) errorMessage = e.message;
+            setError(errorMessage);
+            throw e;
         } finally {
             setLoading(false);
         }
@@ -80,7 +95,7 @@ const useNotesData = (
         if (toFetchAllData) fetchNotes();
     }, []);
 
-    return { data, loading, error, addNote, updateNote, deleteNote };
+    return { data, loading, error, addNote, updateNote, deleteNote, getNoteById };
 };
 
 export default useNotesData;

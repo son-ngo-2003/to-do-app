@@ -18,7 +18,7 @@ import useNotesData from "../../hooks/dataHooks/useNotesData";
 
 type NoteModalProps = {
     mode: 'add' | 'edit',
-    note?: Note,
+    noteId?: Note['_id'],
     visible?: boolean,
 
     onAddNote?: (note: Partial<Note>) => void, //only Partial<Note> cause id, createdAt, updatedAt, completedAt will be added by service, not by user
@@ -43,7 +43,7 @@ const sizeButton : number = 25;
 
 const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
     mode,
-    note,
+    noteId,
     visible = true,
 
     onAddNote,
@@ -56,9 +56,9 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
     onModalShow,
     onModalWillShow,
 }, ref) => {
-    const { addNote, updateNote } = useNotesData(false);
-    const [ originalNote, setOriginalNote ] = React.useState<Note | undefined>(note);
-    const [ noteFormState, dispatch ] = React.useReducer(formReducer<NoteFormState>, note, createInitialNote);
+    const { getNoteById, addNote, updateNote } = useNotesData(false);
+    const [ originalNote, setOriginalNote ] = React.useState<Note | undefined>(undefined);
+    const [ noteFormState, dispatch ] = React.useReducer(formReducer<NoteFormState>, undefined, createInitialNote);
     const [ isEdited, setIsEdited ] = React.useState<boolean>(false);
     const [ buttonMode, setButtonMode ] = React.useState<ButtonMode>(mode);
     const { colors } = useTheme();
@@ -93,7 +93,6 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
                 title: 'Error',
                 message: 'An error occurred while adding note!',
             });
-
             setButtonMode('add');
         }
 
@@ -117,7 +116,6 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
                 title: 'Error',
                 message: 'An error occurred while updating note!',
             });
-
             setButtonMode('edit');
         }
     }, [noteFormState, setButtonMode, updateNote, alert, setOriginalNote, dispatchNoteForm, onUpdateNote]);
@@ -145,11 +143,13 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
     }), [onPressCancel]);
 
     React.useEffect(() => {
-        setOriginalNote(note);
-        if (note) {
-            dispatchNoteForm({type: FormActionKind.UPDATE_ALL, payload: createInitialNote(note)});
+        if (noteId) {
+            getNoteById(noteId).then((note) => {
+                dispatchNoteForm({type: FormActionKind.UPDATE_ALL, payload: createInitialNote(note)});
+                setOriginalNote(note);
+            });
         }
-    }, [note]);
+    }, [noteId]);
 
     const checkIsEdited = debounce(() => {
         const isEdited =!originalNote || !isStateOfNote(noteFormState, originalNote);
@@ -166,12 +166,12 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
 
     return (
         <BaseModal isVisible={visible} hasBackdrop={true} avoidKeyboard={false}
-                   animationIn={'fadeInUpBig'} animationInTiming={500} animationOut={'fadeOutDownBig'} animationOutTiming={500}
+                   animationIn={'fadeInUpBig'} animationInTiming={500} animationOut={'fadeOutDownBig'} animationOutTiming={300}
                    onModalHide={onModalHide} onModalWillHide={onModalWillHide} onModalShow={onModalShow} onModalWillShow={onModalWillShow}
 
                    customBackdrop={<Overlay onPress={onPressCancel} background={'highOpacity'}/>}
-            >
-                <KeyboardDismissableView>
+        >
+            <KeyboardDismissableView>
                 {/* Modal parts */}
                 <View style={[styles.modalContainer, {backgroundColor: colors.card}]}>
 
@@ -192,9 +192,9 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
                         {
                             mode === 'add'
                             ? 'Today: ' + todayDate
-                            : note?.updatedAt
-                                ? 'Last modified: ' + note.updatedAt.toLocaleDateString()
-                                : 'Created at: ' + note?.createdAt.toLocaleDateString()
+                            : originalNote?.updatedAt
+                                ? 'Last modified: ' + originalNote.updatedAt.toLocaleDateString()
+                                : 'Created at: ' + originalNote?.createdAt.toLocaleDateString()
                         }
                     </Text>
                     <TextInput style={[styles.title, {color: colors.text}]} multiline={true}

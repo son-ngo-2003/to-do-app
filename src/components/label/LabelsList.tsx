@@ -12,7 +12,7 @@ import { Layouts, Typography } from '../../styles';
 type LabelsListProps = {
     withAddButton: boolean,
     withDeleteButton: boolean,
-    onChangeList: (newChoseLabels: Label[]) => void,
+    onChangeList?: (newChoseLabels: Label[]) => void,
     chosenLabelsList: Label[],
 }
 
@@ -29,12 +29,12 @@ const LabelsList : React.FC<LabelsListProps> = ({
 
     const onPressDeleteLabel = React.useCallback((label: Label) => {
         const newListLabels = chosenLabelsList.filter((l) => l._id != label._id);
-        onChangeList(newListLabels);
+        onChangeList?.(newListLabels);
     }, [chosenLabelsList, onChangeList]);
 
     const onPressAddLabelTag = React.useCallback((label: Label) => {
         const newListLabels = [...chosenLabelsList, label];
-        onChangeList(newListLabels);
+        onChangeList?.(newListLabels);
     }, [chosenLabelsList, onChangeList]);
 
     const onPressLabelInModal = React.useCallback((label: Label, isSelected: boolean) => {

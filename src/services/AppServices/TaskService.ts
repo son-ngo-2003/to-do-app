@@ -9,6 +9,7 @@ interface TaskServiceType {
     deleteTask:        (task: Partial<Task>) => Promise<Message<Task>>,
 
     getAllTasks:        () => Promise<Message<Task[]>>,
+    getTaskById:        (_id: Task['_id']) => Promise<Message<Task>>,
     getTasksByLabel:   (labelId: Label['_id'], isCompleted?: boolean, limit?: number) => Promise<Message<Task[]>>,
     getTasksByCriteria: (searchWord?: string, labelIds?: Label['_id'][], noteIds?: Note['_id'][], date?: Date, isCompleted?: boolean) => Promise<Message<Task[]>>,
 }
@@ -25,6 +26,19 @@ const TaskService : TaskServiceType = (() => {
             }))
 
             return Message.success(tasks);
+
+        } catch (error) {
+            return Message.failure(error);
+        }
+    }
+
+    async function getTaskById(_id: Task['_id']): Promise<Message<Task>> {
+        try {
+            const msg: Message<TaskEntity> = await TaskDAO.getTaskByID(_id);
+            if (!msg.getIsSuccess()) {
+                throw new Error(msg.getError());
+            }
+            return Message.success(await Mapping.taskFromEntity(msg.getData()));
 
         } catch (error) {
             return Message.failure(error);
@@ -86,7 +100,10 @@ const TaskService : TaskServiceType = (() => {
             if (!task._id) {
                 throw new Error('Task id is required');
             }
-            const msg: Message<TaskEntity> = await TaskDAO.updateTaskById(task._id, task);
+            const labelIds = task.labels ? task.labels.map(label => label._id) : [];
+            const noteId = task.note ? task.note._id : undefined;
+            const { note, labels, ...taskWithoutNoteLabels} = task;
+            const msg: Message<TaskEntity> = await TaskDAO.updateTaskById(task._id, { ...taskWithoutNoteLabels, labelIds, noteId });
             if (!msg.getIsSuccess()) {
                 throw new Error(msg.getError());
             }
@@ -119,6 +136,7 @@ const TaskService : TaskServiceType = (() => {
         deleteTask,
 
         getAllTasks,
+        getTaskById,
         getTasksByLabel,
         getTasksByCriteria,
     };

@@ -2,7 +2,6 @@ import * as React from 'react';
 import {useTheme} from '@react-navigation/native';
 import {Pressable, StyleSheet, TextInput, View} from 'react-native';
 import {Bases, Colors, Layouts, Outlines, Typography} from '../../styles';
-import Animated, {ZoomInEasyDown} from 'react-native-reanimated';
 
 //components
 import {
@@ -10,7 +9,6 @@ import {
     ButtonMode,
     Icon,
     KeyboardDismissableView,
-    KeyboardOptimizeView,
     ModalButton,
     Overlay
 } from '../atomic';
@@ -28,7 +26,7 @@ import {debounce} from "lodash";
 
 type LabelModalProps = {
     mode: 'add' | 'edit',
-    label?: Label,
+    labelId?: Label['_id'],
     visible?: boolean,
 
     onAddLabel?: (label: Label) => void,
@@ -50,7 +48,7 @@ const sizeButton : number = 23;
 
 const LabelModal = React.forwardRef<LabelModalRef, LabelModalProps> (({
     mode, 
-    label,
+    labelId,
     visible = true,
 
     onAddLabel,
@@ -64,9 +62,9 @@ const LabelModal = React.forwardRef<LabelModalRef, LabelModalProps> (({
     onModalWillShow,
 }, ref) => {
     const { getLabelById, addLabel, updateLabel } = useLabelsData(false);
-    const [ originalLabel, setOriginalLabel ] = React.useState<Label | undefined>(label);
+    const [ originalLabel, setOriginalLabel ] = React.useState<Label | undefined>(undefined);
     const [ isEdited, setIsEdited ] = React.useState<boolean>(false);
-    const [ labelFormState, dispatch ] = React.useReducer(formReducer<LabelFormState>, label, createInitialLabel);
+    const [ labelFormState, dispatch ] = React.useReducer(formReducer<LabelFormState>, undefined, createInitialLabel);
     const [ buttonMode, setButtonMode ] = React.useState<ButtonMode>(mode);
     const { colors } = useTheme();
 
@@ -148,11 +146,13 @@ const LabelModal = React.forwardRef<LabelModalRef, LabelModalProps> (({
     }), [onPressCancel]);
 
     React.useEffect(() => {
-        setOriginalLabel(label);
-        if (label) {
-            dispatchLabelForm({type: FormActionKind.UPDATE_ALL, payload: createInitialLabel(label)});
+        if (labelId) {
+            getLabelById(labelId).then(label => {
+                setOriginalLabel(label);
+                dispatchLabelForm({type: FormActionKind.UPDATE_ALL, payload: createInitialLabel(label)});
+            });
         }
-    }, [label]);
+    }, [labelId]);
 
     const checkIsEdited = debounce(() => {
         const _isEdited = !originalLabel || !isStateOfLabel(labelFormState, originalLabel);

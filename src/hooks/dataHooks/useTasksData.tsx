@@ -25,6 +25,23 @@ const useTasksData = (
         }
     };
 
+    const getTaskById = async (id: string) => {
+        try {
+            setLoading(true);
+
+            const msg = await TaskService.getTaskById(id);
+            if (!msg.getIsSuccess()) throw new Error(msg.getError());
+            return msg.getData();
+        } catch (e) {
+            let errorMessage = "Error fetching task by id";
+            if (e instanceof Error) errorMessage = e.message;
+            setError(errorMessage);
+            throw e;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const addTask = async (task: Partial<Task>) => {
         try {
             setLoading(true);
@@ -80,7 +97,7 @@ const useTasksData = (
         if (toFetchAllData) fetchTasks();
     }, []);
 
-    return { data, loading, error, addTask, updateTask, deleteTask };
+    return { data, loading, error, addTask, updateTask, deleteTask, getTaskById };
 };
 
 export default useTasksData;

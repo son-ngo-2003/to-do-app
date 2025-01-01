@@ -2,9 +2,7 @@ import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
 import {Text, View, Pressable, StyleSheet, TouchableOpacity} from 'react-native';
 import { Colors, Typography, Outlines, Animations as Anim } from '../../styles';
-import Animated, 
-    { useSharedValue, useAnimatedStyle, interpolateColor, 
-} from 'react-native-reanimated';
+import { useSharedValue, useAnimatedStyle, interpolateColor } from 'react-native-reanimated';
 import { LabelsList } from '../label';
 
 import { Icon } from '../atomic';

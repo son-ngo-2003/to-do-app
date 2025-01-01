@@ -43,7 +43,7 @@ import useTasksData from "../../hooks/dataHooks/useTasksData";
 
 type TaskModalProps = {
     mode: 'add' | 'edit', //TODO: add a noti text in case of create a new task but start time in the past
-    task?: Task,
+    taskId?: Task['_id'],
     visible?: boolean,
     onPressNote?: (note: Note) => void,
 
@@ -69,7 +69,7 @@ const wheelPickerHeight = 90;
 
 const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
     mode,
-    task,
+    taskId,
     visible = true,
     onPressNote,
 
@@ -83,10 +83,10 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
     onModalShow,
     onModalWillShow,
 }, ref) => {
-    const { addTask, updateTask } = useTasksData(false);
-    const [ originTask, setOriginalTask ] = React.useState<Task | undefined>(task);
-    const [ taskFormState, dispatch ] = React.useReducer(formReducer<TaskFormState>, task, createInitialTask);
-    const [ taskRepeat, setTaskRepeat ] = React.useState<RepeatAttributeType>( task?.repeat || {value: 1, unit: 'day'} );
+    const { getTaskById, addTask, updateTask } = useTasksData(false);
+    const [ originTask, setOriginalTask ] = React.useState<Task | undefined>(undefined);
+    const [ taskFormState, dispatch ] = React.useReducer(formReducer<TaskFormState>, undefined, createInitialTask);
+    const [ taskRepeat, setTaskRepeat ] = React.useState<RepeatAttributeType>( {value: 1, unit: 'day'} );
     const [ isEdited, setIsEdited ] = React.useState<boolean>(false);
     const [ buttonMode, setButtonMode ] = React.useState<ButtonMode>(mode);
     const [ showWheelPicker, setShowWheelPicker ] = React.useState<'none' | 'pick-start' | 'pick-end' | 'lightCalendar-start' | 'lightCalendar-end' | 'restart'>('none');
@@ -121,7 +121,6 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
                 title: 'Error',
                 message: 'An error occurred while adding task',
             });
-
             setButtonMode('add');
         }
     }, [setButtonMode, taskFormState, onAddTask, addTask, dispatchTaskForm, setOriginalTask, alert]);
@@ -193,7 +192,7 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
         const newTaskRepeat = value ? {...taskRepeat, value} : unit ? {...taskRepeat, unit} : taskRepeat;
         setTaskRepeat(newTaskRepeat);
         dispatchTaskForm({type: FormActionKind.UPDATE_ELEMENT, payload: {field: 'repeat', value: newTaskRepeat}});
-    }, [taskRepeat, setTaskRepeat, repeatOpacity.value, dispatchTaskForm, setShowWheelPicker]);
+    }, [taskRepeat, setTaskRepeat, dispatchTaskForm, setShowWheelPicker]);
 
     const onPressDeleteNote = React.useCallback((_note: Note) => {
         dispatchTaskForm({type: FormActionKind.DELETE_ELEMENT, payload: {field: 'note'}});
@@ -203,12 +202,14 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
         close: onPressCancel,
     }), [onPressCancel]);
 
-    React.useEffect(() => {
-        setOriginalTask(task);
-        if (task) {
-            dispatchTaskForm({type: FormActionKind.UPDATE_ALL, payload: createInitialTask(task)});
+    React.useEffect( () => {
+        if (taskId) {
+            getTaskById(taskId).then(task => {
+                dispatchTaskForm({type: FormActionKind.UPDATE_ALL, payload: createInitialTask(task)});
+                setOriginalTask(task);
+            });
         }
-    }, [task]);
+    }, [taskId]);
 
     const checkIsEdited = debounce(() => {
         const _isEdited = !originTask || !isStateOfTask(taskFormState, originTask);
@@ -281,7 +282,7 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
     return (
 
         <BaseModal isVisible={visible} hasBackdrop={true} avoidKeyboard={false}
-               animationIn={'fadeInUpBig'} animationInTiming={500} animationOut={'fadeOutDownBig'} animationOutTiming={500}
+               animationIn={'fadeInUpBig'} animationInTiming={500} animationOut={'fadeOutDownBig'} animationOutTiming={300}
                onModalHide={onModalHide} onModalWillHide={onModalWillHide} onModalShow={onModalShow} onModalWillShow={onModalWillShow}
 
                customBackdrop={<Overlay onPress={onPressCancel} background={'highOpacity'}/>}

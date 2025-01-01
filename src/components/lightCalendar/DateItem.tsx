@@ -39,7 +39,8 @@ const DateItem: React.FC<DateItemProps> = (props) => {
     const containerAnimatedStyles = useAnimatedStyle(() => ({
         backgroundColor: interpolateColor( progress.value, [ 0, 1 ],
             [ `${colors.background}00`, colors.primary ], 'RGB'),
-        }));
+        })
+    );
 
     React.useEffect(() => {
         isSelected

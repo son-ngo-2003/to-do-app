@@ -14,7 +14,6 @@ const SequentialModals: React.FC<SequentialModalsProps> = ({
     const toOpenIndex = React.useRef<number | null>(null);
 
     const openNextModal = React.useCallback(() => {
-        console.log('openNextModal : toOpenIndex.current', toOpenIndex.current);
         setTimeout(() => {
             setVisibleIndex(toOpenIndex.current);
             toOpenIndex.current = null;
@@ -33,10 +32,6 @@ const SequentialModals: React.FC<SequentialModalsProps> = ({
 
     }, [currentIndex]);
 
-    React.useEffect(() => {
-        console.log('visibleIndex', visibleIndex);
-    }, [visibleIndex]);
-
     return (
         <>
             {modals.map((modal, index) => {
@@ -46,7 +41,6 @@ const SequentialModals: React.FC<SequentialModalsProps> = ({
                     visible: index === visibleIndex,
                     onModalHide: () => {
                         modalElement.props?.onModalHide && modalElement.props.onModalHide();
-                        console.log('onModalHide', index);
                         openNextModal();
                     },
                 });
