@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
 import {
     Pressable, View, TextInput, StyleSheet, Text,
-    Switch, TouchableOpacity, Keyboard
+    Switch, TouchableOpacity
 } from 'react-native';
 import dayjs from "dayjs";
 import Animated, {
@@ -10,13 +10,13 @@ import Animated, {
     useAnimatedStyle,
     useSharedValue,
 } from 'react-native-reanimated';
-import Modal from 'react-native-modal';
 
 //components
 import {
+    BaseModal,
     ColumnsWheelPicker,
     Icon,
-    KeyboardDismissableView,
+    KeyboardDismissableView, ModalButton,
     Overlay,
     TimeWheelPicker
 } from '../atomic';
@@ -31,10 +31,15 @@ import { CALENDAR_BODY_HEIGHT } from "../lightCalendar/constants";
 import { Typography, Outlines, Colors, Animations as Anim} from '../../styles';
 import {paddedNumber, toPrintAsPlural} from "../../utils/baseUtil";
 import {AnimatedPressable} from "../../helpers/animated";
-import {createInitialTask, fromStateToTask, isStateOfTask} from "../../helpers/formState";
+import {
+    createInitialTask,
+    fromStateToTask,
+    isStateOfTask
+} from "../../helpers/formState";
 import {type AlertFunctionType, useAlertProvider} from "../../hooks";
-import AlertModal, {AlertModalProps} from "../atomic/AlertModal";
+import AlertModal from "../atomic/AlertModal";
 import {debounce} from "lodash";
+import useTasksData from "../../hooks/dataHooks/useTasksData";
 
 type TaskModalProps = {
     mode: 'add' | 'edit', //TODO: add a noti text in case of create a new task but start time in the past
@@ -42,9 +47,9 @@ type TaskModalProps = {
     visible?: boolean,
     onPressNote?: (note: Note) => void,
 
-    onPressAddTask?: (task: Partial<Task>) => void, //only Partial<Task> cause id, createdAt, updatedAt, completedAt will be added by service, not by user
-    onPressUpdateTask?: (task: Partial<Task>) => void,
-    onCancel?: (draftTask: Partial<Task>, alert: AlertFunctionType) => Promise<any>,
+    onAddTask?: (task: Partial<Task>) => void, //only Partial<Task> cause id, createdAt, updatedAt, completedAt will be added by service, not by user
+    onUpdateTask?: (task: Partial<Task>) => void,
+    onCancel?: (draftTask: Partial<Task>, isEdited: boolean, alert: AlertFunctionType) => Promise<any>,
         //when press turn off modal or when press outside of modal, draft task is what user has changed but not yet press add or update
         //alert is a function to show alert modal, it will be used to ask user if they want to save changes or not
     onChangeTask?: (task: Partial<Task>) => void, //this will call every time there is a change in at least one field of the task, avoid this, only use final value when user press update (onPressUpdate)
@@ -59,17 +64,19 @@ export type TaskModalRef = {
     close: () => Promise<any>,
 }
 
+type ButtonMode = 'add' | 'edit' | 'loading' | 'added' | 'edited';
+
 const sizeButton = 25;
 const wheelPickerHeight = 90;
 
 const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
-    mode, 
-    task, 
+    mode,
+    task,
     visible = true,
     onPressNote,
 
-    onPressAddTask,
-    onPressUpdateTask,
+    onAddTask,
+    onUpdateTask,
     onCancel,
     onChangeTask,
 
@@ -78,9 +85,12 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
     onModalShow,
     onModalWillShow,
 }, ref) => {
+    const { addTask, updateTask } = useTasksData(false);
+    const [ originTask, setOriginalTask ] = React.useState<Task | undefined>(task);
     const [ taskFormState, dispatch ] = React.useReducer(formReducer<TaskFormState>, task, createInitialTask);
     const [ taskRepeat, setTaskRepeat ] = React.useState<RepeatAttributeType>( task?.repeat || {value: 1, unit: 'day'} );
     const [ isEdited, setIsEdited ] = React.useState<boolean>(false);
+    const [ buttonMode, setButtonMode ] = React.useState<ButtonMode>(mode);
     const [ showWheelPicker, setShowWheelPicker ] = React.useState<'none' | 'pick-start' | 'pick-end' | 'lightCalendar-start' | 'lightCalendar-end' | 'restart'>('none');
     const repeatOpacity = useSharedValue<number>( taskFormState.repeat ? 1 : 0.3 );
 
@@ -89,26 +99,62 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
         modalVisible, alertProps,
     } = useAlertProvider();
 
-    const onPressAdd = () => {
-        if (Keyboard.isVisible()) return;
-        onPressAddTask?.(fromStateToTask(taskFormState));
-    }
-
-    const onPressUpdate = () => {
-        if (Keyboard.isVisible()) return;
-        onPressUpdateTask?.(fromStateToTask(taskFormState));
-    }
-
-    const onPressCancel = async () => {
-        if (Keyboard.isVisible()) return;
-        return onCancel?.(fromStateToTask(taskFormState), alert);
-    }
-
     const dispatchTaskForm = React.useCallback( (action: FormAction<TaskFormState>) => {
         dispatch(action);
         const newTaskFromState = formReducer<TaskFormState>(taskFormState, action);
         onChangeTask?.(fromStateToTask(newTaskFromState));
     },[dispatch, taskFormState, onChangeTask]);
+
+    const onPressAdd = React.useCallback( async () => {
+        try {
+            setButtonMode('loading');
+
+            const task = fromStateToTask(taskFormState);
+            onAddTask?.(task);
+            const newTask = await addTask(task);
+            dispatchTaskForm({type: FormActionKind.UPDATE_ALL, payload: createInitialTask(newTask)});
+            setOriginalTask(newTask);
+
+            setButtonMode('added');
+        } catch (e) {
+            console.error(e);
+            await alert({
+                type: 'error',
+                title: 'Error',
+                message: 'An error occurred while adding task',
+            });
+
+            setButtonMode('add');
+        }
+    }, [setButtonMode, taskFormState, onAddTask, addTask, dispatchTaskForm, setOriginalTask, alert]);
+
+    const onPressUpdate = React.useCallback(async () => {
+        try {
+            setButtonMode('loading');
+
+            const task = fromStateToTask(taskFormState);
+            onUpdateTask?.(task);
+            const newTask = await updateTask?.(task);
+            dispatchTaskForm({ type: FormActionKind.UPDATE_ALL, payload: createInitialTask(newTask) });
+            setOriginalTask(newTask);
+
+            setButtonMode('edited');
+        } catch (e) {
+            console.error(e);
+            await alert({
+                type: 'error',
+                title: 'Error',
+                message: 'An error occurred while updating task!',
+            });
+
+            setButtonMode('edit');
+        }
+    }, [taskFormState, setButtonMode, updateTask, alert, setOriginalTask, dispatchTaskForm, onUpdateTask]);
+
+    const onPressCancel = React.useCallback(async () => {
+        console.log(isEdited);
+        return onCancel?.(fromStateToTask(taskFormState), isEdited, alert);
+    }, [onCancel, alert, taskFormState, isEdited]);
 
     const onChangeLabels = React.useCallback((newListLabels: Label[]) => {
         dispatchTaskForm({type: FormActionKind.UPDATE_LIST, payload: {field: 'labels', value: newListLabels}});
@@ -162,17 +208,22 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
     }), [onPressCancel]);
 
     React.useEffect(() => {
+        setOriginalTask(task);
         if (task) {
             dispatchTaskForm({type: FormActionKind.UPDATE_ALL, payload: createInitialTask(task)});
         }
     }, [task]);
 
     const checkIsEdited = debounce(() => {
-        const isEdited = !task || isStateOfTask(taskFormState, task);
-        setIsEdited(isEdited);
-    }, 500);
+        const _isEdited = !originTask || !isStateOfTask(taskFormState, originTask);
+        setIsEdited(_isEdited);
+        if (_isEdited && (buttonMode === 'added' || buttonMode === 'edited')) {
+            setButtonMode('edit');
+        }
+    }, 300);
 
     React.useEffect(() => {
+        if (mode === 'edit' && !originTask) { return }
         checkIsEdited();
     }, [taskFormState]);
 
@@ -232,13 +283,14 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
     }, [showWheelPicker]);
 
     return (
-        <KeyboardDismissableView>
-            <Modal isVisible={visible} hasBackdrop={true} avoidKeyboard={false}
-                   animationIn={'fadeInUpBig'} animationInTiming={500} animationOut={'fadeOutDownBig'} animationOutTiming={500}
-                   onModalHide={onModalHide} onModalWillHide={onModalWillHide} onModalShow={onModalShow} onModalWillShow={onModalWillShow}
 
-                   customBackdrop={<Overlay onPress={onPressCancel} background={'highOpacity'}/>}
-            >
+        <BaseModal isVisible={visible} hasBackdrop={true} avoidKeyboard={false}
+               animationIn={'fadeInUpBig'} animationInTiming={500} animationOut={'fadeOutDownBig'} animationOutTiming={500}
+               onModalHide={onModalHide} onModalWillHide={onModalWillHide} onModalShow={onModalShow} onModalWillShow={onModalWillShow}
+
+               customBackdrop={<Overlay onPress={onPressCancel} background={'highOpacity'}/>}
+        >
+            <KeyboardDismissableView>
                 <View style={[styles.modalContainer, {backgroundColor: colors.card}]}>
                     {/* Add/Edit and Close Buttons */}
                     <View style={[styles.twoItemsRow]}>
@@ -251,17 +303,10 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
                         </View>
 
                         <View style={[styles.buttonsContainer]}>
-                            {
-                                mode === 'add'
-                                ?
-                                    (<Pressable  onPress={onPressAdd} hitSlop={6} disabled={!isEdited} style={{opacity: isEdited ? 1 : 0.5}}>
-                                        <Icon name="plus" size={sizeButton} color={colors.text} library='Octicons'/>
-                                    </Pressable>)
-                                :
-                                    (<Pressable  onPress={onPressUpdate} hitSlop={6} disabled={!isEdited} style={{opacity: isEdited ? 1 : 0.5}}>
-                                        <Icon name="cloud-upload" size={sizeButton} color={colors.text} library='SimpleLineIcons'/>
-                                    </Pressable>)
-                            }
+                            <ModalButton mode={buttonMode}
+                                         isDisabled={!isEdited} size={sizeButton}
+                                         onPress={{add: onPressAdd, edit: onPressUpdate}}
+                            />
 
                             <Pressable  onPress={onPressCancel} hitSlop={6}>
                                 <Icon name="window-close" size={sizeButton} color={colors.text} library='MaterialCommunityIcons'/>
@@ -469,8 +514,8 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
                         />
                     }
                 </View>
-            </Modal>
-        </KeyboardDismissableView>
+            </KeyboardDismissableView>
+        </BaseModal>
     )
 });
 

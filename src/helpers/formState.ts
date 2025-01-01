@@ -29,7 +29,7 @@ const fromStateToTask = (taskFormState: TaskFormState): Partial<Task> => ({
 
 const isStateOfTask = (taskState: TaskFormState, task: Task): boolean => {
     return taskState.title === task.title &&
-        taskState.note === task.note &&
+        taskState.note?._id === task.note?._id &&
         taskState.labels === task.labels &&
         taskState.startDate === task.start &&
         taskState.endDate === task.end &&

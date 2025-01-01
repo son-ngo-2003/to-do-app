@@ -20,7 +20,7 @@ import { Message } from '../../services/models';
 import StorageService from "../../services/DAO/StorageService";
 import {AlertFunctionType} from "../../hooks";
 import {TaskModalRef} from "../../components/task/TaskModal";
-import {ALERT_OPTION_NOT_SAVED_FOR_TASK_MODAL} from "../../constant";
+import {ALERT_OPTION_NOT_SAVED_FOR_NOTE_MODAL, ALERT_OPTION_NOT_SAVED_FOR_TASK_MODAL} from "../../constant";
 
 type Props = DrawerScreenProps<RootStackParamList, 'Home'>;
 
@@ -69,6 +69,7 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                 labels: [l1, l2],
                 start: new Date(),
                 end: new Date(),
+                isAllDay: false,
                 repeat: {value: 5, unit: 'day'},
                 isAnnouncement: false,
                 isCompleted: false,
@@ -79,6 +80,7 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                 labels: [l1],
                 start: new Date(),
                 end: new Date(),
+                isAllDay: false,
                 repeat: undefined,
                 isAnnouncement: false,
                 isCompleted: false,
@@ -89,6 +91,7 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                 labels: [l1, l2, l3],
                 start: new Date(),
                 end: new Date(),
+                isAllDay: false,
                 repeat: undefined,
                 isAnnouncement: false,
                 isCompleted: false,
@@ -106,7 +109,12 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
     const [ currentModal, setCurrentModal ] = React.useState<'note' | 'task' | 'none'>('none');
     const taskModalRef = React.useRef<TaskModalRef>(null);
 
-    const onCancelTaskModal = React.useCallback((draftTask: Partial<Task>, alert: AlertFunctionType) => {
+    const onCancelTaskModal = React.useCallback((draftTask: Partial<Task>,  isEdited: boolean,  alert: AlertFunctionType) => {
+        if (!isEdited) {
+            setCurrentModal('none');
+            return Promise.resolve();
+        }
+
         return alert({
             ...ALERT_OPTION_NOT_SAVED_FOR_TASK_MODAL,
 
@@ -135,15 +143,13 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
         }
 
         return alert({
-            type: 'confirm',
-            title: 'Discard Changes',
-            message: 'Are you sure you want to discard changes?',
+            ...ALERT_OPTION_NOT_SAVED_FOR_NOTE_MODAL,
             primaryButton: {
-                text: 'Discard',
+                ...ALERT_OPTION_NOT_SAVED_FOR_NOTE_MODAL.primaryButton,
                 onPress: () => {console.log('Note Modal (Home): Discard Note'); setCurrentModal('none')}
             },
             secondaryButton: {
-                text: 'Cancel',
+                ...ALERT_OPTION_NOT_SAVED_FOR_NOTE_MODAL.secondaryButton,
                 onPress: () => {console.log('Note Modal (Home): Cancel Discard Note')}
             }
         });

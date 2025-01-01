@@ -8,7 +8,9 @@ export { Icon,
         TimeWheelPicker,
         ColumnsWheelPicker,
         AlertModal ,
-        SequentialModals
+        SequentialModals,
+        ModalButton, type ButtonMode,
+        BaseModal,
 } from './atomic';
 export { LabelTag, 
         LabelCard, AddLabelCard, 

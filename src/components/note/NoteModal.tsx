@@ -1,12 +1,11 @@
 import * as React from 'react';
 import {useTheme} from '@react-navigation/native';
-import {Keyboard, Pressable, StyleSheet, Text, TextInput, View} from 'react-native';
-import {Bases, Colors, Layouts, Outlines, Typography} from '../../styles';
-import Modal from 'react-native-modal';
+import { Pressable, StyleSheet, Text, TextInput, View} from 'react-native';
+import {Bases, Layouts, Outlines, Typography} from '../../styles';
 import { debounce } from "lodash";
 
 //components
-import {Icon, KeyboardDismissableView, Overlay} from '../atomic';
+import {Icon, KeyboardDismissableView, Overlay, ModalButton, type ButtonMode, BaseModal} from '../atomic';
 import {LabelsList} from '../label';
 import {TextEditor} from '../textEditor';
 import {EditorBridge} from "@10play/tentap-editor";
@@ -39,8 +38,6 @@ type NoteModalProps = {
 export type NoteModalRef = {
     close: () => void,
 }
-
-type ButtonMode = 'add' | 'edit' | 'loading' | 'added' | 'edited';
 
 const sizeButton : number = 25;
 
@@ -83,10 +80,10 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
             setButtonMode('loading');
 
             const note = fromStateToNote(noteFormState);
+            onAddNote?.(note);
             const newNote = await addNote(note);
             dispatchNoteForm({type: FormActionKind.UPDATE_ALL, payload: createInitialNote(newNote)});
             setOriginalNote(newNote);
-            onAddNote?.(note);
 
             setButtonMode('added');
         } catch (e) {
@@ -107,10 +104,10 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
             setButtonMode('loading');
 
             const note = fromStateToNote(noteFormState);
+            onUpdateNote?.(note);
             const newNote = await updateNote?.(note);
             dispatchNoteForm({type: FormActionKind.UPDATE_ALL, payload: createInitialNote(newNote)});
             setOriginalNote(newNote);
-            onUpdateNote?.(note);
 
             setButtonMode('edited');
         } catch (e) {
@@ -143,37 +140,6 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
         dispatchNoteForm({type: FormActionKind.UPDATE_LIST, payload: {field: 'labels', value: newListLabels}});
     }, [dispatchNoteForm]);
 
-    const renderButton = React.useCallback((type: ButtonMode) => {
-        let icon : React.ReactNode;
-        let onPressButton : () => void = () => {};
-        switch (type) {
-            case 'add':
-                icon = (<Icon name="plus" size={sizeButton} color={colors.text} library='Octicons'/>);
-                onPressButton = onPressAdd;
-                break;
-            case 'edit':
-                icon = (<Icon name="cloud-upload" size={sizeButton} color={colors.text} library='SimpleLineIcons'/>);
-                onPressButton = onPressUpdate;
-                break;
-            case 'loading':
-                icon = (<Icon name="ActivityIndicator" size={sizeButton} color={colors.text} library='Ionicons'/>);
-                break;
-            case 'added':
-                icon = (<Icon name="checkbox-marked-circle-plus-outline" size={sizeButton} color={Colors.success.s400} library='MaterialCommunityIcons'/>);
-                break;
-            case 'edited':
-                icon = (<Icon name="cloud-check-outline" size={sizeButton} color={Colors.success.s400} library='MaterialCommunityIcons'/>);
-                break;
-        }
-        return (
-            <Pressable
-                onPress={onPressButton}
-                hitSlop={6} disabled={!isEdited} style={{opacity: isEdited ? 1 : 0.5}}>
-                {icon}
-            </Pressable>
-        )
-    }, [colors.text, onPressAdd, onPressUpdate, isEdited]);
-
     React.useImperativeHandle(ref, () => ({
         close: onPressCancel,
     }), [onPressCancel]);
@@ -191,14 +157,15 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
         if (isEdited && (buttonMode === 'edited' || buttonMode === 'added')) {
             setButtonMode('edit');
         }
-    }, 400);
+    }, 300);
 
     React.useEffect(() => {
+        if (mode === 'edit' && !originalNote) { return }
         checkIsEdited();
-    }, [noteFormState]);
+    }, [noteFormState, originalNote]);
 
     return (
-        <Modal isVisible={visible} hasBackdrop={true} avoidKeyboard={false}
+        <BaseModal isVisible={visible} hasBackdrop={true} avoidKeyboard={false}
                    animationIn={'fadeInUpBig'} animationInTiming={500} animationOut={'fadeOutDownBig'} animationOutTiming={500}
                    onModalHide={onModalHide} onModalWillHide={onModalWillHide} onModalShow={onModalShow} onModalWillShow={onModalWillShow}
 
@@ -210,7 +177,10 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
 
                     {/* Add/Edit and Close Buttons */}
                     <View style={[styles.buttonsContainer]}>
-                        {renderButton(buttonMode)}
+                        <ModalButton mode={buttonMode}
+                            isDisabled={!isEdited} size={sizeButton}
+                            onPress={{add: onPressAdd, edit: onPressUpdate}}
+                        />
 
                         <Pressable  onPress={onPressCancel} hitSlop={6}>
                             <Icon name="window-close" size={sizeButton} color={colors.text} library='MaterialCommunityIcons'/>
@@ -235,7 +205,7 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
                     <LabelsList
                         withAddButton={true}
                         withDeleteButton={true}
-                        setListLabels={(newLabels) => onChangeLabels(newLabels)}
+                        setListLabels={onChangeLabels}
                         chosenLabelsList={noteFormState.labels}
                     />
 
@@ -260,7 +230,7 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
                     />
                 }
             </KeyboardDismissableView>
-        </Modal>
+        </BaseModal>
     )
 });
 

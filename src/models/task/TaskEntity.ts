@@ -16,7 +16,7 @@ interface TaskEntity {
     end: Date, //TODO: think about if a task should have end attribute or not
     isAllDay: boolean,
     repeat?: RepeatAttributeType,
-    isAnnouncement: boolean,
+    isAnnouncement?: boolean,
 
     isDeleted: boolean,
     isCompleted: boolean,

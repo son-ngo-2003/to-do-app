@@ -24,15 +24,40 @@ interface TaskDAOType {
     deleteTaskById:    (_id: string) => Promise<Message<TaskEntity>>,
 }
 
+function validateTask(task: Partial<Task>) {
+    //TODO: consider use 'yup' for validation
+    if (!task.title) {
+        throw new Error('Task title is required');
+    }
+    if (!task.start) {
+        throw new Error('Task start date is required');
+    }
+    if (!task.end) {
+        throw new Error('Task end date is required');
+    }
+    if (task.start > task.end) {
+        throw new Error('Task start date must be before end date');
+    }
+    if (task.repeat) {
+        if (task.repeat.value <= 0) {
+            throw new Error('Task repeat value must be greater than 0');
+        }
+        if (!task.repeat.unit) {
+            throw new Error('Task repeat unit is required');
+        }
+    }
+    if (task.isAllDay === undefined) {
+        throw new Error('Task isAllDay is required');
+    }
+}
+
 const TaskDAO : TaskDAOType = (() => {
     const limitTask: number = 500; //TODO: add this to constant
 
     async function addTask(task: Partial<TaskEntity>): Promise<Message<TaskEntity>> {
         try {
             //check required fields
-            if (!task.title && !task.start) {
-                throw new Error('Task title and start time is required');
-            }
+            validateTask(task);
 
             //Check if number of tasks reached the limit
             const msg = await getAllTasks();
@@ -44,6 +69,7 @@ const TaskDAO : TaskDAOType = (() => {
                 throw new Error(`Task service has reached the limit of ${limitTask} tasks`);
             }
 
+            task.isAnnouncement = task.isAnnouncement ?? false;
             task.isDeleted = task.isDeleted ?? false;
             task.isCompleted = task.isCompleted ?? false;
             task.createdAt = new Date();
