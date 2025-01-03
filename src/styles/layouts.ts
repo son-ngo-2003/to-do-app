@@ -11,11 +11,8 @@ export const screen: Record<Screen, number> = {
 export const MARGIN_HORIZONTAL = 20 //TODO: See if should move to constant file
 
 export const mainContainer: ViewStyle = {
-    marginLeft: MARGIN_HORIZONTAL,
-    marginRight: MARGIN_HORIZONTAL,
-    paddingTop: 10,
-    overflow: 'visible',
-    flex: 1,
+    marginHorizontal: MARGIN_HORIZONTAL,
+    paddingTop: 5,
 }
 
 export const sectionContainer: ViewStyle = {

@@ -74,6 +74,9 @@ const TextEditor : React.FC<TextEditorProps> = ({
         ],
         theme: {
             ...defaultEditorTheme,
+            webview: {
+                backgroundColor: colors.card,
+            },
             toolbar: dark ? darkToolbarTheme : toolbarTheme,
         },
         onChange: () => {onChange?.(editor)},

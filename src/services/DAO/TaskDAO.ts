@@ -127,7 +127,7 @@ const TaskDAO : TaskDAOType = (() => {
                 (!isCompleted
                     || task.isCompleted === isCompleted) &&
                 (!date 
-                    ||  isDateBetween(date, task.start, task.end))
+                    || isDateBetween(date, task.start, task.end))
                 //TODO: improve search later with possibility of searching string date: like '24/12' will return all tasks that start at 24/12 in every year, and also searching filter also apply in case repeat
             );
 

@@ -18,7 +18,7 @@ import AlertModal from "../atomic/AlertModal";
 import formReducer, {FormAction, FormActionKind} from "../../reducers/formReducer";
 import {LabelFormState} from "../../types/formStateType";
 import {
-    createInitialLabel,
+    createInitialLabel, createInitialTask,
     fromStateToLabel,
     isStateOfLabel
 } from "../../helpers/formState";
@@ -146,13 +146,17 @@ const LabelModal = React.forwardRef<LabelModalRef, LabelModalProps> (({
     }), [onPressCancel]);
 
     React.useEffect(() => {
+        setButtonMode(mode);
+        setIsEdited(false);
         if (labelId) {
             getLabelById(labelId).then(label => {
                 setOriginalLabel(label);
                 dispatchLabelForm({type: FormActionKind.UPDATE_ALL, payload: createInitialLabel(label)});
             });
+        } else {
+            dispatchLabelForm({type: FormActionKind.UPDATE_ALL, payload: createInitialLabel()});
         }
-    }, [labelId]);
+    }, [labelId, mode]);
 
     const checkIsEdited = debounce(() => {
         const _isEdited = !originalLabel || !isStateOfLabel(labelFormState, originalLabel);

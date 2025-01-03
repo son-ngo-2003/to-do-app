@@ -12,3 +12,5 @@ const BaseModal: React.FC<BaseModalProps> = (props) => {
 }
 
 export default BaseModal;
+
+export const MODAL_MARGIN = 20;

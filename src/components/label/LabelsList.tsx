@@ -71,7 +71,7 @@ const LabelsList : React.FC<LabelsListProps> = ({
                     <Pressable onPress={ () => setIsShowModal(withAddButton) }
                                 style={[ { flex: 1 }]}
                     >
-                        <Text style={{...Typography.subheader.x30, height: 26}}>
+                        <Text style={{...Typography.subheader.x30, height: 26, color: colors.text}}>
                             {
                                 withAddButton
                                 ? "Add label to your note"

@@ -35,5 +35,6 @@ export { Calendar,
 export {
         LightCalendar,
 } from './lightCalendar';
+export { FloatingActionButton } from './floatingActionButton';
 
 //Add useCallBack to all callback defined in each component

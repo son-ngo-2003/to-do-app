@@ -32,6 +32,7 @@ import { Typography, Outlines, Colors, Animations as Anim} from '../../styles';
 import {paddedNumber, toPrintAsPlural} from "../../utils/baseUtil";
 import {AnimatedPressable} from "../../helpers/animated";
 import {
+    createInitialNote,
     createInitialTask,
     fromStateToTask,
     isStateOfTask
@@ -177,7 +178,7 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
 
     const onChangeRepeat = React.useCallback((isOn?: boolean, value?: RepeatAttributeType["value"], unit?: RepeatAttributeType["unit"]) => {
         if (isOn !== undefined) {
-            repeatOpacity.value = Anim.timing<number>(isOn ? 1 : 0.3).easeIn.fast
+            repeatOpacity.value = Anim.timing<number>(isOn ? 1 : 0.3).easeIn.fast;
             if (isOn) {
                 dispatchTaskForm({type: FormActionKind.UPDATE_ELEMENT, payload: {field: 'repeat', value: taskRepeat}});
                 setShowWheelPicker('restart');
@@ -203,13 +204,17 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
     }), [onPressCancel]);
 
     React.useEffect( () => {
+        setButtonMode(mode);
+        setIsEdited(false);
         if (taskId) {
             getTaskById(taskId).then(task => {
                 dispatchTaskForm({type: FormActionKind.UPDATE_ALL, payload: createInitialTask(task)});
                 setOriginalTask(task);
             });
+        } else {
+            dispatchTaskForm({type: FormActionKind.UPDATE_ALL, payload: createInitialTask()});
         }
-    }, [taskId]);
+    }, [taskId, mode]);
 
     const checkIsEdited = debounce(() => {
         const _isEdited = !originTask || !isStateOfTask(taskFormState, originTask);

@@ -7,6 +7,7 @@ type OverlayProps = {
     background: "transparent" | "lowOpacity" | "highOpacity",
     isBlur?: boolean,
     onPress?: () => void,
+    opacity?: number,
 }
 
 const Overlay: React.FC<OverlayProps> = ({ background, onPress, isBlur = false }) => {

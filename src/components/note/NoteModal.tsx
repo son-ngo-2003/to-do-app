@@ -143,13 +143,17 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
     }), [onPressCancel]);
 
     React.useEffect(() => {
+        setButtonMode(mode);
+        setIsEdited(false);
         if (noteId) {
             getNoteById(noteId).then((note) => {
                 dispatchNoteForm({type: FormActionKind.UPDATE_ALL, payload: createInitialNote(note)});
                 setOriginalNote(note);
             });
+        } else {
+            dispatchNoteForm({type: FormActionKind.UPDATE_ALL, payload: createInitialNote()});
         }
-    }, [noteId]);
+    }, [noteId, mode]);
 
     const checkIsEdited = debounce(() => {
         const isEdited =!originalNote || !isStateOfNote(noteFormState, originalNote);

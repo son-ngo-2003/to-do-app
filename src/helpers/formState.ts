@@ -1,7 +1,7 @@
 import {LabelFormState, NoteFormState, TaskFormState} from "../types/formStateType";
 import {getNextEntireHour} from "../utils/dateUtil";
 
-const createInitialTask = (task: Task | undefined): TaskFormState => ({
+const createInitialTask = (task?: Task): TaskFormState => ({
     _id: task?._id || '',
     title: task?.title || '',
     note: task?.note,
@@ -40,7 +40,7 @@ const isStateOfTask = (taskState: TaskFormState, task: Task): boolean => {
         taskState._id === task._id;
 }
 
-const createInitialNote = (note: Note | undefined): NoteFormState => ({
+const createInitialNote = (note?: Note): NoteFormState => ({
     _id: note?._id || '',
     title: note?.title || '',
     content: note?.content || '',
@@ -61,7 +61,7 @@ const isStateOfNote = (noteState: NoteFormState, note: Note): boolean => {
         noteState._id === note._id;
 }
 
-const createInitialLabel = (label: Label | undefined): LabelFormState => ({
+const createInitialLabel = (label?: Label): LabelFormState => ({
     _id: label?._id || '',
     name: label?.name || '',
     color: label?.color || '',

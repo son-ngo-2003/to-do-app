@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView} from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import { DrawerScreenProps } from '@react-navigation/drawer';
 
@@ -21,6 +21,8 @@ import StorageService from "../../services/DAO/StorageService";
 import {AlertFunctionType} from "../../hooks";
 import {TaskModalRef} from "../../components/task/TaskModal";
 import {ALERT_OPTION_NOT_SAVED_FOR_NOTE_MODAL, ALERT_OPTION_NOT_SAVED_FOR_TASK_MODAL} from "../../constant";
+import {FloatingActionButton} from "../../components";
+import {HEADER_HEIGHT} from "../../constant/navigation";
 
 type Props = DrawerScreenProps<RootStackParamList, 'Home'>;
 
@@ -166,6 +168,18 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
         })
     }, [taskModalRef.current, setCurrentModal, setModalNoteId]);
 
+    const onPressAddNote = React.useCallback(() => {
+        setModalNoteId(undefined);
+        setCurrentModal('note');
+        setCurrentMode('add');
+    }, [setModalNoteId, setCurrentModal, setCurrentMode]);
+
+    const onPressAddTask = React.useCallback(() => {
+        setModalTaskId(undefined);
+        setCurrentModal('task');
+        setCurrentMode('add');
+    }, [setModalTaskId, setCurrentModal, setCurrentMode]);
+
     React.useEffect( () => {
         // TODO: get notes
         setTimeout(async () => {
@@ -192,87 +206,96 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
     }, [])
 
     return (
-        <View style={[ Layouts.mainContainer ]}>
-            {/* Openning Titre */}
-            <View style={[ Layouts.sectionContainer ]}>
-                <Text style={[ Typography.body.x45, textColor ]}>Welcome back,</Text>
-                <Text style={[ Typography.header.x60, textColor ]}>Let's plan your day!</Text>
-            </View>
-
-            {/* Today's Notes */}
-            <View style={[Layouts.sectionContainer]}>
-                <View style={[styles.sectionTitleContainer]}>
-                    <Text style={[ Typography.subheader.x40, textColor, { textTransform: 'uppercase' } ]}>Recent Notes</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate('Notes') /*TODO: Press View All will navigate to Notes Screen with ? notes filter*/}>
-                        <Text style={[Typography.body.x40, textColor, { opacity: 0.6, }]}>View All</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <ScrollView style={[styles.noteCardsScroller]} horizontal={true}>
-                    <View style={[styles.noteCardsContainer]}>
-                        {newNote.map((note: Note, index: number) => (
-                            <NoteCard key={index} note={note} orientation={'landscape'} showLabels
-                                onPress={(note) => {setModalNoteId(note._id); setCurrentModal('note');}}
-                            />
-                        ))}
-                    </View>
-                </ScrollView>
-
-
-            </View>
-
-            {/* Today's Tasks */}
-            <View style={[Layouts.sectionContainer, {flex: 1}]}>
-                <View style={[styles.sectionTitleContainer]}>
-                    <Text style={[ Typography.subheader.x40, textColor, { textTransform: 'uppercase' } ]}>Today's Tasks</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate('Tasks') /*TODO: Press View All will navigate to Tasks Screen with today tasks filter*/}>
-                        <Text style={[Typography.body.x40, textColor, { opacity: 0.6, }]}>View All</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <View style={[Layouts.fullWidthContainer]}>
-                    <ScrollView style={[styles.tasksScroller]}>
-                        {allLabels.map((label: Label, index: number) => (
-                            <View key={index}>
-                                <Text style={[ Typography.header.x40, { textTransform: 'uppercase', color: label.color } ]}>{label.name}</Text>
-                                <TaskTree
-                                    tasks={ tasksByLabel[label._id] ?? [] }
-                                    onPressTask = { (task) => {setModalTaskId(task._id); setCurrentModal('task');} }
-
-                                    showShowMoreButton={true}
-                                    onPressShowMore={ () => console.log('Task Tree (Home): Show More Tasks') }
-
-                                    colorTree={ label.color }
-                                    showLabel={false}
-                                />
-                            </View>
-                        ))}
-                    </ScrollView>
-                </View>
-
-            </View>
-
-            {/*  Modals  */}
-            <SequentialModals
-                currentIndex={ currentModal === 'note' ? 0 : currentModal === 'task' ? 1 : undefined }
-                modals={[
-                    <NoteModal
-                        mode={ currentMode }
-                        noteId={ modalNoteId }
-                        onCancel={ onCancelNoteModal }
-                    />,
-
-                    <TaskModal
-                        ref={taskModalRef}
-
-                        mode={ currentMode }
-                        taskId={ modalTaskId }
-                        onPressNote={ onPressNoteInTask }
-                        onCancel={onCancelTaskModal}
-                    />
+        <SafeAreaView style={{position: 'relative'}}>
+            <FloatingActionButton initialPosition={{x: Layouts.screen.width - 50, y: Layouts.screen.height - 50}}
+                subButtons={[
+                    {icon: {name: 'sticker-text-outline', library: 'MaterialCommunityIcons'}, onPress: onPressAddNote},
+                    {icon: {name: 'checkbox-multiple-marked-outline', library: 'MaterialCommunityIcons'}, onPress: onPressAddTask},
                 ]}
             />
-        </View>
+
+            <ScrollView style={[ Layouts.mainContainer ]} showsVerticalScrollIndicator={false}>
+                {/* Openning Titre */}
+                <View style={[ Layouts.sectionContainer ]}>
+                    <Text style={[ Typography.body.x45, textColor ]}>Welcome back,</Text>
+                    <Text style={[ Typography.header.x60, textColor ]}>Let's plan your day!</Text>
+                </View>
+
+                {/* Today's Notes */}
+                <View style={[Layouts.sectionContainer]}>
+                    <View style={[styles.sectionTitleContainer]}>
+                        <Text style={[ Typography.subheader.x40, textColor, { textTransform: 'uppercase' } ]}>Recent Notes</Text>
+                        <TouchableOpacity onPress={() => navigation.navigate('Notes') /*TODO: Press View All will navigate to Notes Screen with ? notes filter*/}>
+                            <Text style={[Typography.body.x40, textColor, { opacity: 0.6, }]}>View All</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <ScrollView style={[styles.noteCardsScroller]} horizontal={true}>
+                        <View style={[styles.noteCardsContainer]}>
+                            {newNote.map((note: Note, index: number) => (
+                                <NoteCard key={index} note={note} orientation={'landscape'} showLabels
+                                          onPress={(note) => {setModalNoteId(note._id); setCurrentModal('note');}}
+                                />
+                            ))}
+                        </View>
+                    </ScrollView>
+
+
+                </View>
+
+                {/* Today's Tasks */}
+                <View style={[Layouts.sectionContainer, {flex: 1}]}>
+                    <View style={[styles.sectionTitleContainer]}>
+                        <Text style={[ Typography.subheader.x40, textColor, { textTransform: 'uppercase' } ]}>Today's Tasks</Text>
+                        <TouchableOpacity onPress={() => navigation.navigate('Tasks') /*TODO: Press View All will navigate to Tasks Screen with today tasks filter*/}>
+                            <Text style={[Typography.body.x40, textColor, { opacity: 0.6, }]}>View All</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <View style={[Layouts.fullWidthContainer]}>
+                        <View style={[styles.tasksScroller]}>
+                            {allLabels.map((label: Label, index: number) => (
+                                <View key={index}>
+                                    <Text style={[ Typography.header.x40, { textTransform: 'uppercase', color: label.color } ]}>{label.name}</Text>
+                                    <TaskTree
+                                        tasks={ tasksByLabel[label._id] ?? [] }
+                                        onPressTask = { (task) => {setModalTaskId(task._id); setCurrentModal('task');} }
+
+                                        showShowMoreButton={true}
+                                        onPressShowMore={ () => console.log('Task Tree (Home): Show More Tasks') }
+
+                                        colorTree={ label.color }
+                                        showLabel={false}
+                                    />
+                                </View>
+                            ))}
+                        </View>
+                    </View>
+
+                </View>
+
+                {/*  Modals  */}
+                <SequentialModals
+                    currentIndex={ currentModal === 'note' ? 0 : currentModal === 'task' ? 1 : undefined }
+                    modals={[
+                        <NoteModal
+                            mode={ currentMode }
+                            noteId={ modalNoteId }
+                            onCancel={ onCancelNoteModal }
+                        />,
+
+                        <TaskModal
+                            ref={taskModalRef}
+
+                            mode={ currentMode }
+                            taskId={ modalTaskId }
+                            onPressNote={ onPressNoteInTask }
+                            onCancel={onCancelTaskModal}
+                        />
+                    ]}
+                />
+            </ScrollView>
+        </SafeAreaView>
     );
 };
 
@@ -291,7 +314,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
     },
     tasksScroller: {
-        overflow: 'hidden',
         paddingHorizontal: Layouts.MARGIN_HORIZONTAL,
         marginTop: 5,
     },
