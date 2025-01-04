@@ -11,7 +11,7 @@ interface TaskServiceType {
     getAllTasks:        () => Promise<Message<Task[]>>,
     getTaskById:        (_id: Task['_id']) => Promise<Message<Task>>,
     getTasksByLabel:   (labelId: Label['_id'], isCompleted?: boolean, limit?: number) => Promise<Message<Task[]>>,
-    getTasksByCriteria: (searchWord?: string, labelIds?: Label['_id'][], noteIds?: Note['_id'][], date?: Date, isCompleted?: boolean) => Promise<Message<Task[]>>,
+    getTasksByCriteria: (searchWord?: string, labelIds?: Label['_id'][], noteIds?: Note['_id'][], date?: Date, isCompleted?: boolean, limit?: number) => Promise<Message<Task[]>>,
 }
 
 const TaskService : TaskServiceType = (() => {
@@ -62,9 +62,9 @@ const TaskService : TaskServiceType = (() => {
         }
     }
 
-    async function getTasksByCriteria(searchWord?: string, labelIds?: Label['_id'][], noteIds?: Note['_id'][], date?: Date, isCompleted?: boolean): Promise<Message<Task[]>> {
+    async function getTasksByCriteria(searchWord?: string, labelIds?: Label['_id'][], noteIds?: Note['_id'][], date?: Date, isCompleted?: boolean, limit?: number): Promise<Message<Task[]>> {
         try {
-            const msg: Message<TaskEntity[]> = await TaskDAO.getTasksByCriteria(searchWord, labelIds, noteIds, date, isCompleted);
+            const msg: Message<TaskEntity[]> = await TaskDAO.getTasksByCriteria(searchWord, labelIds, noteIds, date, isCompleted, limit);
             if (!msg.getIsSuccess()) {
                 throw new Error(msg.getError());
             }

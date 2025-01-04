@@ -11,8 +11,7 @@ import LabelSelectItem from "./LabelSelectItem";
 
 //services
 import { useTheme } from '@react-navigation/native';
-import {useAlertProvider, useLabelsData} from "../../hooks";
-import AlertModal from "../atomic/AlertModal";
+import {useLabelsData} from "../../controllers";
 
 
 type LabelSelectModalProps = {
@@ -30,7 +29,7 @@ const LabelSelectModal : React.FC<LabelSelectModalProps> = ({
     style,
     onPressCancel,
 }) => {
-    const { data: allLabels, loading, error } = useLabelsData();
+    const { allLabels, loading, error } = useLabelsData();
     const [ modalShow, setModalShow ] = React.useState<'listLabel' | 'addLabel' | 'none'>(visible ? 'listLabel' : 'none');
     const { colors } = useTheme();
     // const {

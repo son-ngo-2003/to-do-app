@@ -1,10 +1,7 @@
 import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
-import {Text, View, Pressable, StyleSheet, TouchableOpacity} from 'react-native';
+import {Text, View, StyleSheet, TouchableOpacity} from 'react-native';
 import { Typography, Outlines } from '../../styles';
-import { LabelsList } from '../label';
-
-import { Icon } from '../atomic';
 import {TaskItem} from "./index";
 
 const TASKTREE_CIRCLE_RADIUS = 6;
@@ -17,7 +14,6 @@ type TaskTreeProps = {
     onPressShowMore?: () => void,
 
     colorTree: string,
-    limitNumberItems?: number,
     showLabel?: boolean,
 }
 

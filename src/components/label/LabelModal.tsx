@@ -13,15 +13,14 @@ import {
     Overlay
 } from '../atomic';
 import {ColorSelect} from './atomic/';
-import {AlertFunctionType, useAlertProvider, useLabelsData} from "../../hooks";
+import {AlertFunctionType, useAlertProvider} from "../../hooks";
 import AlertModal from "../atomic/AlertModal";
 import formReducer, {FormAction, FormActionKind} from "../../reducers/formReducer";
 import {LabelFormState} from "../../types/formStateType";
 import {
-    createInitialLabel, createInitialTask,
-    fromStateToLabel, isLabelStateEmpty,
-    isStateOfLabel, isStateOfTask, isTaskStateEmpty
+    createInitialLabel, fromStateToLabel, isLabelStateEmpty, isStateOfLabel,
 } from "../../helpers/formState";
+import { useLabelsData } from "../../controllers";
 import {debounce} from "lodash";
 
 type LabelModalProps = {

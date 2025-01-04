@@ -1,21 +1,20 @@
 import { useEffect, useState } from 'react';
-import { TaskService } from "../../services";
+import AppService, { TaskService } from "../services";
 
 const useTasksData = (
     toFetchAllData: boolean = true
     // if only use addTask, updateTask, deleteTask,... , no need to fetch all data
 ) => {
-    const [data, setData] = useState<Task[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | undefined>();
+    const [ allTasks, setAllTasks ] = useState<Task[]>([]);
+    const [ loading, setLoading ] = useState<boolean>(false);
+    const [ error, setError ] = useState<string>();
 
     const fetchTasks = async () => {
         try {
             setLoading(true);
-
             const msg = await TaskService.getAllTasks();
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
-            setData(msg.getData());
+            setAllTasks(msg.getData());
         } catch (e) {
             let errorMessage = "Error fetching tasks";
             if (e instanceof Error) errorMessage = e.message;
@@ -25,10 +24,31 @@ const useTasksData = (
         }
     };
 
+    const getAllTasksGroupByLabels = async (
+        withTasksNoLabel?: boolean,
+        date?: Date,
+        isCompleted?: boolean,
+        limit?: number,
+    ) => {
+        try {
+            setLoading(true);
+            const msg = await AppService.getAllTasksGroupByLabels(date, isCompleted, limit, withTasksNoLabel);
+            if (!msg.getIsSuccess()) throw new Error(msg.getError());
+            return msg.getData();
+        } catch (e) {
+            console.error(e);
+            let errorMessage = "Error fetching tasks group by labels";
+            if (e instanceof Error) errorMessage = e.message;
+            setError(errorMessage);
+            throw e;
+        } finally {
+            setLoading(false);
+        }
+    }
+
     const getTaskById = async (id: string) => {
         try {
             setLoading(true);
-
             const msg = await TaskService.getTaskById(id);
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
             return msg.getData();
@@ -47,7 +67,7 @@ const useTasksData = (
             setLoading(true);
             const msg = await TaskService.addTask(task);
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
-            setData([...data, msg.getData()]);
+            setAllTasks([...allTasks, msg.getData()]);
             return msg.getData();
         } catch (e) {
             let errorMessage = "Error adding task";
@@ -64,7 +84,7 @@ const useTasksData = (
             setLoading(true);
             const msg = await TaskService.updateTask(task);
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
-            setData(data.map((item) => (item._id === msg.getData()._id ? msg.getData() : item)));
+            setAllTasks(allTasks.map((item) => (item._id === msg.getData()._id ? msg.getData() : item)));
             return msg.getData();
         } catch (e) {
             let errorMessage = "Error updating task";
@@ -81,7 +101,7 @@ const useTasksData = (
             setLoading(true);
             const msg = await TaskService.deleteTask(task);
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
-            setData(data.filter((item) => item._id !== task._id));
+            setAllTasks(allTasks.filter((item) => item._id !== task._id));
             return msg.getData();
         } catch (e) {
             let errorMessage = "Error deleting task";
@@ -97,7 +117,9 @@ const useTasksData = (
         if (toFetchAllData) fetchTasks();
     }, []);
 
-    return { data, loading, error, addTask, updateTask, deleteTask, getTaskById };
+    return { allTasks, loading, error, addTask, updateTask, deleteTask,
+        getTaskById, getAllTasksGroupByLabels
+    };
 };
 
 export default useTasksData;

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Text, View, Pressable, StyleSheet, DimensionValue} from 'react-native';
+import {Text, View, Pressable, StyleSheet, ViewStyle} from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { Bases, Typography, Outlines } from '../../styles';
 import { useTheme } from '@react-navigation/native';
@@ -16,7 +16,16 @@ type NoteCardProps = {
     onPress?: (note: Note) => void,
     onPressDelete?: (note: Note) => void,
     onPressEdit?: (note: Note) => void,
+
+    style?: ViewStyle,
 }
+
+export const CARD_DIMENSIONS = {
+    portrait: {height: 200},
+    landscape: {width: 240, height: 150},
+}
+
+export const LABEL_HEIGHT = 40;
 
 const NoteCard: React.FC<NoteCardProps> = ({
     note,
@@ -26,34 +35,31 @@ const NoteCard: React.FC<NoteCardProps> = ({
     onPress,
     onPressDelete,
     onPressEdit,
+
+    style,
 }) => {
     const { colors } = useTheme();
-    let dimensions : {width: DimensionValue, height: number} = {width: 240, height: 150};
-    orientation === 'portrait' && (dimensions.width = '100%', dimensions.height = 200);
-    showLabels && (dimensions.height += 40);
+    const dimensions = React.useMemo(() => {
+        let dim = {...CARD_DIMENSIONS[orientation]};
+        showLabels && (dim.height += LABEL_HEIGHT);
+        return dim;
+    }, [orientation, showLabels]);
 
     const onPressCard = React.useCallback(() => {
-        //TODO:
         onPress?.(note)
-        console.log("note card: onPressCard");
     },[onPress, note]);
 
     const onPressDeleteButton = React.useCallback(() => {
-        //TODO:
+        //TODO: ??
         onPressDelete?.(note)
-        console.log("note card: onPressDeleteButton");
     },[onPressDelete, note]);
 
     const onPressEditButton = React.useCallback(() => {
-        //TODO:
         onPressEdit?.(note)
-        console.log("note card: onPressEditButton");
     },[onPressEdit, note]);
 
     return (
-        <View  //onPress={onPressCard}
-                    style={[styles.container, {backgroundColor: colors.card},
-                            dimensions,]}>
+        <View  style={[styles.container, {backgroundColor: colors.card}, dimensions, style]}>
             <View style={[styles.buttonsContainer]}>
                 <Pressable  onPress={onPressEditButton}
                             style={Bases.flip.horizontal}  hitSlop={6}>

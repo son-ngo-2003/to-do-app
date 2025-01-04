@@ -1,20 +1,20 @@
 import { useEffect, useState } from 'react';
-import { LabelService } from "../../services";
+import AppService, {LabelService} from "../services";
 
 const useLabelsData = (
     toFetchAllData: boolean = true
     // if only use addLabel, updateLabel, deleteLabel, no need to fetch all data
 ) => {
-    const [data, setData] = useState<Label[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | undefined>();
+    const [ allLabels, setAllLabel ] = useState<Label[]>([]);
+    const [ loading, setLoading ] = useState<boolean>(false);
+    const [ error, setError ] = useState<string>();
 
     const fetchLabels = async () => {
         try {
             setLoading(true);
-            const msg = await LabelService.getAllLabels();
+            const msg = await AppService.getAllLabels();
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
-            setData(msg.getData());
+            setAllLabel (msg.getData());
         } catch (e) {
             let errorMessage = "Error fetching labels";
             if (e instanceof Error) errorMessage = e.message;
@@ -24,6 +24,22 @@ const useLabelsData = (
             setLoading(false);
         }
     };
+
+    const getAllLabels = async () => {
+        try {
+            setLoading(true);
+            const msg = await AppService.getAllLabels();
+            if (!msg.getIsSuccess()) throw new Error(msg.getError());
+            return msg.getData();
+        } catch (e) {
+            let errorMessage = "Error fetching labels";
+            if (e instanceof Error) errorMessage = e.message;
+            setError(errorMessage);
+            throw e; // Re-throw the error to propagate it if needed
+        } finally {
+            setLoading(false);
+        }
+    }
 
     const getLabelById = async (id: string) => {
         try {
@@ -46,7 +62,7 @@ const useLabelsData = (
             setLoading(true);
             const msg = await LabelService.addLabel(label);
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
-            setData([...data, msg.getData()]);
+            setAllLabel ([...allLabels, msg.getData()]);
             return msg.getData();
         } catch (e) {
             let errorMessage = "Error adding label";
@@ -63,7 +79,7 @@ const useLabelsData = (
             setLoading(true);
             const msg = await LabelService.updateLabel(label);
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
-            setData(data.map((item) => (item._id === msg.getData()._id ? msg.getData() : item)));
+            setAllLabel( allLabels.map((item) => (item._id === msg.getData()._id ? msg.getData() : item)) );
             return msg.getData();
         } catch (e) {
             let errorMessage = "Error updating label";
@@ -80,7 +96,7 @@ const useLabelsData = (
             setLoading(true);
             const msg = await LabelService.deleteLabel(label);
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
-            setData(data.filter((item) => item._id !== label._id));
+            setAllLabel (allLabels.filter((item) => item._id !== label._id));
             return msg.getData();
         } catch (e) {
             let errorMessage = "Error deleting label";
@@ -96,7 +112,10 @@ const useLabelsData = (
         if (toFetchAllData) fetchLabels();
     }, []);
 
-    return { data, loading, error, addLabel, updateLabel, deleteLabel, getLabelById };
+    return { allLabels, loading, error,
+        addLabel, updateLabel, deleteLabel,
+        getLabelById, fetchLabels, getAllLabels
+    };
 };
 
 export default useLabelsData;

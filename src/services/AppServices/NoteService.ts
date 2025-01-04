@@ -4,7 +4,7 @@ import Mapping from "./mapping";
 import { Message } from "../models";
 
 interface NoteServiceType {
-    getAllNotes:        () => Promise<Message<Note[]>>,
+    getAllNotes:        (limit?: number) => Promise<Message<Note[]>>,
     getNoteById:        (_id: Note['_id']) => Promise<Message<Note>>,
 
     addNote:           (note: Partial<Note>) => Promise<Message<Note>>,
@@ -13,7 +13,7 @@ interface NoteServiceType {
 }
 
 const NoteService : NoteServiceType = (() => {
-    async function getAllNotes(): Promise<Message<Note[]>> {
+    async function getAllNotes(limit?: number): Promise<Message<Note[]>> {
         try {
             const msg: Message<NoteEntity[]> = await NoteDAO.getAllNotes();
             if (!msg.getIsSuccess()) {

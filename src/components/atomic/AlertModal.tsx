@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
 import {Pressable, View, StyleSheet, Text, ActivityIndicator, Modal} from 'react-native';
 import {Typography, Outlines, Layouts, Bases, Colors} from '../../styles';
-import BaseModal from "./BaseModal";
+// import BaseModal from "./BaseModal";
 
 //components
 import { Icon, Overlay } from '../atomic';
@@ -21,7 +21,7 @@ const SECONDARY_BUTTON_TEXT = { //TODO: move to constant
     warning: 'Cancel',
     error: 'Close',
     info: undefined,
-    pending: 'Cancel'
+    pending: undefined,
 }
 
 const PRIMARY_BUTTON_COLOR = { //TODO: move to constant

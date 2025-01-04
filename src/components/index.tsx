@@ -19,7 +19,8 @@ export { LabelTag,
         LabelsList,
         LabelSelectModal
 } from './label';
-export { NoteCard, 
+export { NoteCard,
+        AddNoteCard,
         NoteModal,
         NoteInTaskItem,
 } from './note'
@@ -27,6 +28,7 @@ export { TaskItem,
         TaskProgressCard,
         TaskTree,
         TaskModal,
+        AddTaskCard,
 } from './task';
 export { Calendar,
         CalendarList,

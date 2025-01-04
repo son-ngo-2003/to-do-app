@@ -1,1 +1,1 @@
-export { LabelService, NoteService, TaskService } from './AppServices';
+export {default, LabelService, NoteService, TaskService } from './AppServices';

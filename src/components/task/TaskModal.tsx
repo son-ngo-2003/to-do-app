@@ -40,7 +40,7 @@ import {
 import {type AlertFunctionType, useAlertProvider} from "../../hooks";
 import AlertModal from "../atomic/AlertModal";
 import {debounce} from "lodash";
-import useTasksData from "../../hooks/dataHooks/useTasksData";
+import {useTasksData} from "../../controllers";
 
 type TaskModalProps = {
     mode: 'add' | 'edit', //TODO: add a noti text in case of create a new task but start time in the past
@@ -48,8 +48,8 @@ type TaskModalProps = {
     visible?: boolean,
     onPressNote?: (note: Note) => void,
 
-    onAddTask?: (task: Partial<Task>) => void, //only Partial<Task> cause id, createdAt, updatedAt, completedAt will be added by service, not by user
-    onUpdateTask?: (task: Partial<Task>) => void,
+    onAddTask?: (task: Task) => void, //only Partial<Task> cause id, createdAt, updatedAt, completedAt will be added by service, not by user
+    onUpdateTask?: (task: Task) => void,
     onCancel?: (draftTask: Partial<Task>, isEdited: boolean, alert: AlertFunctionType) => Promise<any>,
         //when press turn off modal or when press outside of modal, draft task is what user has changed but not yet press add or update
         //alert is a function to show alert modal, it will be used to ask user if they want to save changes or not
@@ -109,10 +109,10 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
             setButtonMode('loading');
 
             const task = fromStateToTask(taskFormState);
-            onAddTask?.(task);
             const newTask = await addTask(task);
             dispatchTaskForm({type: FormActionKind.UPDATE_ALL, payload: createInitialTask(newTask)});
             setOriginalTask(newTask);
+            onAddTask?.(newTask);
 
             setButtonMode('added');
         } catch (e) {
@@ -131,10 +131,10 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
             setButtonMode('loading');
 
             const task = fromStateToTask(taskFormState);
-            onUpdateTask?.(task);
             const newTask = await updateTask?.(task);
             dispatchTaskForm({ type: FormActionKind.UPDATE_ALL, payload: createInitialTask(newTask) });
             setOriginalTask(newTask);
+            onUpdateTask?.(newTask);
 
             setButtonMode('edited');
         } catch (e) {

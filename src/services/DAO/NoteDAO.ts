@@ -53,9 +53,9 @@ const NoteDAO : NoteDAOType = (() => {
         }
     }
 
-    async function getAllNotes(): Promise<Message<NoteEntity[]>> {
+    async function getAllNotes(limit?: number): Promise<Message<NoteEntity[]>> {
         try {
-            return await StorageService.getAllDataByType<NoteEntity>('note');
+            return await StorageService.getAllDataByType<NoteEntity>('note', limit);
         } catch (error) {
             return Message.failure(error);
         }

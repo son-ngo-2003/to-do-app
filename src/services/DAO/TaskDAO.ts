@@ -6,13 +6,14 @@ import { Message } from "../models";
 import { generateId } from "../../utils/generator";
 import { slugInclude } from "../../utils/slugUtil";
 import { isDateBetween } from "../../utils/dateUtil";
+import {UNLABELED_KEY} from "../../constant";
 
 interface TaskDAOType {
     addTask:           (task: Partial<TaskEntity>) => Promise<Message<TaskEntity>>,
 
     getAllTasks:       () => Promise<Message<TaskEntity[]>>,
     getTaskByID:       (_id: string) => Promise<Message<TaskEntity>>,
-    getTasksByCriteria:    (searchWord?: string, labelId?: Label['_id'][], noteIds?: Note['_id'][], date?: Date, isCompleted?: boolean) => Promise<Message<TaskEntity[]>>,
+    getTasksByCriteria:    (searchWord?: string, labelId?: Label['_id'][], noteIds?: Note['_id'][], date?: Date, isCompleted?: boolean, limit?: number) => Promise<Message<TaskEntity[]>>,
     //TODO: get completed tasks, get deleted tasks
     //TODO: add params isCompleted for getTasksByCriteria
 
@@ -110,12 +111,15 @@ const TaskDAO : TaskDAOType = (() => {
         }
     }
 
-    async function getTasksByCriteria(searchWord?: string, labelIds?: Label['_id'][], noteIds?: Note['_id'][], date?: Date, isCompleted?: boolean) : Promise<Message<TaskEntity[]>> {
+    async function getTasksByCriteria(searchWord?: string, labelIds?: Label['_id'][], noteIds?: Note['_id'][], date?: Date, isCompleted?: boolean, limit?: number) : Promise<Message<TaskEntity[]>> {
         try {
             const message : Message<TaskEntity[]> = await getAllTasks();
             if (!message.getIsSuccess()) return message;
 
-            const tasks : TaskEntity[] = message.getData();
+            let tasks : TaskEntity[] = message.getData();
+            if (limit) {
+                tasks = tasks.slice(0, limit);
+            }
 
             const results = tasks.filter(task =>
                 (!searchWord 
@@ -123,7 +127,8 @@ const TaskDAO : TaskDAOType = (() => {
                 (!noteIds
                     || (task.noteId && noteIds.includes(task.noteId))) &&
                 (!labelIds
-                    || task.labelIds.some( labelId => labelIds.includes(labelId) )) &&
+                    || task.labelIds.some( labelId => labelIds.includes(labelId) )
+                    || (labelIds.includes(UNLABELED_KEY) && task.labelIds.length === 0)) &&
                 (!isCompleted
                     || task.isCompleted === isCompleted) &&
                 (!date 

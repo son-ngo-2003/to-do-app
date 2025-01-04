@@ -5,7 +5,7 @@ import {replacer, reviver} from "../../utils/jsonUtil";
 
 interface StorageServiceType {
     addData:                    <T extends { _id: string, isDeleted: boolean }>  (data: T, type: ModelType, index: number) => Promise<Message<T>>,
-    getAllDataByType:           <T extends { isDeleted: boolean }>               (type: ModelType) => Promise<Message<T[]>>,
+    getAllDataByType:           <T extends { isDeleted: boolean }>               (type: ModelType, limit?: number, offset?: number) => Promise<Message<T[]>>,
     getDataByTypeAndId:         <T extends { _id: string, isDeleted: boolean }>  (type: ModelType, _id: string) => Promise<Message<T>>,
     updateDataByTypeAndId:      <T extends { _id: string, isDeleted: boolean }>  (type: ModelType, _id: string, newData: Partial<T>) => Promise<Message<T>>,
     deleteSoftDataByTypeAndId:  <T extends { _id: string, isDeleted: boolean }>  (type: ModelType, _id: string) => Promise<Message<T>>,
@@ -34,7 +34,7 @@ const StorageService : StorageServiceType = (() => {
     }
 
     async function getAllDataByType<T extends {isDeleted : boolean}>
-        ( type: ModelType ): Promise<Message<T[]>> {
+        ( type: ModelType, limit?: number, offset: number = 0 ): Promise<Message<T[]>> {
             try {
                 const keys: string[] = (await AsyncStorage.getAllKeys()).filter(key => key.startsWith(`@${type}`));
 
@@ -48,6 +48,10 @@ const StorageService : StorageServiceType = (() => {
                         return data;
                     })
                     .filter((data) => data && !data.isDeleted) as T[];
+
+                if (limit) {
+                    listData.slice(offset, offset + limit);
+                }
 
                 return Message.success(listData);
             }

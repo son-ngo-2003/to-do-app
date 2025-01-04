@@ -20,15 +20,15 @@ import {
     isTaskStateEmpty
 } from "../../helpers/formState";
 import {NoteFormState} from "../../types/formStateType";
-import useNotesData from "../../hooks/dataHooks/useNotesData";
+import {useNotesData} from "../../controllers";
 
 type NoteModalProps = {
     mode: 'add' | 'edit',
     noteId?: Note['_id'],
     visible?: boolean,
 
-    onAddNote?: (note: Partial<Note>) => void, //only Partial<Note> cause id, createdAt, updatedAt, completedAt will be added by service, not by user
-    onUpdateNote?: (note: Partial<Note>) => void,
+    onAddNote?: (note: Note) => void, //only Partial<Note> cause id, createdAt, updatedAt, completedAt will be added by service, not by user
+    onUpdateNote?: (note: Note) => void,
     onCancel?: (draftNote: Partial<Note>, isEdited: boolean, alert: AlertFunctionType) => Promise<any>,
         //when press turn off modal or when press outside of modal, draft note is what user has changed but not yet press add or update
         //alert is a function to show alert modal, it will be used to ask user if they want to save changes or not
@@ -86,10 +86,10 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
             setButtonMode('loading');
 
             const note = fromStateToNote(noteFormState);
-            onAddNote?.(note);
             const newNote = await addNote(note);
             dispatchNoteForm({type: FormActionKind.UPDATE_ALL, payload: createInitialNote(newNote)});
             setOriginalNote(newNote);
+            onAddNote?.(newNote);
 
             setButtonMode('added');
         } catch (e) {
@@ -109,10 +109,10 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
             setButtonMode('loading');
 
             const note = fromStateToNote(noteFormState);
-            onUpdateNote?.(note);
             const newNote = await updateNote?.(note);
             dispatchNoteForm({type: FormActionKind.UPDATE_ALL, payload: createInitialNote(newNote)});
             setOriginalNote(newNote);
+            onUpdateNote?.(newNote);
 
             setButtonMode('edited');
         } catch (e) {

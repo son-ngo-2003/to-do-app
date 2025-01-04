@@ -1,20 +1,20 @@
 import { useEffect, useState } from 'react';
-import { NoteService } from "../../services";
+import AppService, { NoteService } from "../services";
 
 const useNotesData = (
     toFetchAllData: boolean = true
     // if only use addNote, updateNote, deleteNote,... , no need to fetch all data
 ) => {
-    const [data, setData] = useState<Note[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | undefined>();
+    const [ allNotes, setAllNotes ] = useState<Note[]>([]);
+    const [ loading, setLoading ] = useState<boolean>(false);
+    const [ error, setError ] = useState<string>();
 
     const fetchNotes = async () => {
         try {
             setLoading(true);
-            const msg = await NoteService.getAllNotes();
+            const msg = await AppService.getAllNotes();
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
-            setData(msg.getData());
+            setAllNotes(msg.getData());
         } catch (e) {
             let errorMessage = "Error fetching notes";
             if (e instanceof Error) errorMessage = e.message;
@@ -23,6 +23,22 @@ const useNotesData = (
             setLoading(false);
         }
     };
+
+    const getAllNotes = async (limit?: number) => {
+        try {
+            setLoading(true);
+            const msg = await AppService.getAllNotes(limit);
+            if (!msg.getIsSuccess()) throw new Error(msg.getError());
+            return msg.getData();
+        } catch (e) {
+            let errorMessage = "Error fetching notes";
+            if (e instanceof Error) errorMessage = e.message;
+            setError(errorMessage);
+            throw e;
+        } finally {
+            setLoading(false);
+        }
+    }
 
     const getNoteById = async (id: string) => {
         try {
@@ -45,7 +61,7 @@ const useNotesData = (
             setLoading(true);
             const msg = await NoteService.addNote(note);
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
-            setData([...data, msg.getData()]);
+            setAllNotes([...allNotes, msg.getData()]);
             return msg.getData();
         } catch (e) {
             let errorMessage = "Error adding note";
@@ -62,7 +78,7 @@ const useNotesData = (
             setLoading(true);
             const msg = await NoteService.updateNote(note);
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
-            setData(data.map((item) => (item._id === msg.getData()._id ? msg.getData() : item)));
+            setAllNotes(allNotes.map((item) => (item._id === msg.getData()._id ? msg.getData() : item)));
             return msg.getData();
         } catch (e) {
             let errorMessage = "Error updating note";
@@ -79,7 +95,7 @@ const useNotesData = (
             setLoading(true);
             const msg = await NoteService.deleteNote(note);
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
-            setData(data.filter((item) => item._id !== note._id));
+            setAllNotes(allNotes.filter((item) => item._id !== note._id));
             return msg.getData();
         } catch (e) {
             let errorMessage = "Error deleting note";
@@ -95,7 +111,9 @@ const useNotesData = (
         if (toFetchAllData) fetchNotes();
     }, []);
 
-    return { data, loading, error, addNote, updateNote, deleteNote, getNoteById };
+    return { allNotes, loading, error,
+        addNote, updateNote, deleteNote,
+        getNoteById, getAllNotes, fetchNotes };
 };
 
 export default useNotesData;
