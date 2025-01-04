@@ -19,8 +19,8 @@ import formReducer, {FormAction, FormActionKind} from "../../reducers/formReduce
 import {LabelFormState} from "../../types/formStateType";
 import {
     createInitialLabel, createInitialTask,
-    fromStateToLabel,
-    isStateOfLabel
+    fromStateToLabel, isLabelStateEmpty,
+    isStateOfLabel, isStateOfTask, isTaskStateEmpty
 } from "../../helpers/formState";
 import {debounce} from "lodash";
 
@@ -146,8 +146,8 @@ const LabelModal = React.forwardRef<LabelModalRef, LabelModalProps> (({
     }), [onPressCancel]);
 
     React.useEffect(() => {
+        if (!visible) {return }
         setButtonMode(mode);
-        setIsEdited(false);
         if (labelId) {
             getLabelById(labelId).then(label => {
                 setOriginalLabel(label);
@@ -156,10 +156,12 @@ const LabelModal = React.forwardRef<LabelModalRef, LabelModalProps> (({
         } else {
             dispatchLabelForm({type: FormActionKind.UPDATE_ALL, payload: createInitialLabel()});
         }
-    }, [labelId, mode]);
+    }, [labelId, mode, visible]);
 
     const checkIsEdited = debounce(() => {
-        const _isEdited = !originalLabel || !isStateOfLabel(labelFormState, originalLabel);
+        const _isEdited = buttonMode == 'add'
+            ? !isLabelStateEmpty(labelFormState)
+            : !!originalLabel && !isStateOfLabel(labelFormState, originalLabel) ;
         setIsEdited(_isEdited);
         if (_isEdited && (buttonMode === 'added' || buttonMode === 'edited')) {
             setButtonMode('edit');

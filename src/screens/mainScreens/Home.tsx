@@ -151,11 +151,17 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
             ...ALERT_OPTION_NOT_SAVED_FOR_NOTE_MODAL,
             primaryButton: {
                 ...ALERT_OPTION_NOT_SAVED_FOR_NOTE_MODAL.primaryButton,
-                onPress: () => {console.log('Note Modal (Home): Discard Note'); setCurrentModal('none')}
+                onPress: () => {
+                    console.log('Note Modal (Home): Discard Note');
+                    setCurrentModal('none')
+                }
             },
             secondaryButton: {
                 ...ALERT_OPTION_NOT_SAVED_FOR_NOTE_MODAL.secondaryButton,
-                onPress: () => {console.log('Note Modal (Home): Cancel Discard Note')}
+                onPress: () => {
+                    console.log('Note Modal (Home): Cancel Discard Note')
+                    setCurrentModal('none');
+                }
             }
         });
     }, [setCurrentModal]);
@@ -179,6 +185,10 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
         setCurrentModal('task');
         setCurrentMode('add');
     }, [setModalTaskId, setCurrentModal, setCurrentMode]);
+
+    React.useEffect(() => {
+        console.log('Current Modal: ', currentModal);
+    }, [currentModal])
 
     React.useEffect( () => {
         // TODO: get notes

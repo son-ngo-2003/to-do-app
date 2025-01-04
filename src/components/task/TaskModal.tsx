@@ -35,7 +35,7 @@ import {
     createInitialNote,
     createInitialTask,
     fromStateToTask,
-    isStateOfTask
+    isStateOfTask, isTaskStateEmpty
 } from "../../helpers/formState";
 import {type AlertFunctionType, useAlertProvider} from "../../hooks";
 import AlertModal from "../atomic/AlertModal";
@@ -204,8 +204,8 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
     }), [onPressCancel]);
 
     React.useEffect( () => {
+        if (!visible) {return }
         setButtonMode(mode);
-        setIsEdited(false);
         if (taskId) {
             getTaskById(taskId).then(task => {
                 dispatchTaskForm({type: FormActionKind.UPDATE_ALL, payload: createInitialTask(task)});
@@ -214,15 +214,17 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
         } else {
             dispatchTaskForm({type: FormActionKind.UPDATE_ALL, payload: createInitialTask()});
         }
-    }, [taskId, mode]);
+    }, [taskId, mode, visible]);
 
     const checkIsEdited = debounce(() => {
-        const _isEdited = !originTask || !isStateOfTask(taskFormState, originTask);
+        const _isEdited = buttonMode == 'add'
+                                    ? !isTaskStateEmpty(taskFormState)
+                                    : !!originTask && !isStateOfTask(taskFormState, originTask) ;
         setIsEdited(_isEdited);
         if (_isEdited && (buttonMode === 'added' || buttonMode === 'edited')) {
             setButtonMode('edit');
         }
-    }, 300);
+    }, 200);
 
     React.useEffect(() => {
         if (mode === 'edit' && !originTask) { return }

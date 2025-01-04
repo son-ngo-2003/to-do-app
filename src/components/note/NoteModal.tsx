@@ -12,7 +12,13 @@ import {EditorBridge} from "@10play/tentap-editor";
 import {type AlertFunctionType, useAlertProvider} from "../../hooks";
 import AlertModal from "../atomic/AlertModal";
 import formReducer, {FormAction, FormActionKind} from "../../reducers/formReducer";
-import {createInitialNote, fromStateToNote, isStateOfNote} from "../../helpers/formState";
+import {
+    createInitialNote,
+    fromStateToNote,
+    isNoteStateEmpty,
+    isStateOfNote, isStateOfTask,
+    isTaskStateEmpty
+} from "../../helpers/formState";
 import {NoteFormState} from "../../types/formStateType";
 import useNotesData from "../../hooks/dataHooks/useNotesData";
 
@@ -143,28 +149,32 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
     }), [onPressCancel]);
 
     React.useEffect(() => {
+        if (!visible) {return }
         setButtonMode(mode);
-        setIsEdited(false);
         if (noteId) {
             getNoteById(noteId).then((note) => {
                 dispatchNoteForm({type: FormActionKind.UPDATE_ALL, payload: createInitialNote(note)});
                 setOriginalNote(note);
+                console.log(note)
             });
         } else {
             dispatchNoteForm({type: FormActionKind.UPDATE_ALL, payload: createInitialNote()});
+            setOriginalNote(undefined);
         }
-    }, [noteId, mode]);
+    }, [noteId, mode, visible]);
 
     const checkIsEdited = debounce(() => {
-        const isEdited =!originalNote || !isStateOfNote(noteFormState, originalNote);
-        setIsEdited(isEdited);
-        if (isEdited && (buttonMode === 'edited' || buttonMode === 'added')) {
+        const _isEdited = buttonMode == 'add'
+            ? !isNoteStateEmpty(noteFormState)
+            : !!originalNote && !isStateOfNote(noteFormState, originalNote) ;
+        setIsEdited(_isEdited);
+        if (_isEdited && (buttonMode === 'added' || buttonMode === 'edited')) {
             setButtonMode('edit');
         }
-    }, 300);
+    }, 200);
 
     React.useEffect(() => {
-        if (mode === 'edit' && !originalNote) { return }
+        if (buttonMode === 'edit' && !originalNote) { return }
         checkIsEdited();
     }, [noteFormState, originalNote]);
 

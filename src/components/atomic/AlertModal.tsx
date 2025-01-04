@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
-import {Pressable, View, StyleSheet, Text, ActivityIndicator} from 'react-native';
+import {Pressable, View, StyleSheet, Text, ActivityIndicator, Modal} from 'react-native';
 import {Typography, Outlines, Layouts, Bases, Colors} from '../../styles';
 import BaseModal from "./BaseModal";
 
@@ -104,12 +104,15 @@ const AlertModal: React.FC<AlertModalProps> = ({
     , [buttonInfo.secondaryText, buttonInfo.primaryText]);
 
     return (
-        <BaseModal isVisible={visible} hasBackdrop={true} avoidKeyboard={true}
-                   animationIn={'fadeInUpBig'} animationInTiming={500} animationOut={'fadeOutDownBig'} animationOutTiming={500}
-                   onModalHide={onModalHide} onModalWillHide={onModalWillHide} onModalShow={onModalShow} onModalWillShow={onModalWillShow}
+        // <BaseModal isVisible={visible} hasBackdrop={true} avoidKeyboard={true}
+        //            animationIn={'fadeInUpBig'} animationInTiming={500} animationOut={'fadeOutDownBig'} animationOutTiming={500}
+        //            onModalHide={onModalHide} onModalWillHide={onModalWillHide} onModalShow={onModalShow} onModalWillShow={onModalWillShow}
+        //
+        //            customBackdrop={<Overlay onPress={useCancel ? (onPressCancel ?? secondaryButton?.onPress ) : undefined} background={'highOpacity'}/>}
+        // >
+        <Modal visible={visible} animationType={'fade'} transparent={true} onRequestClose={onPressCancel ?? secondaryButton?.onPress}>
+            <Overlay onPress={useCancel ? (onPressCancel ?? secondaryButton?.onPress ) : undefined} background={'highOpacity'}/>
 
-                   customBackdrop={<Overlay onPress={useCancel ? (onPressCancel ?? secondaryButton?.onPress ) : undefined} background={'highOpacity'}/>}
-        >
             <View style={[styles.container]}>
 
                 {/* Modal parts */}
@@ -167,7 +170,7 @@ const AlertModal: React.FC<AlertModalProps> = ({
 
                 </View>
             </View>
-        </BaseModal>
+        </Modal>
     )
 }
 export default AlertModal;
@@ -179,7 +182,7 @@ const styles = StyleSheet.create({
     },
 
     modalContainer: {
-        width: '80%',
+        width: '75%',
         alignSelf: 'center',
         paddingVertical: 20,
         paddingHorizontal: 15,

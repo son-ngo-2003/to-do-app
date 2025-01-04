@@ -40,6 +40,14 @@ const isStateOfTask = (taskState: TaskFormState, task: Task): boolean => {
         taskState._id === task._id;
 }
 
+const isTaskStateEmpty = (taskState: TaskFormState): boolean => {
+    return taskState.title === '' &&
+        taskState.note === undefined &&
+        taskState.labels.length === 0 &&
+        taskState.repeat === undefined &&
+        taskState._id === '';
+}
+
 const createInitialNote = (note?: Note): NoteFormState => ({
     _id: note?._id || '',
     title: note?.title || '',
@@ -61,6 +69,13 @@ const isStateOfNote = (noteState: NoteFormState, note: Note): boolean => {
         noteState._id === note._id;
 }
 
+const isNoteStateEmpty = (noteState: NoteFormState): boolean => {
+    return noteState.title === '' &&
+        noteState.content === '' &&
+        noteState.labels.length === 0 &&
+        noteState._id === '';
+}
+
 const createInitialLabel = (label?: Label): LabelFormState => ({
     _id: label?._id || '',
     name: label?.name || '',
@@ -79,6 +94,12 @@ const isStateOfLabel = (labelState: LabelFormState, label: Label): boolean => {
         labelState._id === label._id;
 }
 
+const isLabelStateEmpty = (labelState: LabelFormState): boolean => {
+    return labelState.name === '' &&
+        labelState.color === '' &&
+        labelState._id === '';
+}
+
 export {
     createInitialTask,
     createInitialNote,
@@ -89,4 +110,7 @@ export {
     isStateOfTask,
     isStateOfNote,
     isStateOfLabel,
+    isTaskStateEmpty,
+    isNoteStateEmpty,
+    isLabelStateEmpty,
 }
