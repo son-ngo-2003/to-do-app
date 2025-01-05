@@ -4,8 +4,9 @@ import Mapping from "./mapping";
 import { Message } from "../models";
 
 interface NoteServiceType {
-    getAllNotes:        (limit?: number) => Promise<Message<Note[]>>,
+    getAllNotes:        (params?: { limit?: number, offset?: number }) => Promise<Message<Note[]>>,
     getNoteById:        (_id: Note['_id']) => Promise<Message<Note>>,
+    getNotesByCriteria: (params?: {searchTerm?: string, labelIds?: Label['_id'][], limit?: number, offset?: number}) => Promise<Message<Note[]>>,
 
     addNote:           (note: Partial<Note>) => Promise<Message<Note>>,
     updateNote:        (note: Partial<Note>) => Promise<Message<Note>>,
@@ -13,15 +14,13 @@ interface NoteServiceType {
 }
 
 const NoteService : NoteServiceType = (() => {
-    async function getAllNotes(limit?: number): Promise<Message<Note[]>> {
+    async function getAllNotes(params?: { limit?: number, offset?: number }): Promise<Message<Note[]>> {
         try {
-            const msg: Message<NoteEntity[]> = await NoteDAO.getAllNotes();
+            const msg: Message<NoteEntity[]> = await NoteDAO.getAllNotes(params);
             if (!msg.getIsSuccess()) {
                 throw new Error(msg.getError());
             }
-            const notes: Note[] = await Promise.all(msg.getData().map( async note => {
-                return await Mapping.noteFromEntity(note);
-            }));
+            const notes: Note[] = await Promise.all(msg.getData().map(Mapping.noteFromEntity));
 
             return Message.success(notes);
         } catch (error) {
@@ -37,6 +36,25 @@ const NoteService : NoteServiceType = (() => {
             }
             return Message.success(await Mapping.noteFromEntity(msg.getData()));
 
+        } catch (error) {
+            return Message.failure(error);
+        }
+    }
+
+    async function getNotesByCriteria(params: {
+        searchTerm?: string,
+        labelIds?: Label['_id'][],
+        limit?: number,
+        offset?: number
+    } = {}): Promise<Message<Note[]>> {
+        try {
+            const msg: Message<NoteEntity[]> = await NoteDAO.getNotesByCriteria(params);
+            if (!msg.getIsSuccess()) {
+                throw new Error(msg.getError());
+            }
+            const notes: Note[] = await Promise.all(msg.getData().map(Mapping.noteFromEntity));
+
+            return Message.success(notes);
         } catch (error) {
             return Message.failure(error);
         }
@@ -92,6 +110,7 @@ const NoteService : NoteServiceType = (() => {
     return {
         getAllNotes,
         getNoteById,
+        getNotesByCriteria,
         addNote,
         updateNote,
         deleteNote,

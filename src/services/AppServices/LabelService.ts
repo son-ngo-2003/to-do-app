@@ -4,18 +4,19 @@ import Mapping from "./mapping";
 import { Message } from "../models";
 
 interface LabelServiceType {
-    getAllLabels:       () => Promise<Message<Label[]>>,
+    getAllLabels:       (params?: { limit?: number, offset?: number }) => Promise<Message<Label[]>>,
     getLabelById:       (id: string) => Promise<Message<Label>>,
+    getLabelsByCriteria:    (params?: { searchTerm?: string, color?: string, limit?: number, offset?: number }) => Promise<Message<Label[]>>,
 
-    addLabel:          (label: Partial<Label>) => Promise<Message<Label>>,
-    updateLabel:       (label: Partial<Label>) => Promise<Message<Label>>,
-    deleteLabel:       (label: Partial<Label>) => Promise<Message<Label>>,
+    addLabel:           (label: Partial<Label>) => Promise<Message<Label>>,
+    updateLabel:        (label: Partial<Label>) => Promise<Message<Label>>,
+    deleteLabel:        (label: Partial<Label>) => Promise<Message<Label>>,
 }
 
 const LabelService : LabelServiceType = (() => {
-    async function getAllLabels(): Promise<Message<Label[]>> {
+    async function getAllLabels(params?: { limit?: number, offset?: number }): Promise<Message<Label[]>> {
         try {
-            const msg: Message<LabelEntity[]> = await LabelDAO.getAllLabels();
+            const msg: Message<LabelEntity[]> = await LabelDAO.getAllLabels(params);
             if (!msg.getIsSuccess()) {
                 throw new Error(msg.getError());
             }
@@ -36,6 +37,20 @@ const LabelService : LabelServiceType = (() => {
             }
             return Message.success(await Mapping.labelFromEntity(msg.getData()));
 
+        } catch (error) {
+            return Message.failure(error);
+        }
+    }
+
+    async function getLabelsByCriteria(params?: { searchTerm?: string, color?: string, limit?: number, offset?: number }): Promise<Message<Label[]>> {
+        try {
+            const msg: Message<LabelEntity[]> = await LabelDAO.getLabelsByCriteria(params);
+            if (!msg.getIsSuccess()) {
+                throw new Error(msg.getError());
+            }
+            const labels: Label[] = await Promise.all(msg.getData().map(Mapping.labelFromEntity));
+
+            return Message.success(labels);
         } catch (error) {
             return Message.failure(error);
         }
@@ -90,6 +105,7 @@ const LabelService : LabelServiceType = (() => {
         addLabel,
         getLabelById,
         getAllLabels,
+        getLabelsByCriteria,
         updateLabel,
         deleteLabel,
     };

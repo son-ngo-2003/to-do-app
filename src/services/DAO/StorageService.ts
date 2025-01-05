@@ -34,7 +34,7 @@ const StorageService : StorageServiceType = (() => {
     }
 
     async function getAllDataByType<T extends {isDeleted : boolean}>
-        ( type: ModelType, limit?: number, offset: number = 0 ): Promise<Message<T[]>> {
+        ( type: ModelType, limit?: number, offset?: number ): Promise<Message<T[]>> {
             try {
                 const keys: string[] = (await AsyncStorage.getAllKeys()).filter(key => key.startsWith(`@${type}`));
 
@@ -49,8 +49,9 @@ const StorageService : StorageServiceType = (() => {
                     })
                     .filter((data) => data && !data.isDeleted) as T[];
 
+                const _offset = offset || 0;
                 if (limit) {
-                    listData.slice(offset, offset + limit);
+                    listData.slice(offset, _offset + limit);
                 }
 
                 return Message.success(listData);

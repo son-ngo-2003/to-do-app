@@ -9,9 +9,9 @@ import { slugInclude } from "../../utils/slugUtil";
 interface NoteDAOType {
     addNote:           (note: Partial<NoteEntity>) => Promise<Message<NoteEntity>>,
 
-    getAllNotes:       () => Promise<Message<NoteEntity[]>>,
+    getAllNotes:       (params?: { limit?: number, offset?: number }) => Promise<Message<NoteEntity[]>>,
     getNoteByID:       (_id: string) => Promise<Message<NoteEntity>>,
-    getNotesByCriteria:    (searchWord?: string, labelIds?: Label['_id'][]) => Promise<Message<NoteEntity[]>>,
+    getNotesByCriteria:    (params?: {searchTerm?: string, labelIds?: Label['_id'][], limit?: number, offset?: number}) => Promise<Message<NoteEntity[]>>,
 
     updateNoteById:    (_id: string, newData: Partial<NoteEntity>) => Promise<Message<NoteEntity>>,
     addLabelToNote:    (labelId: Label['_id'], noteId: string) => Promise<Message<NoteEntity>>, //TODO: move this to service not DAO
@@ -53,9 +53,9 @@ const NoteDAO : NoteDAOType = (() => {
         }
     }
 
-    async function getAllNotes(limit?: number): Promise<Message<NoteEntity[]>> {
+    async function getAllNotes(params?: { limit?: number, offset?: number }): Promise<Message<NoteEntity[]>> {
         try {
-            return await StorageService.getAllDataByType<NoteEntity>('note', limit);
+            return await StorageService.getAllDataByType<NoteEntity>('note', params?.limit, params?.offset);
         } catch (error) {
             return Message.failure(error);
         }
@@ -69,19 +69,26 @@ const NoteDAO : NoteDAOType = (() => {
         }
     }
 
-    async function getNotesByCriteria(searchWord?: string, labelIds?: Label['_id'][]) : Promise<Message<NoteEntity[]>> {
+    async function getNotesByCriteria(params: {
+        searchTerm?: string,
+        labelIds?: Label['_id'][],
+        limit?: number,
+        offset?: number
+    } = {}) : Promise<Message<NoteEntity[]>> {
         try {
             const message : Message<NoteEntity[]> = await getAllNotes();
             if (!message.getIsSuccess()) return message;
 
+            const {searchTerm, labelIds, limit, offset = 0} = params;
             const notes : NoteEntity[] = message.getData();
             notes.filter(note =>
-                (!searchWord 
-                    || slugInclude(note.title, searchWord) 
-                    || slugInclude(note.content, searchWord)) &&
+                (!searchTerm
+                    || slugInclude(note.title, searchTerm)
+                    || slugInclude(note.content, searchTerm)) &&
                 (!labelIds
                     || note.labelIds.some(labelId => labelIds.includes(labelId)))
-            );
+            ).slice(offset, limit ? offset + limit : undefined);
+
             return Message.success(notes);
         } catch (error) {
             return Message.failure(error);

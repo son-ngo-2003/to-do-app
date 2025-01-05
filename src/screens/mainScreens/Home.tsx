@@ -23,7 +23,6 @@ import {
 import {AddTaskCard, FloatingActionButton} from "../../components";
 import {useNotesData, useLabelsData, useTasksData} from "../../controllers";
 import StorageService from "../../services/DAO/StorageService";
-import {LabelService} from "../../services";
 
 type Props = DrawerScreenProps<RootStackParamList, 'Home'>;
 
@@ -47,8 +46,8 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
         StorageService.clearAllData('task');
 
         Promise.all([
-            getAllNotes(LIMIT_FETCH_NOTE),
-            getAllTasksGroupByLabels(true, undefined, undefined, LIMIT_FETCH_TASK),
+            getAllNotes({limit: LIMIT_FETCH_NOTE}),
+            getAllTasksGroupByLabels({date: new Date(), limit: LIMIT_FETCH_TASK, withTasksNoLabel: true}),
             getAllLabels()
         ]).then(([notes, tasksByLabel, labels]) => {
             setAllNotes(notes);
@@ -137,12 +136,12 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
     }, [setModalTaskId, setCurrentModal, setCurrentMode]);
 
     const onAddedNote = React.useCallback((note: Note) => {
-        getAllNotes().then(setAllNotes);
+        getAllNotes({limit: LIMIT_FETCH_NOTE}).then(setAllNotes);
     }, [getAllNotes, setAllNotes]);
 
     const onAddedTask = React.useCallback((task: Task) => {
         Promise.all([
-            getAllTasksGroupByLabels(true, undefined, undefined, LIMIT_FETCH_TASK),
+            getAllTasksGroupByLabels({date: new Date(), limit: LIMIT_FETCH_TASK, withTasksNoLabel: true}),
             getAllLabels()
         ]).then(([tasksByLabel, labels]) => {
             setAllLabels(labels);

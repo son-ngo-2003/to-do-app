@@ -11,9 +11,9 @@ import {UNLABELED_KEY} from "../../constant";
 interface TaskDAOType {
     addTask:           (task: Partial<TaskEntity>) => Promise<Message<TaskEntity>>,
 
-    getAllTasks:       () => Promise<Message<TaskEntity[]>>,
+    getAllTasks:       (params?: { limit?: number, offset?: number }) => Promise<Message<TaskEntity[]>>,
     getTaskByID:       (_id: string) => Promise<Message<TaskEntity>>,
-    getTasksByCriteria:    (searchWord?: string, labelId?: Label['_id'][], noteIds?: Note['_id'][], date?: Date, isCompleted?: boolean, limit?: number) => Promise<Message<TaskEntity[]>>,
+    getTasksByCriteria:    (params?: {searchTerm?: string, labelIds?: Label['_id'][], noteIds?: Note['_id'][], date?: Date, isCompleted?: boolean, limit?: number, offset?: number }) => Promise<Message<TaskEntity[]>>,
     //TODO: get completed tasks, get deleted tasks
     //TODO: add params isCompleted for getTasksByCriteria
 
@@ -95,9 +95,9 @@ const TaskDAO : TaskDAOType = (() => {
         }
     }
 
-    async function getAllTasks(): Promise<Message<TaskEntity[]>> {
+    async function getAllTasks(params?: { limit?: number, offset?: number }): Promise<Message<TaskEntity[]>> {
         try {
-            return await StorageService.getAllDataByType<TaskEntity>('task');
+            return await StorageService.getAllDataByType<TaskEntity>('task', params?.limit, params?.offset);
         } catch (error) {
             return Message.failure(error);
         }
@@ -111,19 +111,25 @@ const TaskDAO : TaskDAOType = (() => {
         }
     }
 
-    async function getTasksByCriteria(searchWord?: string, labelIds?: Label['_id'][], noteIds?: Note['_id'][], date?: Date, isCompleted?: boolean, limit?: number) : Promise<Message<TaskEntity[]>> {
+    async function getTasksByCriteria(params: {
+        searchTerm?: string,
+        labelIds?: Label['_id'][],
+        noteIds?: Note['_id'][],
+        date?: Date,
+        isCompleted?: boolean,
+        limit?: number,
+        offset?: number
+    } = {}) : Promise<Message<TaskEntity[]>> {
         try {
             const message : Message<TaskEntity[]> = await getAllTasks();
             if (!message.getIsSuccess()) return message;
 
             let tasks : TaskEntity[] = message.getData();
-            if (limit) {
-                tasks = tasks.slice(0, limit);
-            }
 
+            const {searchTerm, labelIds, noteIds, date, isCompleted, limit, offset = 0} = params;
             const results = tasks.filter(task =>
-                (!searchWord 
-                    || slugInclude(task.title, searchWord)) &&
+                (!searchTerm
+                    || slugInclude(task.title, searchTerm)) &&
                 (!noteIds
                     || (task.noteId && noteIds.includes(task.noteId))) &&
                 (!labelIds
@@ -134,7 +140,7 @@ const TaskDAO : TaskDAOType = (() => {
                 (!date 
                     || isDateBetween(date, task.start, task.end))
                 //TODO: improve search later with possibility of searching string date: like '24/12' will return all tasks that start at 24/12 in every year, and also searching filter also apply in case repeat
-            );
+            ).slice(offset, limit ? offset + limit : undefined);
 
             return Message.success(results);
         } catch (error) {

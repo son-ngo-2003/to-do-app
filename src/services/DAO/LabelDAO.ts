@@ -2,15 +2,17 @@ import StorageService from "./StorageService";
 import { generateId } from "../../utils/generator";
 import { Message } from "../models"
 import { Colors } from "../../styles";
+import {slugInclude} from "../../utils/slugUtil";
 
 interface LabelDAOType {
-    addLabel:           (label: Partial<LabelEntity>) => Promise<Message<LabelEntity>>,
-    getAllLabels:       () => Promise<Message<LabelEntity[]>>,
-    getLabelById:       (_id: string) => Promise<Message<LabelEntity>>,
-    getLabelsByName:    (name: string) => Promise<Message<LabelEntity[]>>,
-    //TODO: get deleted labels
-    updateLabelById:    (_id: string, newData: Partial<LabelEntity>) => Promise<Message<LabelEntity>>,
-    deleteLabelById:    (_id: string) => Promise<Message<LabelEntity>>,
+    addLabel:               (label: Partial<LabelEntity>) => Promise<Message<LabelEntity>>,
+
+    getAllLabels:           (params?: { limit?: number, offset?: number }) => Promise<Message<LabelEntity[]>>,
+    getLabelById:           (_id: string) => Promise<Message<LabelEntity>>,
+    getLabelsByCriteria:    (params?: { searchTerm?: string, color?: string, limit?: number, offset?: number }) => Promise<Message<LabelEntity[]>>,
+
+    updateLabelById:        (_id: string, newData: Partial<LabelEntity>) => Promise<Message<LabelEntity>>,
+    deleteLabelById:        (_id: string) => Promise<Message<LabelEntity>>,
 }
 
 const LabelDAO : LabelDAOType = (() => {
@@ -44,9 +46,9 @@ const LabelDAO : LabelDAOType = (() => {
         }
     }
 
-    async function getAllLabels(): Promise<Message<LabelEntity[]>> {
+    async function getAllLabels(params?: { limit?: number, offset?: number }): Promise<Message<LabelEntity[]>> {
         try {
-            return await StorageService.getAllDataByType<LabelEntity>('label');
+            return await StorageService.getAllDataByType<LabelEntity>('label', params?.limit, params?.offset);
         } catch (error) {
             return Message.failure(error);
         }
@@ -60,14 +62,27 @@ const LabelDAO : LabelDAOType = (() => {
         }
     }
 
-    async function getLabelsByName(name: string) : Promise<Message<LabelEntity[]>> {
+    async function getLabelsByCriteria(params: {
+        searchTerm?: string,
+        color?: string,
+        limit?: number,
+        offset?: number
+    } = {}) : Promise<Message<LabelEntity[]>> {
         try {
             const message : Message<LabelEntity[]> = await getAllLabels();
             if (!message.getIsSuccess()) return message;
 
             const labels : LabelEntity[] = message.getData();
-            labels.filter(label => label.name.toLowerCase().includes( name.toLowerCase() ));
-            return Message.success(labels);
+
+            const { searchTerm, color, limit, offset = 0 } = params;
+            const result : LabelEntity[] = labels.filter(label =>
+                (!searchTerm
+                    || slugInclude(label.name, searchTerm)) &&
+                (!color
+                    || label.color === color)
+            ).slice(offset, limit ? offset + limit : undefined);
+
+            return Message.success(result);
         } catch (error) {
             return Message.failure(error);
         }
@@ -94,7 +109,7 @@ const LabelDAO : LabelDAOType = (() => {
         addLabel,
         getAllLabels,
         getLabelById,
-        getLabelsByName,
+        getLabelsByCriteria,
         updateLabelById,
         deleteLabelById,
     };

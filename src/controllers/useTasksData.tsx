@@ -1,21 +1,22 @@
 import { useEffect, useState } from 'react';
-import AppService, { TaskService } from "../services";
+import AppService from "../services";
 
 const useTasksData = (
     toFetchAllData: boolean = true
     // if only use addTask, updateTask, deleteTask,... , no need to fetch all data
 ) => {
-    const [ allTasks, setAllTasks ] = useState<Task[]>([]);
-    const [ loading, setLoading ] = useState<boolean>(false);
-    const [ error, setError ] = useState<string>();
+    const [allTasks, setAllTasks] = useState<Task[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string>();
 
     const fetchTasks = async () => {
         try {
             setLoading(true);
-            const msg = await TaskService.getAllTasks();
+            const msg = await AppService.getAllTasks();
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
             setAllTasks(msg.getData());
         } catch (e) {
+            console.error("useTasksData.ts: ", e);
             let errorMessage = "Error fetching tasks";
             if (e instanceof Error) errorMessage = e.message;
             setError(errorMessage);
@@ -24,20 +25,18 @@ const useTasksData = (
         }
     };
 
-    const getAllTasksGroupByLabels = async (
-        withTasksNoLabel?: boolean,
-        date?: Date,
-        isCompleted?: boolean,
+    const getAllTasks = async (params?: {
         limit?: number,
-    ) => {
+        offset?: number,
+    }) => {
         try {
             setLoading(true);
-            const msg = await AppService.getAllTasksGroupByLabels(date, isCompleted, limit, withTasksNoLabel);
+            const msg = await AppService.getAllTasks(params);
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
             return msg.getData();
         } catch (e) {
-            console.error(e);
-            let errorMessage = "Error fetching tasks group by labels";
+            console.error("useTasksData.ts: ", e);
+            let errorMessage = "Error fetching tasks";
             if (e instanceof Error) errorMessage = e.message;
             setError(errorMessage);
             throw e;
@@ -46,13 +45,37 @@ const useTasksData = (
         }
     }
 
-    const getTaskById = async (id: string) => {
+    const getAllTasksGroupByLabels = async (params: {
+        withTasksNoLabel?: boolean;
+        date?: Date;
+        isCompleted?: boolean;
+        limit?: number;
+        offset?: number;
+    }) => {
         try {
             setLoading(true);
-            const msg = await TaskService.getTaskById(id);
+            const msg = await AppService.getAllTasksGroupByLabels(params);
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
             return msg.getData();
         } catch (e) {
+            console.error("useTasksData.ts: ", e);
+            let errorMessage = "Error fetching tasks group by labels";
+            if (e instanceof Error) errorMessage = e.message;
+            setError(errorMessage);
+            throw e;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getTaskById = async (id: string) => {
+        try {
+            setLoading(true);
+            const msg = await AppService.getTaskById(id);
+            if (!msg.getIsSuccess()) throw new Error(msg.getError());
+            return msg.getData();
+        } catch (e) {
+            console.error("useTasksData.ts: ", e);
             let errorMessage = "Error fetching task by id";
             if (e instanceof Error) errorMessage = e.message;
             setError(errorMessage);
@@ -65,11 +88,12 @@ const useTasksData = (
     const addTask = async (task: Partial<Task>) => {
         try {
             setLoading(true);
-            const msg = await TaskService.addTask(task);
+            const msg = await AppService.addTask(task);
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
             setAllTasks([...allTasks, msg.getData()]);
             return msg.getData();
         } catch (e) {
+            console.error("useTasksData.ts: ", e);
             let errorMessage = "Error adding task";
             if (e instanceof Error) errorMessage = e.message;
             setError(errorMessage);
@@ -82,11 +106,12 @@ const useTasksData = (
     const updateTask = async (task: Partial<Task>) => {
         try {
             setLoading(true);
-            const msg = await TaskService.updateTask(task);
+            const msg = await AppService.updateTask(task);
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
             setAllTasks(allTasks.map((item) => (item._id === msg.getData()._id ? msg.getData() : item)));
             return msg.getData();
         } catch (e) {
+            console.error("useTasksData.ts: ", e);
             let errorMessage = "Error updating task";
             if (e instanceof Error) errorMessage = e.message;
             setError(errorMessage);
@@ -99,11 +124,12 @@ const useTasksData = (
     const deleteTask = async (task: Task) => {
         try {
             setLoading(true);
-            const msg = await TaskService.deleteTask(task);
+            const msg = await AppService.deleteTask(task);
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
             setAllTasks(allTasks.filter((item) => item._id !== task._id));
             return msg.getData();
         } catch (e) {
+            console.error("useTasksData.ts: ", e);
             let errorMessage = "Error deleting task";
             if (e instanceof Error) errorMessage = e.message;
             setError(errorMessage);
@@ -117,8 +143,16 @@ const useTasksData = (
         if (toFetchAllData) fetchTasks();
     }, []);
 
-    return { allTasks, loading, error, addTask, updateTask, deleteTask,
-        getTaskById, getAllTasksGroupByLabels
+    return {
+        allTasks,
+        loading,
+        error,
+        addTask,
+        updateTask,
+        deleteTask,
+        getTaskById,
+        getAllTasksGroupByLabels,
+        getAllTasks,
     };
 };
 

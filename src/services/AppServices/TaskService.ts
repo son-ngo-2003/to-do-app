@@ -8,16 +8,15 @@ interface TaskServiceType {
     updateTask:        (task: Partial<Task>) => Promise<Message<Task>>,
     deleteTask:        (task: Partial<Task>) => Promise<Message<Task>>,
 
-    getAllTasks:        () => Promise<Message<Task[]>>,
+    getAllTasks:        (params?: { limit?: number, offset?: number }) => Promise<Message<Task[]>>,
     getTaskById:        (_id: Task['_id']) => Promise<Message<Task>>,
-    getTasksByLabel:   (labelId: Label['_id'], isCompleted?: boolean, limit?: number) => Promise<Message<Task[]>>,
-    getTasksByCriteria: (searchWord?: string, labelIds?: Label['_id'][], noteIds?: Note['_id'][], date?: Date, isCompleted?: boolean, limit?: number) => Promise<Message<Task[]>>,
+    getTasksByCriteria: (params?: {searchTerm?: string, labelIds?: Label['_id'][], noteIds?: Note['_id'][], date?: Date, isCompleted?: boolean, limit?: number, offset?: number }) => Promise<Message<Task[]>>,
 }
 
 const TaskService : TaskServiceType = (() => {
-    async function getAllTasks(): Promise<Message<Task[]>> {
+    async function getAllTasks(params?: { limit?: number, offset?: number }): Promise<Message<Task[]>> {
         try {
-            const msg: Message<TaskEntity[]> = await TaskDAO.getAllTasks();
+            const msg: Message<TaskEntity[]> = await TaskDAO.getAllTasks(params);
             if (!msg.getIsSuccess()) {
                 throw new Error(msg.getError());
             }
@@ -45,26 +44,17 @@ const TaskService : TaskServiceType = (() => {
         }
     }
 
-    async function getTasksByLabel(labelId: Label['_id'], isCompleted?: boolean, limit?: number): Promise<Message<Task[]>> {
+    async function getTasksByCriteria(params?: {
+        searchTerm?: string,
+        labelIds?: Label['_id'][],
+        noteIds?: Note['_id'][],
+        date?: Date,
+        isCompleted?: boolean,
+        limit?: number,
+        offset?: number
+    }): Promise<Message<Task[]>> {
         try {
-            const msg: Message<TaskEntity[]> = await TaskDAO.getTasksByCriteria(undefined, [labelId], undefined, undefined, isCompleted);
-            if (!msg.getIsSuccess()) {
-                throw new Error(msg.getError());
-            }
-            const tasks: Task[] = await Promise.all(msg.getData().slice(0,limit).map( async task => {
-                return await Mapping.taskFromEntity(task);
-            }))
-
-            return Message.success(tasks);
-
-        } catch (error) {
-            return Message.failure(error);
-        }
-    }
-
-    async function getTasksByCriteria(searchWord?: string, labelIds?: Label['_id'][], noteIds?: Note['_id'][], date?: Date, isCompleted?: boolean, limit?: number): Promise<Message<Task[]>> {
-        try {
-            const msg: Message<TaskEntity[]> = await TaskDAO.getTasksByCriteria(searchWord, labelIds, noteIds, date, isCompleted, limit);
+            const msg: Message<TaskEntity[]> = await TaskDAO.getTasksByCriteria(params);
             if (!msg.getIsSuccess()) {
                 throw new Error(msg.getError());
             }
@@ -137,7 +127,6 @@ const TaskService : TaskServiceType = (() => {
 
         getAllTasks,
         getTaskById,
-        getTasksByLabel,
         getTasksByCriteria,
     };
 })();
