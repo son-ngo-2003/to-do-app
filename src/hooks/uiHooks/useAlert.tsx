@@ -51,7 +51,7 @@ const useAlertProvider = () => {
             ...props,
             primaryButton: { ...props.primaryButton, onPress: () => onPrimaryPress(props) },
             secondaryButton: { ...props.secondaryButton, onPress: () => onSecondaryPress(props) },
-            onPressCancel: alertProps?.onPressCancel ? () => onPressCancel(props) : undefined,
+            onPressCancel: props?.onPressCancel ? () => onPressCancel(props) : undefined,
             visible: modalVisible,
         });
         setModalVisible(true);

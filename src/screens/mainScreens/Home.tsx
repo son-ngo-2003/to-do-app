@@ -138,8 +138,8 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
 
     const onAddedUpdatedNote = React.useCallback((note: Note) => {
         getAllNotes({limit: LIMIT_FETCH_NOTE, sortBy: 'createdAt', sortOrder: 'desc'}).then(setAllNotes);
-
-    }, [getAllNotes, setAllNotes]);
+        setCurrentModal('none');
+    }, [getAllNotes, setAllNotes, setCurrentModal]);
 
     const onAddedUpdatedTask = React.useCallback((task: Task) => {
         Promise.all([
@@ -148,8 +148,9 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
         ]).then(([tasksByLabel, labels]) => {
             setAllLabels(labels);
             setTaskByLabel(tasksByLabel);
+            setCurrentModal('none');
         });
-    }, [getAllTasksGroupByLabels, setTaskByLabel, getAllLabels, setAllLabels]);
+    }, [getAllTasksGroupByLabels, setTaskByLabel, getAllLabels, setAllLabels, setCurrentModal]);
 
     return (
         <SafeAreaView style={{position: 'relative'}}>
