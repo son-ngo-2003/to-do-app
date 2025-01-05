@@ -1,11 +1,11 @@
 import React from 'react';
-import {View, StyleSheet, LayoutChangeEvent} from 'react-native';
+import {View, StyleSheet, LayoutChangeEvent, ViewStyle, TextStyle} from 'react-native';
 import {
     CoreBridge, PlaceholderBridge, TenTapStartKit,
     RichText, Toolbar,
     useEditorBridge, defaultEditorTheme,
     ImageBridge,
-    EditorBridge,
+    EditorBridge, editorHtml,
 } from '@10play/tentap-editor';
 import { useTheme } from '@react-navigation/native';
 
@@ -17,6 +17,7 @@ import { toolbarTheme, darkToolbarTheme } from './toolbarTheme';
 import InsertToolList from './InsertToolList';
 import ColorToolList from './ColorToolList';
 import {eventEmitter, EventNames} from "../../utils/eventUtil";
+import {convertReactNativeStyleToCSS} from "../../utils/baseUtil";
 
 
 type ListToolModalType = 'none' | 'insert' | 'color';
@@ -27,7 +28,9 @@ type TextEditorProps = {
     onChange?: (editor: EditorBridge) => void;
     showToolbar?: boolean;
     enableEdit?: boolean;
-    initialContent?: string;
+    initialContentHtml?: string;
+    containerStyle?: ViewStyle;
+    textEditorStyle?: TextStyle;
 }
 
 const TextEditor : React.FC<TextEditorProps> = ({
@@ -36,7 +39,10 @@ const TextEditor : React.FC<TextEditorProps> = ({
     onChange,
     showToolbar= true,
     enableEdit= true,
-    initialContent='',
+    initialContentHtml,
+
+    containerStyle,
+    textEditorStyle,
 }) => {
     const [ showToolModal, setShowToolModal ] = React.useState<ListToolModalType>('none');
     const { dark, colors } = useTheme();
@@ -52,14 +58,16 @@ const TextEditor : React.FC<TextEditorProps> = ({
         font-family: 'Aleo';
         text-align: justify;
         text-justify: inter-word;
+        ${convertReactNativeStyleToCSS(textEditorStyle)[1]}
     }
     img {
         width: 90%;
     }`;
 
     const editor = useEditorBridge({
+        customSource: editorHtml,
         autofocus,
-        initialContent,
+        initialContent: initialContentHtml,
         avoidIosKeyboard: false,
         bridgeExtensions: [
             ...TenTapStartKit,
@@ -113,7 +121,7 @@ const TextEditor : React.FC<TextEditorProps> = ({
     }, []);
 
     return (
-        <View style={ styles.textEditorContainer } pointerEvents={enableEdit ? 'auto' : 'none'}>
+        <View style={ [styles.textEditorContainer, containerStyle] } pointerEvents={enableEdit ? 'auto' : 'none'}>
             <View style = { styles.editor}>
                 <RichText
                     editor={editor}
@@ -122,6 +130,7 @@ const TextEditor : React.FC<TextEditorProps> = ({
                     mixedContentMode='always'
                 />
             </View>
+
             <View style={[styles.toolbar]}>
                 <View ref={toolbarRef} onLayout={getLayoutToolbar}>
                     <Toolbar editor={editor} hidden={!showToolbar}

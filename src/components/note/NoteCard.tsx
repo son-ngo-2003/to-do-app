@@ -7,6 +7,7 @@ import { useTheme } from '@react-navigation/native';
 //Components
 import { Icon } from '../atomic';
 import { LabelTag } from '../label';
+import {Textarea, TextEditor} from "../textEditor";
 
 type NoteCardProps = {
     note: Note,
@@ -56,6 +57,7 @@ const NoteCard: React.FC<NoteCardProps> = ({
 
     const onPressEditButton = React.useCallback(() => {
         onPressEdit?.(note)
+        console.log('noteContent: ', note?.content);
     },[onPressEdit, note]);
 
     return (
@@ -72,15 +74,21 @@ const NoteCard: React.FC<NoteCardProps> = ({
             </View>
 
             <Pressable onPress={onPressCard}>
-                <Text   numberOfLines={2}
+                <Text numberOfLines={2}
                         style={[Typography.header.x40, styles.heading,
                             {color: colors.text}            
                 ]}>{note.title}</Text>
 
-                <Text   numberOfLines={orientation === 'portrait' ? 7 : 4}
-                        style={[Typography.body.x20, styles.info, 
-                            {color: colors.text}
-                ]}>{note.content}</Text>
+                {/*<Text   numberOfLines={orientation === 'portrait' ? 7 : 4}*/}
+                {/*        style={[Typography.body.x20, styles.info, */}
+                {/*            {color: colors.text}*/}
+                {/*]}>{note.content}</Text>*/}
+
+                <Textarea
+                    value={note.content}
+                    numberOfLines={orientation === 'portrait' ? 7 : 4}
+                    textEditorStyle={{...Typography.body.x20, ...styles.info, color: colors.text}}
+                />
             </Pressable>
 
             {
@@ -108,12 +116,11 @@ const styles = StyleSheet.create({
         ...Outlines.shadow.base,
     },
     heading: {
-        ...Typography.lineHeight.x20,
+        ...Typography.lineHeight.x10,
         marginTop: 10,
     },
     info: {
         lineHeight: 15,
-        marginTop: 3,
         textAlign: 'justify',
     },
     buttonsContainer: {

@@ -21,6 +21,7 @@ import {
 } from "../../helpers/formState";
 import {NoteFormState} from "../../types/formStateType";
 import {useNotesData} from "../../controllers";
+import {TITLE_MAX_LENGTH} from "../../constant";
 
 type NoteModalProps = {
     mode: 'add' | 'edit',
@@ -155,7 +156,6 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
             getNoteById(noteId).then((note) => {
                 dispatchNoteForm({type: FormActionKind.UPDATE_ALL, payload: createInitialNote(note)});
                 setOriginalNote(note);
-                console.log(note)
             });
         } else {
             dispatchNoteForm({type: FormActionKind.UPDATE_ALL, payload: createInitialNote()});
@@ -211,7 +211,7 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
                                 : 'Created at: ' + originalNote?.createdAt.toLocaleDateString()
                         }
                     </Text>
-                    <TextInput style={[styles.title, {color: colors.text}]} multiline={true}
+                    <TextInput style={[styles.title, {color: colors.text}]} multiline={true} maxLength={TITLE_MAX_LENGTH}
                                 onChangeText={onChangeTitle} value={noteFormState.title}
                                 placeholder='Press here to add title to your note'/>
 
@@ -228,7 +228,7 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
                     {/* Content */}
                     <View style={[styles.textEditorContainer]}>
                         <TextEditor
-                            initialContent={noteFormState.content}
+                            initialContentHtml={noteFormState.content}
                             placeholder='Write something ...'
                             onChange={onChangeTextEditor} //TODO: check autosave and update this onChange
                         />

@@ -120,8 +120,9 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
             if (alertButtonResult === undefined) return;
             setModalNoteId(note._id);
             setCurrentModal('note');
+            setCurrentMode('edit');
         })
-    }, [taskModalRef.current, setCurrentModal, setModalNoteId]);
+    }, [taskModalRef.current, setCurrentModal, setModalNoteId, setCurrentMode]);
 
     const onPressAddNote = React.useCallback(() => {
         setModalNoteId(undefined);
@@ -135,11 +136,12 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
         setCurrentMode('add');
     }, [setModalTaskId, setCurrentModal, setCurrentMode]);
 
-    const onAddedNote = React.useCallback((note: Note) => {
+    const onAddedUpdatedNote = React.useCallback((note: Note) => {
         getAllNotes({limit: LIMIT_FETCH_NOTE, sortBy: 'createdAt', sortOrder: 'desc'}).then(setAllNotes);
+
     }, [getAllNotes, setAllNotes]);
 
-    const onAddedTask = React.useCallback((task: Task) => {
+    const onAddedUpdatedTask = React.useCallback((task: Task) => {
         Promise.all([
             getAllTasksGroupByLabels({date: new Date(), limit: LIMIT_FETCH_TASK, withTasksNoLabel: true}),
             getAllLabels()
@@ -180,7 +182,7 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                                 allNotes.length > 0
                                 ? allNotes.map((note: Note, index: number) => (
                                     <NoteCard key={index} note={note} orientation={'landscape'} showLabels
-                                              onPress={(note) => {setModalNoteId(note._id); setCurrentModal('note');}}
+                                              onPress={(note) => {setModalNoteId(note._id); setCurrentModal('note'); setCurrentMode('edit')}}
                                     />)
                                     )
                                 : <AddNoteCard orientation={'landscape'} onPress={onPressAddNote}/>
@@ -209,7 +211,7 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                                         <Text style={[ Typography.header.x40, { textTransform: 'uppercase', color: label.color } ]}>{label.name}</Text>
                                         <TaskTree
                                             tasks={ tasksByLabel[label._id] ?? [] }
-                                            onPressTask = { (task) => {setModalTaskId(task._id); setCurrentModal('task');} }
+                                            onPressTask = { (task) => {setModalTaskId(task._id); setCurrentModal('task'); setCurrentMode('edit')} }
 
                                             showShowMoreButton={true}
                                             onPressShowMore={ () => console.log('Task Tree (Home): Show More Tasks') }
@@ -225,7 +227,7 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                                         <Text style={[ Typography.header.x40, { textTransform: 'uppercase', color: Colors.primary.teal } ]}>Not Labeled</Text>
                                         <TaskTree
                                             tasks={ tasksByLabel[UNLABELED_KEY] }
-                                            onPressTask = { (task) => {setModalTaskId(task._id); setCurrentModal('task');} }
+                                            onPressTask = { (task) => {setModalTaskId(task._id); setCurrentModal('task'); setCurrentMode('edit')} }
 
                                             showShowMoreButton={ true }
                                             onPressShowMore={ () => console.log('Task Tree (Home): Show More Tasks') }
@@ -251,7 +253,8 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                             mode={ currentMode }
                             noteId={ modalNoteId }
                             onCancel={ onCancelNoteModal }
-                            onAddNote={ onAddedNote }
+                            onAddNote={ onAddedUpdatedNote }
+                            onUpdateNote={ onAddedUpdatedNote}
                         />,
 
                         <TaskModal
@@ -261,7 +264,8 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                             taskId={ modalTaskId }
                             onPressNote={ onPressNoteInTask }
                             onCancel={onCancelTaskModal}
-                            onAddTask={onAddedTask}
+                            onAddTask={onAddedUpdatedTask}
+                            onUpdateTask={onAddedUpdatedTask}
                         />
                     ]}
                 />

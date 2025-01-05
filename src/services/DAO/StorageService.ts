@@ -43,7 +43,6 @@ const StorageService : StorageServiceType = (() => {
                 const dataJSONValue = await AsyncStorage.multiGet(keys);
                 if (!dataJSONValue || dataJSONValue.length === 0) return Message.success([]);
 
-                console.log(filter);
                 const { limit, offset = 0, sortBy, sortOrder } = filter;
                 const _sortBy = sortBy as keyof T;
 
@@ -56,7 +55,6 @@ const StorageService : StorageServiceType = (() => {
                     .filter((data) => data && !data.isDeleted)
                     .sort((a, b) => {
                         if (!sortBy) return 0;
-                        console.log('compare: ', a?.[_sortBy], b?.[_sortBy], generalCompare(a?.[_sortBy], b?.[_sortBy], sortOrder));
                         return generalCompare(a?.[_sortBy], b?.[_sortBy], sortOrder);
                     })
                     .slice(offset, limit ? offset + limit : undefined) as T[];

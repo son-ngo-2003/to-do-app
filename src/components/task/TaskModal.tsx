@@ -41,6 +41,7 @@ import {type AlertFunctionType, useAlertProvider} from "../../hooks";
 import AlertModal from "../atomic/AlertModal";
 import {debounce} from "lodash";
 import {useTasksData} from "../../controllers";
+import {TITLE_MAX_LENGTH} from "../../constant";
 
 type TaskModalProps = {
     mode: 'add' | 'edit', //TODO: add a noti text in case of create a new task but start time in the past
@@ -320,7 +321,7 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
 
                     {/* Title  */}
 
-                    <TextInput style={[styles.title, {color: colors.text}]} multiline={true}
+                    <TextInput style={[styles.title, {color: colors.text}]} multiline={true} maxLength={TITLE_MAX_LENGTH}
                                 onChangeText={(text) => dispatchTaskForm({type: FormActionKind.UPDATE_TEXT, payload: {field: 'title', value: text}})}
                                 value={taskFormState.title}
                                 placeholder='Press here to add title to your note'/>
