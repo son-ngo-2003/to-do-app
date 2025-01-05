@@ -2,10 +2,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Message } from '../models'
 import {replacer, reviver} from "../../utils/jsonUtil";
+import {BaseFilter} from "../type";
+import {generalCompare} from "../../utils/sortUtil";
 
 interface StorageServiceType {
     addData:                    <T extends { _id: string, isDeleted: boolean }>  (data: T, type: ModelType, index: number) => Promise<Message<T>>,
-    getAllDataByType:           <T extends { isDeleted: boolean }>               (type: ModelType, limit?: number, offset?: number) => Promise<Message<T[]>>,
+    getAllDataByType:           <T extends { isDeleted: boolean }>               (type: ModelType, filter?: BaseFilter) => Promise<Message<T[]>>,
     getDataByTypeAndId:         <T extends { _id: string, isDeleted: boolean }>  (type: ModelType, _id: string) => Promise<Message<T>>,
     updateDataByTypeAndId:      <T extends { _id: string, isDeleted: boolean }>  (type: ModelType, _id: string, newData: Partial<T>) => Promise<Message<T>>,
     deleteSoftDataByTypeAndId:  <T extends { _id: string, isDeleted: boolean }>  (type: ModelType, _id: string) => Promise<Message<T>>,
@@ -34,12 +36,16 @@ const StorageService : StorageServiceType = (() => {
     }
 
     async function getAllDataByType<T extends {isDeleted : boolean}>
-        ( type: ModelType, limit?: number, offset?: number ): Promise<Message<T[]>> {
+        ( type: ModelType, filter: BaseFilter = {} ): Promise<Message<T[]>> {
             try {
                 const keys: string[] = (await AsyncStorage.getAllKeys()).filter(key => key.startsWith(`@${type}`));
 
                 const dataJSONValue = await AsyncStorage.multiGet(keys);
                 if (!dataJSONValue || dataJSONValue.length === 0) return Message.success([]);
+
+                console.log(filter);
+                const { limit, offset = 0, sortBy, sortOrder } = filter;
+                const _sortBy = sortBy as keyof T;
 
                 const listData: T[] = dataJSONValue
                     .map(([_, value]) => {
@@ -47,11 +53,17 @@ const StorageService : StorageServiceType = (() => {
                         const data: T = JSON.parse(value, reviver);
                         return data;
                     })
-                    .filter((data) => data && !data.isDeleted) as T[];
+                    .filter((data) => data && !data.isDeleted)
+                    .sort((a, b) => {
+                        if (!sortBy) return 0;
+                        console.log('compare: ', a?.[_sortBy], b?.[_sortBy], generalCompare(a?.[_sortBy], b?.[_sortBy], sortOrder));
+                        return generalCompare(a?.[_sortBy], b?.[_sortBy], sortOrder);
+                    })
+                    .slice(offset, limit ? offset + limit : undefined) as T[];
 
-                const _offset = offset || 0;
-                if (limit) {
-                    listData.slice(offset, _offset + limit);
+                const _offset = filter?.offset || 0;
+                if (filter?.limit) {
+                    listData.slice(filter?.offset, _offset + filter?.limit);
                 }
 
                 return Message.success(listData);

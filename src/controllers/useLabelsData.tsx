@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import AppService from "../services";
+import {BaseFilter} from "../services/type";
 
 const useLabelsData = (
     toFetchAllData: boolean = true
@@ -25,7 +26,7 @@ const useLabelsData = (
         }
     };
 
-    const getAllLabels = async (params?: { limit?: number, offset?: number }) => {
+    const getAllLabels = async (params?: BaseFilter) => {
         try {
             setLoading(true);
             const msg = await AppService.getAllLabels(params);

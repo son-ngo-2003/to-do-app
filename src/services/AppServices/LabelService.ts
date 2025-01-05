@@ -2,11 +2,12 @@
 import { LabelDAO } from "../DAO";
 import Mapping from "./mapping";
 import { Message } from "../models";
+import {BaseFilter} from "../type";
 
 interface LabelServiceType {
-    getAllLabels:       (params?: { limit?: number, offset?: number }) => Promise<Message<Label[]>>,
+    getAllLabels:       (params?: BaseFilter) => Promise<Message<Label[]>>,
     getLabelById:       (id: string) => Promise<Message<Label>>,
-    getLabelsByCriteria:    (params?: { searchTerm?: string, color?: string, limit?: number, offset?: number }) => Promise<Message<Label[]>>,
+    getLabelsByCriteria:    (params?: { searchTerm?: string, color?: string} & BaseFilter) => Promise<Message<Label[]>>,
 
     addLabel:           (label: Partial<Label>) => Promise<Message<Label>>,
     updateLabel:        (label: Partial<Label>) => Promise<Message<Label>>,
@@ -14,7 +15,7 @@ interface LabelServiceType {
 }
 
 const LabelService : LabelServiceType = (() => {
-    async function getAllLabels(params?: { limit?: number, offset?: number }): Promise<Message<Label[]>> {
+    async function getAllLabels(params?: BaseFilter): Promise<Message<Label[]>> {
         try {
             const msg: Message<LabelEntity[]> = await LabelDAO.getAllLabels(params);
             if (!msg.getIsSuccess()) {
@@ -42,7 +43,7 @@ const LabelService : LabelServiceType = (() => {
         }
     }
 
-    async function getLabelsByCriteria(params?: { searchTerm?: string, color?: string, limit?: number, offset?: number }): Promise<Message<Label[]>> {
+    async function getLabelsByCriteria(params?: { searchTerm?: string, color?: string } & BaseFilter): Promise<Message<Label[]>> {
         try {
             const msg: Message<LabelEntity[]> = await LabelDAO.getLabelsByCriteria(params);
             if (!msg.getIsSuccess()) {

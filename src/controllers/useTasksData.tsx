@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import AppService from "../services";
+import {BaseFilter} from "../services/type";
 
 const useTasksData = (
     toFetchAllData: boolean = true
@@ -25,10 +26,7 @@ const useTasksData = (
         }
     };
 
-    const getAllTasks = async (params?: {
-        limit?: number,
-        offset?: number,
-    }) => {
+    const getAllTasks = async (params?: BaseFilter) => {
         try {
             setLoading(true);
             const msg = await AppService.getAllTasks(params);
@@ -46,12 +44,10 @@ const useTasksData = (
     }
 
     const getAllTasksGroupByLabels = async (params: {
-        withTasksNoLabel?: boolean;
-        date?: Date;
-        isCompleted?: boolean;
-        limit?: number;
-        offset?: number;
-    }) => {
+        withTasksNoLabel?: boolean,
+        date?: Date,
+        isCompleted?: boolean,
+    } & BaseFilter) => {
         try {
             setLoading(true);
             const msg = await AppService.getAllTasksGroupByLabels(params);

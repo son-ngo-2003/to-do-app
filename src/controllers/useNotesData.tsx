@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import AppService from "../services";
+import {BaseFilter} from "../services/type";
 
 const useNotesData = (
     toFetchAllData: boolean = true
@@ -25,10 +26,7 @@ const useNotesData = (
         }
     };
 
-    const getAllNotes = async (params?: {
-        limit?: number,
-        offset?: number,
-    }) => {
+    const getAllNotes = async (params?: BaseFilter) => {
         try {
             setLoading(true);
             const msg = await AppService.getAllNotes(params);

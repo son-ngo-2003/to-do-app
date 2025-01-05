@@ -2,11 +2,12 @@
 import { NoteDAO } from "../DAO";
 import Mapping from "./mapping";
 import { Message } from "../models";
+import {BaseFilter} from "../type";
 
 interface NoteServiceType {
-    getAllNotes:        (params?: { limit?: number, offset?: number }) => Promise<Message<Note[]>>,
+    getAllNotes:        (params?: BaseFilter) => Promise<Message<Note[]>>,
     getNoteById:        (_id: Note['_id']) => Promise<Message<Note>>,
-    getNotesByCriteria: (params?: {searchTerm?: string, labelIds?: Label['_id'][], limit?: number, offset?: number}) => Promise<Message<Note[]>>,
+    getNotesByCriteria: (params?: {searchTerm?: string, labelIds?: Label['_id'][]} & BaseFilter) => Promise<Message<Note[]>>,
 
     addNote:           (note: Partial<Note>) => Promise<Message<Note>>,
     updateNote:        (note: Partial<Note>) => Promise<Message<Note>>,
@@ -14,7 +15,7 @@ interface NoteServiceType {
 }
 
 const NoteService : NoteServiceType = (() => {
-    async function getAllNotes(params?: { limit?: number, offset?: number }): Promise<Message<Note[]>> {
+    async function getAllNotes(params?: BaseFilter): Promise<Message<Note[]>> {
         try {
             const msg: Message<NoteEntity[]> = await NoteDAO.getAllNotes(params);
             if (!msg.getIsSuccess()) {
@@ -44,9 +45,7 @@ const NoteService : NoteServiceType = (() => {
     async function getNotesByCriteria(params: {
         searchTerm?: string,
         labelIds?: Label['_id'][],
-        limit?: number,
-        offset?: number
-    } = {}): Promise<Message<Note[]>> {
+    } & BaseFilter = {}): Promise<Message<Note[]>> {
         try {
             const msg: Message<NoteEntity[]> = await NoteDAO.getNotesByCriteria(params);
             if (!msg.getIsSuccess()) {

@@ -2,19 +2,20 @@
 import { TaskDAO } from "../DAO";
 import Mapping from "./mapping";
 import { Message } from "../models";
+import {BaseFilter} from "../type";
 
 interface TaskServiceType {
     addTask:           (task: Partial<Task>) => Promise<Message<Task>>,
     updateTask:        (task: Partial<Task>) => Promise<Message<Task>>,
     deleteTask:        (task: Partial<Task>) => Promise<Message<Task>>,
 
-    getAllTasks:        (params?: { limit?: number, offset?: number }) => Promise<Message<Task[]>>,
+    getAllTasks:        (params?: BaseFilter) => Promise<Message<Task[]>>,
     getTaskById:        (_id: Task['_id']) => Promise<Message<Task>>,
-    getTasksByCriteria: (params?: {searchTerm?: string, labelIds?: Label['_id'][], noteIds?: Note['_id'][], date?: Date, isCompleted?: boolean, limit?: number, offset?: number }) => Promise<Message<Task[]>>,
+    getTasksByCriteria: (params?: {searchTerm?: string, labelIds?: Label['_id'][], noteIds?: Note['_id'][], date?: Date, isCompleted?: boolean } & BaseFilter) => Promise<Message<Task[]>>,
 }
 
 const TaskService : TaskServiceType = (() => {
-    async function getAllTasks(params?: { limit?: number, offset?: number }): Promise<Message<Task[]>> {
+    async function getAllTasks(params?: BaseFilter): Promise<Message<Task[]>> {
         try {
             const msg: Message<TaskEntity[]> = await TaskDAO.getAllTasks(params);
             if (!msg.getIsSuccess()) {
@@ -50,9 +51,7 @@ const TaskService : TaskServiceType = (() => {
         noteIds?: Note['_id'][],
         date?: Date,
         isCompleted?: boolean,
-        limit?: number,
-        offset?: number
-    }): Promise<Message<Task[]>> {
+    } & BaseFilter): Promise<Message<Task[]>> {
         try {
             const msg: Message<TaskEntity[]> = await TaskDAO.getTasksByCriteria(params);
             if (!msg.getIsSuccess()) {

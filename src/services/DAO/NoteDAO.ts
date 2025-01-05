@@ -5,13 +5,15 @@ import { Message } from "../models";
 //utils
 import { generateId } from "../../utils/generator";
 import { slugInclude } from "../../utils/slugUtil";
+import {BaseFilter, isKeyOf} from "../type";
+import {generalCompare} from "../../utils/sortUtil";
 
 interface NoteDAOType {
     addNote:           (note: Partial<NoteEntity>) => Promise<Message<NoteEntity>>,
 
-    getAllNotes:       (params?: { limit?: number, offset?: number }) => Promise<Message<NoteEntity[]>>,
+    getAllNotes:       (params?: BaseFilter) => Promise<Message<NoteEntity[]>>,
     getNoteByID:       (_id: string) => Promise<Message<NoteEntity>>,
-    getNotesByCriteria:    (params?: {searchTerm?: string, labelIds?: Label['_id'][], limit?: number, offset?: number}) => Promise<Message<NoteEntity[]>>,
+    getNotesByCriteria:    (params?: {searchTerm?: string, labelIds?: Label['_id'][]} & BaseFilter) => Promise<Message<NoteEntity[]>>,
 
     updateNoteById:    (_id: string, newData: Partial<NoteEntity>) => Promise<Message<NoteEntity>>,
     addLabelToNote:    (labelId: Label['_id'], noteId: string) => Promise<Message<NoteEntity>>, //TODO: move this to service not DAO
@@ -53,9 +55,9 @@ const NoteDAO : NoteDAOType = (() => {
         }
     }
 
-    async function getAllNotes(params?: { limit?: number, offset?: number }): Promise<Message<NoteEntity[]>> {
+    async function getAllNotes(params?: BaseFilter): Promise<Message<NoteEntity[]>> {
         try {
-            return await StorageService.getAllDataByType<NoteEntity>('note', params?.limit, params?.offset);
+            return await StorageService.getAllDataByType<NoteEntity>('note', params);
         } catch (error) {
             return Message.failure(error);
         }
@@ -72,22 +74,31 @@ const NoteDAO : NoteDAOType = (() => {
     async function getNotesByCriteria(params: {
         searchTerm?: string,
         labelIds?: Label['_id'][],
-        limit?: number,
-        offset?: number
-    } = {}) : Promise<Message<NoteEntity[]>> {
+    } & BaseFilter = {}) : Promise<Message<NoteEntity[]>> {
         try {
             const message : Message<NoteEntity[]> = await getAllNotes();
             if (!message.getIsSuccess()) return message;
 
-            const {searchTerm, labelIds, limit, offset = 0} = params;
             const notes : NoteEntity[] = message.getData();
+
+            const { searchTerm, labelIds, limit, offset = 0, sortBy, sortOrder } = params;
+            if ( sortBy && isKeyOf<NoteEntity>(sortBy, notes[0]) ) {
+                throw new Error(`Invalid sortBy key: ${sortBy}`);
+            }
+
+            const _sortBy = sortBy as keyof NoteEntity;
             notes.filter(note =>
                 (!searchTerm
                     || slugInclude(note.title, searchTerm)
                     || slugInclude(note.content, searchTerm)) &&
                 (!labelIds
                     || note.labelIds.some(labelId => labelIds.includes(labelId)))
-            ).slice(offset, limit ? offset + limit : undefined);
+            )
+                .sort((a, b) => {
+                    if (!sortBy) return 0;
+                    return generalCompare(a[_sortBy], b[_sortBy], sortOrder);
+                })
+                .slice(offset, limit ? offset + limit : undefined);
 
             return Message.success(notes);
         } catch (error) {

@@ -136,7 +136,7 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
     }, [setModalTaskId, setCurrentModal, setCurrentMode]);
 
     const onAddedNote = React.useCallback((note: Note) => {
-        getAllNotes({limit: LIMIT_FETCH_NOTE}).then(setAllNotes);
+        getAllNotes({limit: LIMIT_FETCH_NOTE, sortBy: 'createdAt', sortOrder: 'desc'}).then(setAllNotes);
     }, [getAllNotes, setAllNotes]);
 
     const onAddedTask = React.useCallback((task: Task) => {

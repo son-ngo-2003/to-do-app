@@ -3,25 +3,26 @@ import NoteService from "./NoteService";
 import TaskService from "./TaskService";
 import { Message } from "../models";
 import {UNLABELED_KEY} from "../../constant";
+import {BaseFilter} from "../type";
 
 interface AppServiceType {
     // LabelService methods
-    getAllLabels:   (params?: { limit?: number, offset?: number }) => Promise<Message<Label[]>>,
+    getAllLabels:   (params?: BaseFilter) => Promise<Message<Label[]>>,
     getLabelById:   (id: string) => Promise<Message<Label>>,
     addLabel:       (label: Partial<Label>) => Promise<Message<Label>>,
     updateLabel:    (label: Partial<Label>) => Promise<Message<Label>>,
     deleteLabel:    (label: Label) => Promise<Message<Label>>,
 
     // NoteService methods
-    getAllNotes:    (params?: { limit?: number, offset?: number }) => Promise<Message<Note[]>>,
+    getAllNotes:    (params?: BaseFilter) => Promise<Message<Note[]>>,
     getNoteById:    (id: string) => Promise<Message<Note>>,
     addNote:        (note: Partial<Note>) => Promise<Message<Note>>,
     updateNote:     (note: Partial<Note>) => Promise<Message<Note>>,
     deleteNote:     (note: Note) => Promise<Message<Note>>,
 
     // TaskService methods
-    getAllTasks:                (params?: { limit?: number, offset?: number }) => Promise<Message<Task[]>>,
-    getAllTasksGroupByLabels:   (params?: { date?: Date, isCompleted?: boolean, withTasksNoLabel?: boolean, limit?: number, offset?: number })  => Promise<Message< Record<Label['_id'], Task[] >>>,
+    getAllTasks:                (params?: BaseFilter) => Promise<Message<Task[]>>,
+    getAllTasksGroupByLabels:   (params?: { date?: Date, isCompleted?: boolean, withTasksNoLabel?: boolean } & BaseFilter)  => Promise<Message< Record<Label['_id'], Task[] >>>,
     getTaskById:                (id: string) => Promise<Message<Task>>,
     addTask:                    (task: Partial<Task>) => Promise<Message<Task>>,
     updateTask:                 (task: Partial<Task>) => Promise<Message<Task>>,
@@ -31,7 +32,7 @@ interface AppServiceType {
 const AppService : AppServiceType = (() => {
 
     // ======================== LabelService methods ========================
-    async function getAllLabels(params?: { limit?: number, offset?: number }): Promise<Message<Label[]>> {
+    async function getAllLabels(params?: BaseFilter): Promise<Message<Label[]>> {
         try {
             const msg: Message<Label[]> = await LabelService.getAllLabels(params);
             if (!msg.getIsSuccess()) {
@@ -98,7 +99,7 @@ const AppService : AppServiceType = (() => {
 
 
     // ======================== NoteService methods ========================
-    async function getAllNotes(params?: { limit?: number, offset?: number }): Promise<Message<Note[]>> {
+    async function getAllNotes(params?: BaseFilter): Promise<Message<Note[]>> {
         try {
             const msg: Message<Note[]> = await NoteService.getAllNotes(params);
             if (!msg.getIsSuccess()) {
@@ -166,7 +167,7 @@ const AppService : AppServiceType = (() => {
 
     // ======================== TaskService methods ========================
 
-    async function getAllTasks(params?: { limit?: number, offset?: number }): Promise<Message<Task[]>> {
+    async function getAllTasks(params?: BaseFilter): Promise<Message<Task[]>> {
         try {
             const msg: Message<Task[]> = await TaskService.getAllTasks(params);
             if (!msg.getIsSuccess()) {
@@ -180,12 +181,10 @@ const AppService : AppServiceType = (() => {
     }
 
     async function getAllTasksGroupByLabels( params?: {
-        date?: Date;
-        isCompleted?: boolean;
-        withTasksNoLabel?: boolean;
-        limit?: number;
-        offset?: number;
-    }): Promise<Message<Record<Label["_id"], Task[]>>> {
+        date?: Date,
+        isCompleted?: boolean,
+        withTasksNoLabel?: boolean,
+    } & BaseFilter): Promise<Message<Record<Label["_id"], Task[]>>> {
         try {
             const allLabelsMsg: Message<Label[]> = await LabelService.getAllLabels();
             if (!allLabelsMsg.getIsSuccess()) {

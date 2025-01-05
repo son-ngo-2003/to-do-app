@@ -3,13 +3,15 @@ import { generateId } from "../../utils/generator";
 import { Message } from "../models"
 import { Colors } from "../../styles";
 import {slugInclude} from "../../utils/slugUtil";
+import {BaseFilter, isKeyOf} from "../type";
+import {generalCompare} from "../../utils/sortUtil";
 
 interface LabelDAOType {
     addLabel:               (label: Partial<LabelEntity>) => Promise<Message<LabelEntity>>,
 
-    getAllLabels:           (params?: { limit?: number, offset?: number }) => Promise<Message<LabelEntity[]>>,
+    getAllLabels:           (params?: BaseFilter) => Promise<Message<LabelEntity[]>>,
     getLabelById:           (_id: string) => Promise<Message<LabelEntity>>,
-    getLabelsByCriteria:    (params?: { searchTerm?: string, color?: string, limit?: number, offset?: number }) => Promise<Message<LabelEntity[]>>,
+    getLabelsByCriteria:    (params?: { searchTerm?: string, color?: string } & BaseFilter) => Promise<Message<LabelEntity[]>>,
 
     updateLabelById:        (_id: string, newData: Partial<LabelEntity>) => Promise<Message<LabelEntity>>,
     deleteLabelById:        (_id: string) => Promise<Message<LabelEntity>>,
@@ -46,9 +48,9 @@ const LabelDAO : LabelDAOType = (() => {
         }
     }
 
-    async function getAllLabels(params?: { limit?: number, offset?: number }): Promise<Message<LabelEntity[]>> {
+    async function getAllLabels(params?: BaseFilter): Promise<Message<LabelEntity[]>> {
         try {
-            return await StorageService.getAllDataByType<LabelEntity>('label', params?.limit, params?.offset);
+            return await StorageService.getAllDataByType<LabelEntity>('label', params);
         } catch (error) {
             return Message.failure(error);
         }
@@ -65,22 +67,30 @@ const LabelDAO : LabelDAOType = (() => {
     async function getLabelsByCriteria(params: {
         searchTerm?: string,
         color?: string,
-        limit?: number,
-        offset?: number
-    } = {}) : Promise<Message<LabelEntity[]>> {
+    } & BaseFilter = {}) : Promise<Message<LabelEntity[]>> {
         try {
             const message : Message<LabelEntity[]> = await getAllLabels();
             if (!message.getIsSuccess()) return message;
 
             const labels : LabelEntity[] = message.getData();
 
-            const { searchTerm, color, limit, offset = 0 } = params;
+            const { searchTerm, color, limit, offset = 0, sortBy, sortOrder } = params;
+            if ( sortBy && isKeyOf<LabelEntity>(sortBy, labels[0]) ) {
+                throw new Error(`Invalid sortBy key: ${sortBy}`);
+            }
+            const _sortBy = sortBy as keyof LabelEntity;
+
             const result : LabelEntity[] = labels.filter(label =>
                 (!searchTerm
                     || slugInclude(label.name, searchTerm)) &&
                 (!color
                     || label.color === color)
-            ).slice(offset, limit ? offset + limit : undefined);
+            )
+                .sort((a, b) => {
+                    if (!sortBy) return 0;
+                    return generalCompare(a[_sortBy], b[_sortBy], sortOrder);
+                })
+                .slice(offset, limit ? offset + limit : undefined);
 
             return Message.success(result);
         } catch (error) {
