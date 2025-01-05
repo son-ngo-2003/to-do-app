@@ -5,6 +5,7 @@ import { Colors } from "../../styles";
 import {slugInclude} from "../../utils/slugUtil";
 import {BaseFilter, isKeyOf} from "../type";
 import {generalCompare} from "../../utils/sortUtil";
+import {Primary} from "../../styles/colors";
 
 interface LabelDAOType {
     addLabel:               (label: Partial<LabelEntity>) => Promise<Message<LabelEntity>>,
@@ -40,7 +41,7 @@ const LabelDAO : LabelDAOType = (() => {
             label.isDeleted = label.isDeleted ?? false;
             label.createdAt = new Date();
             label._id = generateId();
-            label.color = label.color ?? Colors.getRandomColor();
+            label.color = Colors.primary[label.color as Primary] ?? Colors.getRandomColor();
 
             return StorageService.addData<LabelEntity>(label as LabelEntity, 'label', numberOfLabels);
         } catch (error) {

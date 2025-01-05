@@ -12,6 +12,8 @@ type LabelCardProps = {
     numberOfCompletedTasks: number,
 }
 
+export const LABEL_CARD_HEIGHT = 160;
+
 const LabelCard: React.FC<LabelCardProps> = ({
     label,
     numberOfNotes,
@@ -59,7 +61,7 @@ export default LabelCard;
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-        height: 160,
+        height: LABEL_CARD_HEIGHT,
         paddingHorizontal: 20,
         paddingVertical: 15,
         borderRadius: Outlines.borderRadius.large,

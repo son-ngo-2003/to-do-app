@@ -12,6 +12,7 @@ import LabelSelectItem from "./LabelSelectItem";
 //services
 import { useTheme } from '@react-navigation/native';
 import {useLabelsData} from "../../controllers";
+import AddLabelCard from "./AddLabelCard";
 
 
 type LabelSelectModalProps = {
@@ -21,6 +22,8 @@ type LabelSelectModalProps = {
     style: ViewStyle,
     onPressCancel: () => void,
 }
+
+const LIST_LABEL_MODAL_WIDTH = 200;
 
 const LabelSelectModal : React.FC<LabelSelectModalProps> = ({
     visible = true,
@@ -37,8 +40,25 @@ const LabelSelectModal : React.FC<LabelSelectModalProps> = ({
     //     hidePopUp, modalVisible
     // } = useAlertProvider();
 
-    const dataList : ListModalDataType[] = React.useMemo (() =>
-        allLabels.map((label: Label, index) => (
+    const onAddLabel = React.useCallback( (newLabel: Label) => {
+        allLabels.unshift(newLabel);
+        onPressOnLabel(newLabel, false);
+        setModalShow('listLabel');
+    }, [allLabels, onPressOnLabel, setModalShow]);
+
+    const dataList : ListModalDataType[] = React.useMemo (() =>{
+        if (allLabels.length === 0) {
+            return [() =>
+                <View style={styles.itemStyle} key={-1}>
+                    <AddLabelCard
+                        onPress={() => setModalShow('addLabel')}
+                        type={'small'}
+                    ></AddLabelCard>
+                </View>
+            ]
+        }
+
+        return allLabels.map((label: Label, index) => (
             () =>
                 <View style={styles.itemStyle} key={index}>
                     <LabelSelectItem
@@ -48,13 +68,9 @@ const LabelSelectModal : React.FC<LabelSelectModalProps> = ({
                     ></LabelSelectItem>
                 </View>
         ))
-    , [allLabels, onPressOnLabel, chosenLabelsList]);
+    }
 
-    const onAddLabel = React.useCallback( (newLabel: Label) => {
-        allLabels.unshift(newLabel);
-        onPressOnLabel(newLabel, false);
-        setModalShow('listLabel');
-    }, [allLabels, onPressOnLabel, setModalShow]);
+    , [allLabels, onPressOnLabel, chosenLabelsList, onAddLabel]);
 
     const Header : React.FC = () => {
         return (
@@ -129,6 +145,7 @@ const styles = StyleSheet.create({
     container : {
         paddingHorizontal: 12,
         borderWidth: 0,
+        width: LIST_LABEL_MODAL_WIDTH,
     },
     itemStyle: {
         marginVertical: 5,

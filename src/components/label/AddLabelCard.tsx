@@ -5,22 +5,28 @@ import { Bases, Outlines } from '../../styles';
 
 //Components
 import { Icon } from '../atomic';
+import {LABEL_CARD_HEIGHT} from "./LabelCard";
 
 type AddLabelCardProps = {
-//    label: Label,
+    onPress?: () => void,
+    type?: 'small' | 'medium',
 }
 
-const AddLabelCard: React.FC<AddLabelCardProps> = ({}) => {
+const HEIGHT = {
+    small: 40,
+    medium: LABEL_CARD_HEIGHT,
+}
+
+const AddLabelCard: React.FC<AddLabelCardProps> = ({
+    onPress,
+    type = 'small',
+}) => {
     const { colors } = useTheme();
 
-    const onPress = React.useCallback(() => {
-        console.log("add label")
-    },[]);
-
     return (
-        <Pressable style={[styles.container, {backgroundColor: colors.border}]}
+        <Pressable style={[styles.container, {backgroundColor: colors.border, height: HEIGHT[type]}]}
                     onPress={onPress}>
-            <Icon name="plus" size={80} color={colors.background} library='Octicons'/>
+            <Icon name="plus" size={HEIGHT[type] * 0.5} color={colors.text} library='Octicons'/>
         </Pressable>
     )
 }
@@ -29,7 +35,6 @@ export default AddLabelCard;
 const styles = StyleSheet.create({
     container: {
         ...Bases.centerItem.all,
-        height: 160,
         borderRadius: Outlines.borderRadius.large,
     },
 });
