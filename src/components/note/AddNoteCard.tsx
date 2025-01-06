@@ -20,7 +20,7 @@ const AddNoteCard: React.FC<AddNoteCardProps> = ({
 }) => {
     const { colors } = useTheme();
     const dimensions = React.useMemo(() => {
-        let dim = CARD_DIMENSIONS[orientation];
+        let dim = {...CARD_DIMENSIONS[orientation]};
         heightSameAsCardWithLabel && (dim.height += LABEL_HEIGHT);
         return dim;
     }, [orientation, heightSameAsCardWithLabel]);

@@ -44,6 +44,7 @@ const useTasksData = (
     }
 
     const getAllTasksGroupByLabels = async (params: {
+        //TODO: add limit number of tasks for each label, and fix bug: "when added or updated task, the new interface will become like before pressing the show more button"
         withTasksNoLabel?: boolean,
         date?: Date,
         isCompleted?: boolean,

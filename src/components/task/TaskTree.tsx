@@ -7,7 +7,7 @@ import {TaskItem} from "./index";
 const TASKTREE_CIRCLE_RADIUS = 6;
 
 type TaskTreeProps = {
-    tasks: Task[],
+    tasks: (Task|null)[],               //if showShowMoreButton is not specified, the tasks end is null will indicate that there are more tasks
     onPressTask?: (task: Task) => void,
 
     showShowMoreButton?: boolean,
@@ -21,19 +21,25 @@ const TaskTree: React.FC<TaskTreeProps> = ({
     tasks,
     onPressTask,
 
-    showShowMoreButton = true,
+    showShowMoreButton,
     onPressShowMore,
 
     colorTree,
     showLabel = true,
 }) => {
     const { colors } = useTheme();
+    const [ isShowMoreVisible, setIsShowMoreVisible ] = React.useState(showShowMoreButton === undefined ? tasks[tasks.length-1] === null : showShowMoreButton);
+
+    React.useEffect(() => {
+        if (showShowMoreButton !== undefined) setIsShowMoreVisible(showShowMoreButton);
+        setIsShowMoreVisible(tasks[tasks.length-1] === null);
+    }, [showShowMoreButton, tasks]);
 
     return (
         <View style={[styles.container]}>
-            { tasks.map((task: Task, index: number) => (
+            { tasks.map((task: Task | null, index: number) => (
+                task &&
                 <View key={index} style={[styles.treeItem, { backgroundColor: colors.background }]}>
-
                     <View style={[styles.line, { backgroundColor: colorTree },
                         index === 0 && { borderTopLeftRadius: Outlines.borderRadius.base / 2, borderTopRightRadius: Outlines.borderRadius.base / 2 },
                         index === tasks.length-1 && { borderBottomLeftRadius: Outlines.borderRadius.base / 2, borderBottomRightRadius: Outlines.borderRadius.base / 2 },
@@ -53,7 +59,7 @@ const TaskTree: React.FC<TaskTreeProps> = ({
             ))}
 
 
-            { showShowMoreButton && (
+            { isShowMoreVisible && (
                 <TouchableOpacity onPress={onPressShowMore} style={{paddingTop: 4, paddingLeft: 5}}>
                     <Text style={[Typography.subheader.x30, { color: colorTree }]}>Show More</Text>
                 </TouchableOpacity>

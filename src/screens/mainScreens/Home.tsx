@@ -36,7 +36,7 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
     const { getAllNotes, addNote, error: errorNote  } = useNotesData();
     const { getAllTasksGroupByLabels, addTask, error: errorTask } = useTasksData(false);
 
-    const [ tasksByLabel, setTaskByLabel ] = React.useState<Record<Label['_id'], Task[]>>({});
+    const [ tasksByLabel, setTaskByLabel ] = React.useState<Record<Label['_id'], (Task | null)[]>>({});
     const [ allNotes, setAllNotes ] = React.useState<Note[]>([]);
     const [ allLabels, setAllLabels ] = React.useState<Label[]>([]);
 
@@ -47,7 +47,7 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
 
         Promise.all([
             getAllNotes({limit: LIMIT_FETCH_NOTE}),
-            getAllTasksGroupByLabels({date: new Date(), limit: LIMIT_FETCH_TASK, withTasksNoLabel: true}),
+            getAllTasksGroupByLabels({date: new Date(), limit: LIMIT_FETCH_TASK + 1, withTasksNoLabel: true, sortBy: 'start', sortOrder: 'desc'}),
             getAllLabels()
         ]).then(([notes, tasksByLabel, labels]) => {
             setAllNotes(notes);
@@ -92,11 +92,19 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
 
     const onAddedUpdatedTask = React.useCallback((task: Task) => {
         Promise.all([
-            getAllTasksGroupByLabels({date: new Date(), limit: LIMIT_FETCH_TASK, withTasksNoLabel: true}),
+            getAllTasksGroupByLabels({date: new Date(), limit: LIMIT_FETCH_TASK + 1, withTasksNoLabel: true, sortBy: 'start', sortOrder: 'desc'}),
             getAllLabels()
         ]).then(([tasksByLabel, labels]) => {
             setAllLabels(labels);
-            setTaskByLabel(tasksByLabel);
+
+            const _tasksByLabel : Record<Label['_id'], (Task | null)[]> = {...tasksByLabel};
+            for (let key in _tasksByLabel) {
+                if (_tasksByLabel[key].length > LIMIT_FETCH_TASK) {
+                    _tasksByLabel[key].pop();
+                    _tasksByLabel[key].push(null); // Add a null task to show the "Show More" button
+                }
+            }
+            setTaskByLabel(_tasksByLabel);
             setCurrentModal('none');
         });
     }, [getAllTasksGroupByLabels, setTaskByLabel, getAllLabels, setAllLabels, setCurrentModal]);
@@ -197,15 +205,13 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                     <ScrollView style={[styles.noteCardsScroller]} horizontal={true}>
                         <View style={[styles.noteCardsContainer]}>
                             {
-                                allNotes.length > 0
-                                ? allNotes.map((note: Note, index: number) => (
+                                allNotes.length > 0 && allNotes.map((note: Note, index: number) => (
                                     <NoteCard key={index} note={note} orientation={'landscape'} showLabels
                                               onPress={(note) => {setModalNoteId(note._id); setCurrentModal('note'); setCurrentMode('edit')}}
                                     />)
                                     )
-                                : <AddNoteCard orientation={'landscape'} onPress={onPressAddNote}/>
-
                             }
+                            <AddNoteCard orientation={'landscape'} onPress={onPressAddNote} heightSameAsCardWithLabel={true}/>
                         </View>
                     </ScrollView>
                 </View>
@@ -222,8 +228,8 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                     <View style={[Layouts.fullWidthContainer]}>
                         <View style={[styles.tasksScroller]}>
                             {
-                                allLabels.length > 0 || tasksByLabel[UNLABELED_KEY]?.length
-                                ? <>
+                                (allLabels.length > 0 || tasksByLabel[UNLABELED_KEY]?.length > 0) &&
+                                <View style={{marginBottom: 10}}>
                                     {allLabels.map((label: Label, index: number) => (
                                     <View key={index}>
                                         <Text style={[ Typography.header.x40, { textTransform: 'uppercase', color: label.color } ]}>{label.name}</Text>
@@ -255,9 +261,9 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                                         />
                                     </View>
                                     }
-                                </>
-                                : <AddTaskCard onPress={onPressAddTask}/>
+                                </View>
                             }
+                            <AddTaskCard onPress={onPressAddTask}/>
                         </View>
                     </View>
 

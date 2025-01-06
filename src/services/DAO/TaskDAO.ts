@@ -9,6 +9,7 @@ import { isDateBetween } from "../../utils/dateUtil";
 import {UNLABELED_KEY} from "../../constant";
 import {BaseFilter, isKeyOf} from "../type";
 import {generalCompare} from "../../utils/sortUtil";
+import tasks from "../../screens/mainScreens/Tasks";
 
 interface TaskDAOType {
     addTask:           (task: Partial<TaskEntity>) => Promise<Message<TaskEntity>>,
@@ -128,7 +129,7 @@ const TaskDAO : TaskDAOType = (() => {
             let tasks : TaskEntity[] = message.getData();
 
             const { searchTerm, labelIds, noteIds, date, isCompleted, limit, offset = 0, sortBy, sortOrder} = params;
-            if ( sortBy && isKeyOf<TaskEntity>(sortBy, tasks[0]) ) {
+            if ( sortBy && tasks[0] && !isKeyOf<TaskEntity>(sortBy, tasks[0]) ) {
                 throw new Error(`Invalid sortBy key: ${sortBy}`);
             }
 

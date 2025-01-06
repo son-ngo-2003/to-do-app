@@ -82,7 +82,7 @@ const NoteDAO : NoteDAOType = (() => {
             const notes : NoteEntity[] = message.getData();
 
             const { searchTerm, labelIds, limit, offset = 0, sortBy, sortOrder } = params;
-            if ( sortBy && isKeyOf<NoteEntity>(sortBy, notes[0]) ) {
+            if ( sortBy && notes[0] && !isKeyOf<NoteEntity>(sortBy, notes[0]) ) {
                 throw new Error(`Invalid sortBy key: ${sortBy}`);
             }
 

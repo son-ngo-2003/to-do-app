@@ -76,7 +76,7 @@ const LabelDAO : LabelDAOType = (() => {
             const labels : LabelEntity[] = message.getData();
 
             const { searchTerm, color, limit, offset = 0, sortBy, sortOrder } = params;
-            if ( sortBy && isKeyOf<LabelEntity>(sortBy, labels[0]) ) {
+            if ( sortBy && labels[0] && isKeyOf<LabelEntity>(sortBy, labels[0]) ) {
                 throw new Error(`Invalid sortBy key: ${sortBy}`);
             }
             const _sortBy = sortBy as keyof LabelEntity;
