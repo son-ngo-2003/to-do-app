@@ -40,6 +40,7 @@ const ICON = {
 }
 
 export type AlertButtonConfig = {
+    visible?: boolean,
     text?: string,
     onPress?: () => void,
     color?: string,
@@ -148,7 +149,7 @@ const AlertModal: React.FC<AlertModalProps> = ({
                         <View style={[styles.buttonsContainer, {
                             flexDirection: buttonsDirection,
                         }]}>
-                            {   secondaryButton &&
+                            {   secondaryButton && secondaryButton.visible &&
                                 <Pressable style={[styles.button, {backgroundColor: buttonInfo.secondaryColor, flex: buttonsDirection === 'row' ? 1 : 0}]}
                                            onPress={ ()=>{
                                                secondaryButton?.onPress?.()
@@ -158,7 +159,7 @@ const AlertModal: React.FC<AlertModalProps> = ({
                             }
 
                             {
-                                primaryButton &&
+                                primaryButton && primaryButton.visible &&
                                 <Pressable style={[styles.button, {backgroundColor: buttonInfo.primaryColor, flex: buttonsDirection === 'row' ? 1 : 0}]}
                                            onPress={primaryButton?.onPress}>
                                     <Text style={[styles.buttonText, {color: colors.text}]}>{buttonInfo.primaryText}</Text>

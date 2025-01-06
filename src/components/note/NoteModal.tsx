@@ -16,8 +16,7 @@ import {
     createInitialNote,
     fromStateToNote,
     isNoteStateEmpty,
-    isStateOfNote, isStateOfTask,
-    isTaskStateEmpty
+    isStateOfNote
 } from "../../helpers/formState";
 import {NoteFormState} from "../../types/formStateType";
 import {useNotesData} from "../../controllers";
@@ -82,8 +81,32 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
         onChangeNote?.(fromStateToNote(newNoteFromState));
     },[dispatch, noteFormState, onChangeNote]);
 
+    const verifyNote = React.useCallback( () => {
+        if (!noteFormState.title) {
+            alert({ type: 'error', title: 'Error',
+                message: 'Title cannot be empty!',
+                primaryButton: {text: 'OK', onPress: () => {}},
+                secondaryButton: {visible: false},
+                useCancel: false,
+            });
+            return false;
+        }
+
+        if (!noteFormState.content) {
+            alert({ type: 'error', title: 'Error',
+                message: 'Content cannot be empty!',
+                primaryButton: {text: 'OK', onPress: () => {}},
+                secondaryButton: {visible: false},
+                useCancel: false,
+            });
+            return false;
+        }
+        return true;
+    }, [noteFormState.title, alert, noteFormState.content]);
+
     const onPressAdd = React.useCallback( async () => {
         try {
+            if (!verifyNote()) return;
             setButtonMode('loading');
 
             const note = fromStateToNote(noteFormState);
@@ -103,10 +126,11 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
             setButtonMode('add');
         }
 
-    }, [onAddNote, noteFormState, setButtonMode, addNote, alert, setOriginalNote, dispatchNoteForm]);
+    }, [onAddNote, noteFormState, setButtonMode, addNote, alert, setOriginalNote, dispatchNoteForm, verifyNote]);
 
     const onPressUpdate = React.useCallback( async () => {
         try {
+            verifyNote();
             setButtonMode('loading');
 
             const note = fromStateToNote(noteFormState);
@@ -125,7 +149,7 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
             });
             setButtonMode('edit');
         }
-    }, [noteFormState, setButtonMode, updateNote, alert, setOriginalNote, dispatchNoteForm, onUpdateNote]);
+    }, [noteFormState, setButtonMode, updateNote, alert, setOriginalNote, dispatchNoteForm, onUpdateNote, verifyNote]);
 
     const onPressCancel = React.useCallback( async () => {
         return onCancel?.(fromStateToNote(noteFormState), isEdited, alert)

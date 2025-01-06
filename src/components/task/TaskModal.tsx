@@ -105,8 +105,23 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
         onChangeTask?.(fromStateToTask(newTaskFromState));
     },[dispatch, taskFormState, onChangeTask]);
 
+    let noteFormState;
+    const verifyTask = React.useCallback( () => {
+        if (!taskFormState.title) {
+            alert({ type: 'error', title: 'Error',
+                message: 'Title cannot be empty!',
+                primaryButton: {text: 'OK', onPress: () => {}},
+                secondaryButton: {visible: false},
+                useCancel: false,
+            });
+            return false;
+        }
+        return true;
+    }, [alert, taskFormState.title]);
+
     const onPressAdd = React.useCallback( async () => {
         try {
+            if (!verifyTask()) return;
             setButtonMode('loading');
 
             const task = fromStateToTask(taskFormState);
@@ -125,10 +140,11 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
             });
             setButtonMode('add');
         }
-    }, [setButtonMode, taskFormState, onAddTask, addTask, dispatchTaskForm, setOriginalTask, alert]);
+    }, [setButtonMode, taskFormState, onAddTask, addTask, dispatchTaskForm, setOriginalTask, alert, verifyTask]);
 
     const onPressUpdate = React.useCallback(async () => {
         try {
+            if (!verifyTask()) return;
             setButtonMode('loading');
 
             const task = fromStateToTask(taskFormState);
@@ -147,7 +163,7 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
             });
             setButtonMode('edit');
         }
-    }, [taskFormState, setButtonMode, updateTask, alert, setOriginalTask, dispatchTaskForm, onUpdateTask]);
+    }, [taskFormState, setButtonMode, updateTask, alert, setOriginalTask, dispatchTaskForm, onUpdateTask, verifyTask]);
 
     const onPressCancel = React.useCallback(async () => {
         return onCancel?.(fromStateToTask(taskFormState), isEdited, alert);

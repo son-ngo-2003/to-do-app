@@ -22,6 +22,7 @@ const useAlertProvider = () => {
     const [modalVisible, setModalVisible] = React.useState(false);
     const [alertProps, setAlertProps] = React.useState<AlertModalProps>();
     const resolveCallback = React.useRef<(result: any) => void>();
+    const canOpenNextAlert = React.useRef(true);
 
     const hidePopUp = (
         result?: any //result will be passed to the resolve of the promise returned by alert function
@@ -33,24 +34,41 @@ const useAlertProvider = () => {
 
     const onPrimaryPress = (props : AlertModalProps) => {
         hidePopUp(true);
+        canOpenNextAlert.current = false;
         props?.primaryButton?.onPress?.();
+        setTimeout(() => {
+            canOpenNextAlert.current = true;
+        }, 300);
     }
 
     const onSecondaryPress = (props : AlertModalProps) => {
         hidePopUp(false);
+        canOpenNextAlert.current = false;
         props?.secondaryButton?.onPress?.();
+        setTimeout(() => {
+            canOpenNextAlert.current = true;
+        }, 300);
     }
 
     const onPressCancel = (props : AlertModalProps) => {
         hidePopUp(undefined);
+        canOpenNextAlert.current = false;
         props?.onPressCancel?.();
+        setTimeout(() => {
+            canOpenNextAlert.current = true;
+        }, 300);
     }
 
-    const alert : AlertFunctionType = (props: AlertModalProps) => {
+    const alert : AlertFunctionType = async (props: AlertModalProps) => {
+        if (modalVisible || !canOpenNextAlert.current) {
+            setModalVisible(false);
+            await new Promise((resolve) => setTimeout(resolve, 300));
+            canOpenNextAlert.current = true;
+        }
         setAlertProps({
             ...props,
-            primaryButton: { ...props.primaryButton, onPress: () => onPrimaryPress(props) },
-            secondaryButton: { ...props.secondaryButton, onPress: () => onSecondaryPress(props) },
+            primaryButton: { visible: true, ...props.primaryButton, onPress: () => onPrimaryPress(props) },
+            secondaryButton: { visible: true, ...props.secondaryButton, onPress: () => onSecondaryPress(props) },
             onPressCancel: props?.onPressCancel ? () => onPressCancel(props) : undefined,
             visible: modalVisible,
         });

@@ -33,8 +33,8 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
     const { colors } = useTheme();
 
     const { getAllLabels, addLabel, error: errorLabel } = useLabelsData();
-    const { getAllNotes, error: errorNote  } = useNotesData();
-    const { getAllTasksGroupByLabels, error: errorTask, loading: loadingTask } = useTasksData(false);
+    const { getAllNotes, addNote, error: errorNote  } = useNotesData();
+    const { getAllTasksGroupByLabels, addTask, error: errorTask } = useTasksData(false);
 
     const [ tasksByLabel, setTaskByLabel ] = React.useState<Record<Label['_id'], Task[]>>({});
     const [ allNotes, setAllNotes ] = React.useState<Note[]>([]);
@@ -63,57 +63,6 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
 
     const taskModalRef = React.useRef<TaskModalRef>(null);
 
-    const onCancelTaskModal = React.useCallback((draftTask: Partial<Task>,  isEdited: boolean,  alert: AlertFunctionType) => {
-        if (!isEdited) {
-            setCurrentModal('none');
-            return Promise.resolve();
-        }
-
-        return alert({
-            ...ALERT_OPTION_NOT_SAVED_FOR_TASK_MODAL,
-
-            primaryButton: {
-                ...ALERT_OPTION_NOT_SAVED_FOR_TASK_MODAL.primaryButton,
-                onPress: () => {
-                    console.log('Task Modal (Home): Save Task');
-                    setCurrentModal('none')
-                },
-            },
-
-            secondaryButton: {
-                ...ALERT_OPTION_NOT_SAVED_FOR_TASK_MODAL.secondaryButton,
-                onPress: () => {
-                    console.log('Task Modal (Home): Discard Task');
-                    setCurrentModal('none')
-                },
-            },
-        });
-    }, [setCurrentModal]);
-
-    const onCancelNoteModal = React.useCallback((draftNote: Partial<Note>, isEdited: boolean, alert: AlertFunctionType) => {
-        if (!isEdited) {
-            setCurrentModal('none');
-            return Promise.resolve();
-        }
-
-        return alert({
-            ...ALERT_OPTION_NOT_SAVED_FOR_NOTE_MODAL,
-            primaryButton: {
-                ...ALERT_OPTION_NOT_SAVED_FOR_NOTE_MODAL.primaryButton,
-                onPress: () => {
-                    console.log('Note Modal (Home): Discard Note');
-                    setCurrentModal('none')
-                }
-            },
-            secondaryButton: {
-                ...ALERT_OPTION_NOT_SAVED_FOR_NOTE_MODAL.secondaryButton,
-                onPress: () => {
-                    console.log('Note Modal (Home): Cancel Discard Note')
-                    setCurrentModal('none');
-                }
-            }
-        });
-    }, [setCurrentModal]);
 
     const onPressNoteInTask = React.useCallback((note: Note) => {
         taskModalRef.current?.close().then(( alertButtonResult ) => {
@@ -151,6 +100,74 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
             setCurrentModal('none');
         });
     }, [getAllTasksGroupByLabels, setTaskByLabel, getAllLabels, setAllLabels, setCurrentModal]);
+
+    const onCancelTaskModal = React.useCallback((draftTask: Partial<Task>,  isEdited: boolean,  alert: AlertFunctionType) => {
+        if (!isEdited) {
+            setCurrentModal('none');
+            return Promise.resolve();
+        }
+
+        return alert({
+            ...ALERT_OPTION_NOT_SAVED_FOR_TASK_MODAL,
+
+            primaryButton: {
+                ...ALERT_OPTION_NOT_SAVED_FOR_TASK_MODAL.primaryButton,
+                onPress: () => {
+                    addTask(draftTask).then((task) => {
+                        onAddedUpdatedTask(task);
+                    }).catch((error) => {
+                        alert({
+                            type: 'error', title: 'Error',
+                            message: error.message,
+                            secondaryButton: {text: 'OK', onPress: () => {}},
+                            primaryButton: {visible: false},
+                            useCancel: false,
+                        })
+                    });
+                },
+            },
+
+            secondaryButton: {
+                ...ALERT_OPTION_NOT_SAVED_FOR_TASK_MODAL.secondaryButton,
+                onPress: () => {
+                    setCurrentModal('none')
+                },
+            },
+        });
+    }, [setCurrentModal, addTask, onAddedUpdatedTask]);
+
+    const onCancelNoteModal = React.useCallback((draftNote: Partial<Note>, isEdited: boolean, alert: AlertFunctionType) => {
+        if (!isEdited) {
+            setCurrentModal('none');
+            return Promise.resolve();
+        }
+
+        return alert({
+            ...ALERT_OPTION_NOT_SAVED_FOR_NOTE_MODAL,
+            primaryButton: {
+                ...ALERT_OPTION_NOT_SAVED_FOR_NOTE_MODAL.primaryButton,
+                onPress: () => {
+                    addNote(draftNote).then((note) => {
+                        onAddedUpdatedNote(note);
+                    }).catch((error) => {
+                        alert({
+                            type: 'error', title: 'Error',
+                            message: error.message,
+                            secondaryButton: {text: 'OK', onPress: () => {}},
+                            primaryButton: {visible: false},
+                            useCancel: false,
+                        })
+                    });
+                }
+            },
+            secondaryButton: {
+                ...ALERT_OPTION_NOT_SAVED_FOR_NOTE_MODAL.secondaryButton,
+                onPress: () => {
+                    setCurrentModal('none');
+                }
+            }
+        });
+    }, [setCurrentModal, addNote, onAddedUpdatedNote]);
 
     return (
         <SafeAreaView style={{position: 'relative'}}>
