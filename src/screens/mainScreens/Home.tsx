@@ -41,6 +41,9 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
     const [ allLabels, setAllLabels ] = React.useState<Label[]>([]);
 
     React.useEffect(() => {
+        //TODO: delete a repeated Task also delete its instances
+        //TODO: make notification for tasks
+
         StorageService.clearAllData('label');
         StorageService.clearAllData('note');
         StorageService.clearAllData('task');

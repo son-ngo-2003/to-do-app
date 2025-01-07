@@ -5,7 +5,7 @@ import { Message } from "../models";
 //utils
 import { generateId } from "../../utils/generator";
 import { slugInclude } from "../../utils/slugUtil";
-import {BaseFilter, isKeyOf} from "../type";
+import {BaseFilter, isKeyOf, NoteFilter} from "../type";
 import {generalCompare} from "../../utils/sortUtil";
 
 interface NoteDAOType {
@@ -13,7 +13,7 @@ interface NoteDAOType {
 
     getAllNotes:       (params?: BaseFilter) => Promise<Message<NoteEntity[]>>,
     getNoteByID:       (_id: string) => Promise<Message<NoteEntity>>,
-    getNotesByCriteria:    (params?: {searchTerm?: string, labelIds?: Label['_id'][]} & BaseFilter) => Promise<Message<NoteEntity[]>>,
+    getNotesByCriteria:    (params?: NoteFilter & BaseFilter) => Promise<Message<NoteEntity[]>>,
 
     updateNoteById:    (_id: string, newData: Partial<NoteEntity>) => Promise<Message<NoteEntity>>,
     addLabelToNote:    (labelId: Label['_id'], noteId: string) => Promise<Message<NoteEntity>>, //TODO: move this to service not DAO
@@ -71,10 +71,7 @@ const NoteDAO : NoteDAOType = (() => {
         }
     }
 
-    async function getNotesByCriteria(params: {
-        searchTerm?: string,
-        labelIds?: Label['_id'][],
-    } & BaseFilter = {}) : Promise<Message<NoteEntity[]>> {
+    async function getNotesByCriteria(params: NoteFilter & BaseFilter = {}) : Promise<Message<NoteEntity[]>> {
         try {
             const message : Message<NoteEntity[]> = await getAllNotes();
             if (!message.getIsSuccess()) return message;

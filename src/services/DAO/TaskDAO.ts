@@ -7,16 +7,15 @@ import { generateId } from "../../utils/generator";
 import { slugInclude } from "../../utils/slugUtil";
 import { isDateBetween } from "../../utils/dateUtil";
 import {UNLABELED_KEY} from "../../constant";
-import {BaseFilter, isKeyOf} from "../type";
+import {BaseFilter, isKeyOf, TaskFilter} from "../type";
 import {generalCompare} from "../../utils/sortUtil";
-import tasks from "../../screens/mainScreens/Tasks";
 
 interface TaskDAOType {
     addTask:           (task: Partial<TaskEntity>) => Promise<Message<TaskEntity>>,
 
     getAllTasks:       (params?: BaseFilter) => Promise<Message<TaskEntity[]>>,
     getTaskByID:       (_id: string) => Promise<Message<TaskEntity>>,
-    getTasksByCriteria:    (params?: {searchTerm?: string, labelIds?: Label['_id'][], noteIds?: Note['_id'][], date?: Date, isCompleted?: boolean } & BaseFilter) => Promise<Message<TaskEntity[]>>,
+    getTasksByCriteria:    (params?: TaskFilter & BaseFilter) => Promise<Message<TaskEntity[]>>,
     //TODO: get completed tasks, get deleted tasks
     //TODO: add params isCompleted for getTasksByCriteria
 
@@ -26,6 +25,7 @@ interface TaskDAOType {
     //TODO: removeLabelFromNote: (labelId: Label['_id'], noteId: string) => Promise<Message<Note>>,ß
     
     deleteTaskById:    (_id: string) => Promise<Message<TaskEntity>>,
+    deleteForceTaskInstance: (_id: string) => Promise<Message<TaskEntity>>,
 }
 
 function validateTask(task: Partial<Task>) {
@@ -91,6 +91,7 @@ const TaskDAO : TaskDAOType = (() => {
             task.repeat = task.repeat ?? undefined;
             task.labelIds = task.labelIds ?? [];
             task.noteId = task.noteId ?? undefined;
+            task.parentTaskId = task.parentTaskId ?? undefined;
 
 
             return StorageService.addData<TaskEntity>(task as TaskEntity, 'task', numberOfTasks);
@@ -115,20 +116,15 @@ const TaskDAO : TaskDAOType = (() => {
         }
     }
 
-    async function getTasksByCriteria(params: {
-        searchTerm?: string,
-        labelIds?: Label['_id'][],
-        noteIds?: Note['_id'][],
-        date?: Date,
-        isCompleted?: boolean,
-    } & BaseFilter = {}) : Promise<Message<TaskEntity[]>> {
+    async function getTasksByCriteria(params: TaskFilter & BaseFilter = {}) : Promise<Message<TaskEntity[]>> {
         try {
             const message : Message<TaskEntity[]> = await getAllTasks();
             if (!message.getIsSuccess()) return message;
 
             let tasks : TaskEntity[] = message.getData();
 
-            const { searchTerm, labelIds, noteIds, date, isCompleted, limit, offset = 0, sortBy, sortOrder} = params;
+            const { searchTerm, labelIds, noteIds, date, isCompleted, isRepeat, parentTaskId, isOverdue,
+                limit, offset = 0, sortBy, sortOrder} = params;
             if ( sortBy && tasks[0] && !isKeyOf<TaskEntity>(sortBy, tasks[0]) ) {
                 throw new Error(`Invalid sortBy key: ${sortBy}`);
             }
@@ -142,10 +138,16 @@ const TaskDAO : TaskDAOType = (() => {
                 (!labelIds
                     || task.labelIds.some( labelId => labelIds.includes(labelId) )
                     || (labelIds.includes(UNLABELED_KEY) && task.labelIds.length === 0)) &&
-                (!isCompleted
+                (isCompleted === undefined
                     || task.isCompleted === isCompleted) &&
                 (!date 
-                    || isDateBetween(date, task.start, task.end))
+                    || isDateBetween(date, task.start, task.end)) &&
+                (isRepeat === undefined
+                    || (task.repeat !== undefined) === isRepeat) &&
+                (parentTaskId === undefined
+                    || task.parentTaskId === parentTaskId) &&
+                (isOverdue === undefined
+                    || (task.end < new Date()) === isOverdue)
                 //TODO: improve search later with possibility of searching string date: like '24/12' will return all tasks that start at 24/12 in every year, and also searching filter also apply in case repeat
             )
                 .sort((a, b) => {
@@ -190,6 +192,20 @@ const TaskDAO : TaskDAOType = (() => {
         }
     }
 
+    async function deleteForceTaskInstance(_id: string): Promise<Message<TaskEntity>> {
+        try {
+            const message : Message<TaskEntity> = await getTaskByID(_id);
+            if (!message.getIsSuccess()) return message;
+
+            if (!message.getData().parentTaskId) {
+                throw new Error('Task is not an instance of repeat task!');
+            }
+            return await StorageService.deleteForceDataByTypeAndId<TaskEntity>('task', _id);
+        } catch (error) {
+            return Message.failure(error);
+        }
+    }
+
     return {
         addTask,
 
@@ -201,6 +217,7 @@ const TaskDAO : TaskDAOType = (() => {
         addLabelToTask,
 
         deleteTaskById,
+        deleteForceTaskInstance,
     };
 })();
 

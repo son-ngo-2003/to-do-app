@@ -4,7 +4,7 @@ import {BaseFilter} from "../services/type";
 
 const useTasksData = (
     toFetchAllData: boolean = true
-    // if only use addTask, updateTask, deleteTask,... , no need to fetch all data
+    // if only used addTask, updateTask, deleteTask,... , no need to fetch all data
 ) => {
     const [allTasks, setAllTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
@@ -43,7 +43,7 @@ const useTasksData = (
         }
     }
 
-    const getAllTasksGroupByLabels = async (params: {
+    const getAllTasksGroupByLabels = async (params?: {
         //TODO: add limit number of tasks for each label, and fix bug: "when added or updated task, the new interface will become like before pressing the show more button"
         withTasksNoLabel?: boolean,
         date?: Date,
@@ -82,12 +82,34 @@ const useTasksData = (
         }
     };
 
+    const getRepeatTasks = async (params?: BaseFilter) => {
+        try {
+            setLoading(true);
+            const msg = await AppService.getRepeatTasks(params);
+            if (!msg.getIsSuccess()) throw new Error(msg.getError());
+            return msg.getData();
+        } catch (e) {
+            console.error("useTasksData.ts: ", e);
+            let errorMessage = "Error fetching repeat tasks";
+            if (e instanceof Error) errorMessage = e.message;
+            setError(errorMessage);
+            throw e;
+        } finally {
+            setLoading(false);
+        }
+    }
+
     const addTask = async (task: Partial<Task>) => {
         try {
             setLoading(true);
             const msg = await AppService.addTask(task);
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
             setAllTasks([...allTasks, msg.getData()]);
+
+            if (task.repeat) {
+                await generateTaskInstance(msg.getData());
+            }
+
             return msg.getData();
         } catch (e) {
             console.error("useTasksData.ts: ", e);
@@ -136,6 +158,76 @@ const useTasksData = (
         }
     };
 
+    const getTaskInstances = async (task: Task) => {
+        try {
+            setLoading(true);
+            const msg = await AppService.getTaskInstances(task);
+            if (!msg.getIsSuccess()) throw new Error(msg.getError());
+            return msg.getData();
+        } catch (e) {
+            console.error("useTasksData.ts: ", e);
+            let errorMessage = "Error fetching task instances";
+            if (e instanceof Error) errorMessage = e.message;
+            setError(errorMessage);
+            throw e;
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const generateTaskInstance = async (task: Task) => {
+        try {
+            setLoading(true);
+            const msg = await AppService.generateTaskInstances(task);
+            if (!msg.getIsSuccess()) throw new Error(msg.getError());
+            setAllTasks([...allTasks, ...msg.getData()]);
+            return msg.getData();
+        } catch (e) {
+            console.error("useTasksData.ts: ", e);
+            let errorMessage = "Error generating task instance";
+            if (e instanceof Error) errorMessage = e.message;
+            setError(errorMessage);
+            throw e;
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const getTaskInstancesOverdue = async (task: Task) => {
+        try {
+            setLoading(true);
+            const msg = await AppService.getTaskInstancesOverdue(task);
+            if (!msg.getIsSuccess()) throw new Error(msg.getError());
+            return msg.getData();
+        } catch (e) {
+            console.error("useTasksData.ts: ", e);
+            let errorMessage = "Error fetching task instances overdue";
+            if (e instanceof Error) errorMessage = e.message;
+            setError(errorMessage);
+            throw e;
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const deleteForceTaskInstance = async (task: Task) => {
+        try {
+            setLoading(true);
+            const msg = await AppService.deleteForceTaskInstance(task);
+            if (!msg.getIsSuccess()) throw new Error(msg.getError());
+            setAllTasks(allTasks.filter((item) => item._id !== task._id));
+            return msg.getData();
+        } catch (e) {
+            console.error("useTasksData.ts: ", e);
+            let errorMessage = "Error deleting force task instance";
+            if (e instanceof Error) errorMessage = e.message;
+            setError(errorMessage);
+            throw e;
+        } finally {
+            setLoading(false);
+        }
+    }
+
     useEffect(() => {
         if (toFetchAllData) fetchTasks();
     }, []);
@@ -144,12 +236,20 @@ const useTasksData = (
         allTasks,
         loading,
         error,
+
         addTask,
         updateTask,
         deleteTask,
+
         getTaskById,
         getAllTasksGroupByLabels,
         getAllTasks,
+        getRepeatTasks,
+
+        getTaskInstances,
+        getTaskInstancesOverdue,
+        generateTaskInstance,
+        deleteForceTaskInstance,
     };
 };
 

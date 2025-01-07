@@ -3,7 +3,7 @@ import { generateId } from "../../utils/generator";
 import { Message } from "../models"
 import { Colors } from "../../styles";
 import {slugInclude} from "../../utils/slugUtil";
-import {BaseFilter, isKeyOf} from "../type";
+import {BaseFilter, isKeyOf, LabelFilter} from "../type";
 import {generalCompare} from "../../utils/sortUtil";
 import {Primary} from "../../styles/colors";
 
@@ -12,7 +12,7 @@ interface LabelDAOType {
 
     getAllLabels:           (params?: BaseFilter) => Promise<Message<LabelEntity[]>>,
     getLabelById:           (_id: string) => Promise<Message<LabelEntity>>,
-    getLabelsByCriteria:    (params?: { searchTerm?: string, color?: string } & BaseFilter) => Promise<Message<LabelEntity[]>>,
+    getLabelsByCriteria:    (params?: LabelFilter & BaseFilter) => Promise<Message<LabelEntity[]>>,
 
     updateLabelById:        (_id: string, newData: Partial<LabelEntity>) => Promise<Message<LabelEntity>>,
     deleteLabelById:        (_id: string) => Promise<Message<LabelEntity>>,
@@ -65,10 +65,7 @@ const LabelDAO : LabelDAOType = (() => {
         }
     }
 
-    async function getLabelsByCriteria(params: {
-        searchTerm?: string,
-        color?: string,
-    } & BaseFilter = {}) : Promise<Message<LabelEntity[]>> {
+    async function getLabelsByCriteria(params: LabelFilter & BaseFilter = {}) : Promise<Message<LabelEntity[]>> {
         try {
             const message : Message<LabelEntity[]> = await getAllLabels();
             if (!message.getIsSuccess()) return message;

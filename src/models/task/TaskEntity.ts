@@ -18,6 +18,8 @@ interface TaskEntity {
     repeat?: RepeatAttributeType,
     isAnnouncement?: boolean,
 
+    parentTaskId?: Task['_id'], //this is for tasks instances from mother task with repeat attribute, if parentTask is undefined, this task is mother task
+
     isDeleted: boolean,
     isCompleted: boolean,
     

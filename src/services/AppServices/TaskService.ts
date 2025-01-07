@@ -2,7 +2,7 @@
 import { TaskDAO } from "../DAO";
 import Mapping from "./mapping";
 import { Message } from "../models";
-import {BaseFilter} from "../type";
+import {BaseFilter, TaskFilter} from "../type";
 
 interface TaskServiceType {
     addTask:           (task: Partial<Task>) => Promise<Message<Task>>,
@@ -11,7 +11,10 @@ interface TaskServiceType {
 
     getAllTasks:        (params?: BaseFilter) => Promise<Message<Task[]>>,
     getTaskById:        (_id: Task['_id']) => Promise<Message<Task>>,
-    getTasksByCriteria: (params?: {searchTerm?: string, labelIds?: Label['_id'][], noteIds?: Note['_id'][], date?: Date, isCompleted?: boolean } & BaseFilter) => Promise<Message<Task[]>>,
+    getTasksByCriteria: (params?: TaskFilter & BaseFilter) => Promise<Message<Task[]>>,
+    getRepeatTasks:     (params?: BaseFilter) => Promise<Message<Task[]>>,
+
+    deleteForceTaskInstance: (task: Task) => Promise<Message<Task>>,
 }
 
 const TaskService : TaskServiceType = (() => {
@@ -45,15 +48,26 @@ const TaskService : TaskServiceType = (() => {
         }
     }
 
-    async function getTasksByCriteria(params?: {
-        searchTerm?: string,
-        labelIds?: Label['_id'][],
-        noteIds?: Note['_id'][],
-        date?: Date,
-        isCompleted?: boolean,
-    } & BaseFilter): Promise<Message<Task[]>> {
+    async function getTasksByCriteria(params?: TaskFilter & BaseFilter): Promise<Message<Task[]>> {
         try {
             const msg: Message<TaskEntity[]> = await TaskDAO.getTasksByCriteria(params);
+            if (!msg.getIsSuccess()) {
+                throw new Error(msg.getError());
+            }
+            const tasks: Task[] = await Promise.all(msg.getData().map( async task => {
+                return await Mapping.taskFromEntity(task);
+            }))
+
+            return Message.success(tasks);
+
+        } catch (error) {
+            return Message.failure(error);
+        }
+    }
+
+    async function getRepeatTasks(params?: BaseFilter): Promise<Message<Task[]>> {
+        try {
+            const msg: Message<TaskEntity[]> = await TaskDAO.getTasksByCriteria({...params, isRepeat: true});
             if (!msg.getIsSuccess()) {
                 throw new Error(msg.getError());
             }
@@ -72,8 +86,9 @@ const TaskService : TaskServiceType = (() => {
         try {
             const labelIds = task.labels ? task.labels.map(label => label._id) : [];
             const noteId = task.note ? task.note._id : undefined;
-            const { note, labels, ...taskWithoutNoteLabels} = task;
-            const msg: Message<TaskEntity> = await TaskDAO.addTask( { ...taskWithoutNoteLabels, labelIds, noteId } );
+            const parentTaskId = task.parentTask ? task.parentTask._id : undefined;
+            const { note, labels, parentTask, ...taskWithoutNoteLabels} = task;
+            const msg: Message<TaskEntity> = await TaskDAO.addTask( { ...taskWithoutNoteLabels, labelIds, noteId, parentTaskId } );
             if (!msg.getIsSuccess()) {
                 throw new Error(msg.getError());
             }
@@ -119,6 +134,22 @@ const TaskService : TaskServiceType = (() => {
         }
     }
 
+    async function deleteForceTaskInstance(task: Task): Promise<Message<Task>> {
+        try {
+            if (!task.parentTask) {
+                throw new Error('Task is not an instance of repeat task!');
+            }
+            const msg: Message<TaskEntity> = await TaskDAO.deleteForceTaskInstance(task._id);
+            if (!msg.getIsSuccess()) {
+                throw new Error(msg.getError());
+            }
+            return Message.success(await Mapping.taskFromEntity(msg.getData()));
+
+        } catch (error) {
+            return Message.failure(error);
+        }
+    }
+
     return {
         addTask,
         updateTask,
@@ -127,6 +158,9 @@ const TaskService : TaskServiceType = (() => {
         getAllTasks,
         getTaskById,
         getTasksByCriteria,
+        getRepeatTasks,
+
+        deleteForceTaskInstance,
     };
 })();
 

@@ -11,7 +11,9 @@ interface Task {
     end: Date, //TODO: think about if a task should have end attribute or not
     isAllDay: boolean,
     repeat?: RepeatAttributeType,
-    isAnnouncement: boolean,
+    isAnnouncement?: boolean,
+
+    parentTask?: Task, //this is for tasks instances from mother task with repeat attribute, if parentTask is undefined, this task is mother task
 
     isDeleted: boolean,
     isCompleted: boolean,

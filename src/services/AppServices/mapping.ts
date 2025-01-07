@@ -1,5 +1,5 @@
 //services
-import { NoteDAO, LabelDAO } from "../DAO";
+import {NoteDAO, LabelDAO, TaskDAO} from "../DAO";
 import { Message } from "../models";
 
 interface MappingType {
@@ -24,6 +24,15 @@ const Mapping : MappingType = (() => {
             note = await noteFromEntity(noteMsg.getData());
         }
 
+        let parentTask: Task | undefined = undefined;
+        if (entity.parentTaskId) {
+            const parentTaskMsg: Message<TaskEntity> = await TaskDAO.getTaskByID(entity.parentTaskId);
+            if (!parentTaskMsg.getIsSuccess()) {
+                throw new Error(parentTaskMsg.getError());
+            }
+            parentTask = await taskFromEntity(parentTaskMsg.getData());
+        }
+
         const _labelIds = entity.labelIds;
         const labels: Label[] = await Promise.all(_labelIds.map( async labelId => {
             const labelMsg: Message<Label> = await LabelDAO.getLabelById(labelId);
@@ -33,8 +42,8 @@ const Mapping : MappingType = (() => {
             return labelMsg.getData();
         } ))
 
-        const { labelIds, noteId, ...entityWithoutNoteLabels} = entity;
-        return { ...entityWithoutNoteLabels, note, labels };
+        const { labelIds, noteId, parentTaskId, ...entityWithoutNoteLabels} = entity;
+        return { ...entityWithoutNoteLabels, note, labels, parentTask };
     }
 
     async function noteFromEntity(entity: NoteEntity): Promise<Note> {

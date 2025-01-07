@@ -2,12 +2,12 @@
 import { NoteDAO } from "../DAO";
 import Mapping from "./mapping";
 import { Message } from "../models";
-import {BaseFilter} from "../type";
+import {BaseFilter, NoteFilter} from "../type";
 
 interface NoteServiceType {
     getAllNotes:        (params?: BaseFilter) => Promise<Message<Note[]>>,
     getNoteById:        (_id: Note['_id']) => Promise<Message<Note>>,
-    getNotesByCriteria: (params?: {searchTerm?: string, labelIds?: Label['_id'][]} & BaseFilter) => Promise<Message<Note[]>>,
+    getNotesByCriteria: (params?: NoteFilter & BaseFilter) => Promise<Message<Note[]>>,
 
     addNote:           (note: Partial<Note>) => Promise<Message<Note>>,
     updateNote:        (note: Partial<Note>) => Promise<Message<Note>>,
@@ -42,10 +42,7 @@ const NoteService : NoteServiceType = (() => {
         }
     }
 
-    async function getNotesByCriteria(params: {
-        searchTerm?: string,
-        labelIds?: Label['_id'][],
-    } & BaseFilter = {}): Promise<Message<Note[]>> {
+    async function getNotesByCriteria(params: NoteFilter & BaseFilter = {}): Promise<Message<Note[]>> {
         try {
             const msg: Message<NoteEntity[]> = await NoteDAO.getNotesByCriteria(params);
             if (!msg.getIsSuccess()) {

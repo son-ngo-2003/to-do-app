@@ -2,12 +2,12 @@
 import { LabelDAO } from "../DAO";
 import Mapping from "./mapping";
 import { Message } from "../models";
-import {BaseFilter} from "../type";
+import {BaseFilter, LabelFilter} from "../type";
 
 interface LabelServiceType {
     getAllLabels:       (params?: BaseFilter) => Promise<Message<Label[]>>,
     getLabelById:       (id: string) => Promise<Message<Label>>,
-    getLabelsByCriteria:    (params?: { searchTerm?: string, color?: string} & BaseFilter) => Promise<Message<Label[]>>,
+    getLabelsByCriteria:    (params?: LabelFilter & BaseFilter) => Promise<Message<Label[]>>,
 
     addLabel:           (label: Partial<Label>) => Promise<Message<Label>>,
     updateLabel:        (label: Partial<Label>) => Promise<Message<Label>>,
@@ -43,7 +43,7 @@ const LabelService : LabelServiceType = (() => {
         }
     }
 
-    async function getLabelsByCriteria(params?: { searchTerm?: string, color?: string } & BaseFilter): Promise<Message<Label[]>> {
+    async function getLabelsByCriteria(params?: LabelFilter & BaseFilter): Promise<Message<Label[]>> {
         try {
             const msg: Message<LabelEntity[]> = await LabelDAO.getLabelsByCriteria(params);
             if (!msg.getIsSuccess()) {

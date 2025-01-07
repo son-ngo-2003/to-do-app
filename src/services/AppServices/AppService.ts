@@ -2,8 +2,9 @@ import LabelService from "./LabelService";
 import NoteService from "./NoteService";
 import TaskService from "./TaskService";
 import { Message } from "../models";
-import {UNLABELED_KEY} from "../../constant";
+import {RANGE_TASK_INSTANCES_GENERATE, UNLABELED_KEY} from "../../constant";
 import {BaseFilter} from "../type";
+import {addDate, getNearestDateOfRepeatTask, getRangeOfDate} from "../../utils/dateUtil";
 
 interface AppServiceType {
     // LabelService methods
@@ -24,9 +25,15 @@ interface AppServiceType {
     getAllTasks:                (params?: BaseFilter) => Promise<Message<Task[]>>,
     getAllTasksGroupByLabels:   (params?: { date?: Date, isCompleted?: boolean, withTasksNoLabel?: boolean } & BaseFilter)  => Promise<Message< Record<Label['_id'], Task[] >>>,
     getTaskById:                (id: string) => Promise<Message<Task>>,
+    getRepeatTasks:             (params?: BaseFilter) => Promise<Message<Task[]>>,
     addTask:                    (task: Partial<Task>) => Promise<Message<Task>>,
     updateTask:                 (task: Partial<Task>) => Promise<Message<Task>>,
     deleteTask:                 (task: Task) => Promise<Message<Task>>,
+
+    getTaskInstancesOverdue:    (parentTask: Task) => Promise<Message<Task[]>>,
+    getTaskInstances:           (parentTask: Task) => Promise<Message<Task[]>>,
+    generateTaskInstances:      (task: Task) => Promise<Message<Task[]>>,
+    deleteForceTaskInstance:    (task: Task) => Promise<Message<Task>>,
 }
 
 const AppService : AppServiceType = (() => {
@@ -228,6 +235,19 @@ const AppService : AppServiceType = (() => {
         }
     }
 
+    async function getRepeatTasks(params?: BaseFilter): Promise<Message<Task[]>> {
+        try {
+            const msg: Message<Task[]> = await TaskService.getRepeatTasks(params);
+            if (!msg.getIsSuccess()) {
+                throw new Error(msg.getError());
+            }
+            return Message.success(msg.getData());
+        } catch (error) {
+            console.error("AppService.ts: ", error);
+            return Message.failure(error);
+        }
+    }
+
     async function addTask(task: Partial<Task>): Promise<Message<Task>> {
         try {
             const msg: Message<Task> = await TaskService.addTask(task);
@@ -267,29 +287,108 @@ const AppService : AppServiceType = (() => {
         }
     }
 
-        return {
-            // LabelService methods
-            getAllLabels,
-            getLabelById,
-            addLabel,
-            updateLabel,
-            deleteLabel,
+    async function getTaskInstances(parentTask: Task): Promise<Message<Task[]>> {
+        try {
+            const msg: Message<Task[]> = await TaskService.getTasksByCriteria({parentTaskId: parentTask._id, sortBy: 'start', sortOrder: 'asc'});
+            if (!msg.getIsSuccess()) {
+                throw new Error(msg.getError());
+            }
+            return Message.success(msg.getData());
+        } catch (error) {
+            console.error("AppService.ts: ", error);
+            return Message.failure(error);
+        }
+    }
 
-            // NoteService methods
-            getAllNotes,
-            getNoteById,
-            addNote,
-            updateNote,
-            deleteNote,
+    async function getTaskInstancesOverdue(parentTask: Task): Promise<Message<Task[]>> {
+        try {
+            const msg: Message<Task[]> = await TaskService.getTasksByCriteria({parentTaskId: parentTask._id, isOverdue: true});
+            if (!msg.getIsSuccess()) {
+                throw new Error(msg.getError());
+            }
+            return Message.success(msg.getData());
+        } catch (error) {
+            console.error("AppService.ts: ", error);
+            return Message.failure(error);
+        }
+    }
 
-            // TaskService methods
-            getAllTasks,
-            getAllTasksGroupByLabels,
-            getTaskById,
-            addTask,
-            updateTask,
-            deleteTask,
-        };
+    async function generateTaskInstances(task: Task): Promise<Message<Task[]>> {
+        try {
+            if (!task.repeat) {
+                throw new Error("Task does not have repeat configuration!");
+            }
+            if (!task.start) {
+                throw new Error("Task does not have start date!");
+            }
+
+            const nearestInstanceDate: Date = getNearestDateOfRepeatTask(task.start, task.repeat);
+            const farestInstanceRepeatDate: Date = addDate(nearestInstanceDate, RANGE_TASK_INSTANCES_GENERATE.value, RANGE_TASK_INSTANCES_GENERATE.unit);
+            const startTaskInstance = getRangeOfDate(nearestInstanceDate, farestInstanceRepeatDate, task.repeat);
+
+            const taskInstances: Task[] = startTaskInstance.map(date => ({
+                ...task,
+                parentTask: task,
+                start: date,
+                end: addDate(date, task.repeat?.value , task.repeat?.unit),
+            }));
+
+            const msgs: Message<Task>[] = await Promise.all( taskInstances.map(taskInstance => TaskService.addTask(taskInstance)) );
+            const results: Task[] = msgs.map(msg => {
+                if (!msg.getIsSuccess()) {
+                    throw new Error(msg.getError());
+                }
+                return msg.getData();
+            });
+            return Message.success(results);
+        } catch (error) {
+            console.error("AppService.ts: ", error);
+            return Message.failure(error);
+        }
+    }
+
+    async function deleteForceTaskInstance(task: Task): Promise<Message<Task>> {
+        try {
+            const msg: Message<Task> = await TaskService.deleteForceTaskInstance(task);
+            if (!msg.getIsSuccess()) {
+                throw new Error(msg.getError());
+            }
+            return Message.success(msg.getData());
+        } catch (error) {
+            console.error("AppService.ts: ", error);
+            return Message.failure(error);
+        }
+    }
+
+    return {
+        // LabelService methods
+        getAllLabels,
+        getLabelById,
+        addLabel,
+        updateLabel,
+        deleteLabel,
+
+        // NoteService methods
+        getAllNotes,
+        getNoteById,
+        addNote,
+        updateNote,
+        deleteNote,
+
+        // TaskService methods
+        getAllTasks,
+        getAllTasksGroupByLabels,
+        getRepeatTasks,
+        getTaskById,
+        addTask,
+        updateTask,
+        deleteTask,
+
+        getTaskInstances,
+        getTaskInstancesOverdue,
+        generateTaskInstances,
+        deleteForceTaskInstance,
+    };
 })();
 
 export default AppService;
