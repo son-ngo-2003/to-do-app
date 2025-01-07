@@ -15,19 +15,19 @@ export { Icon,
 export { LabelTag, 
         LabelCard, AddLabelCard, 
         LabelSelectItem, 
-        LabelModal,
+        LabelModal, type LabelModalProps, LabelModalRef,
         LabelsList,
         LabelSelectModal
 } from './label';
 export { NoteCard,
         AddNoteCard,
-        NoteModal,
+        NoteModal, type NoteModalProps, NoteModalRef,
         NoteInTaskItem,
 } from './note'
 export { TaskItem,
         TaskProgressCard,
         TaskTree,
-        TaskModal,
+        TaskModal, type TaskModalProps, TaskModalRef,
         AddTaskCard,
 } from './task';
 export { Calendar,

@@ -23,7 +23,7 @@ import {
 import { useLabelsData } from "../../controllers";
 import {debounce} from "lodash";
 
-type LabelModalProps = {
+export type LabelModalProps = {
     mode: 'add' | 'edit',
     labelId?: Label['_id'],
     visible?: boolean,
@@ -40,7 +40,7 @@ type LabelModalProps = {
 }
 
 export type LabelModalRef = {
-    close: () => void,
+    close: () => Promise<any>,
 }
 
 const sizeButton : number = 23;

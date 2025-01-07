@@ -22,7 +22,7 @@ import {NoteFormState} from "../../types/formStateType";
 import {useNotesData} from "../../controllers";
 import {TITLE_MAX_LENGTH} from "../../constant";
 
-type NoteModalProps = {
+export type NoteModalProps = {
     mode: 'add' | 'edit',
     noteId?: Note['_id'],
     visible?: boolean,
@@ -42,7 +42,7 @@ type NoteModalProps = {
 }
 
 export type NoteModalRef = {
-    close: () => void,
+    close: () => Promise<any>,
 }
 
 const sizeButton : number = 25;

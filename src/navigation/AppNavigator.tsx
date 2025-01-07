@@ -8,6 +8,7 @@ import DrawerNavigation from './DrawerNavigation';
 //themes
 import { DarkTheme, LightTheme } from '../styles/colors';
 import {AlertProvider} from "../hooks/uiHooks/useAlert";
+import {DataModalProvider} from "../contexts/DataModalContext";
 
 type AppNavigatorProps = {
     onReady: () => void,
@@ -18,9 +19,11 @@ const AppNavigator : React.FC<AppNavigatorProps> = ( {onReady} ) => {
     return (
         <NavigationContainer theme={ scheme === 'dark' ? DarkTheme : LightTheme}
                              onReady = {onReady}>
-            <AlertProvider>
-                <DrawerNavigation />
-            </AlertProvider>
+            <DataModalProvider>
+                <AlertProvider>
+                    <DrawerNavigation />
+                </AlertProvider>
+            </DataModalProvider>
         </NavigationContainer>
     )
 }

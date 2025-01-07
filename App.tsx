@@ -8,6 +8,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 
 import fonts from './src/assets/fonts/'
 import {useTasksData} from "./src/controllers";
+import {GestureHandlerRootView} from "react-native-gesture-handler";
 
 export default function App() {
     dayjsSetup();
@@ -22,9 +23,11 @@ export default function App() {
 
     React.useEffect(() => {
         if (!fontsLoaded && !fontError) {
-            throw new Error('Fonts are not loaded'); //TODO: handle this error
+            // TODO: show loading screen and announce error if needed
         }
+    }, [fontsLoaded, fontError]);
 
+    React.useEffect(() => {
         // Update instances of repeat tasks if needed
         const updateRepeatTasksInstances = async () => {
             //TODO: check if working
@@ -57,6 +60,8 @@ export default function App() {
 
 
     return (
-        <AppNavigator onReady = {onLayoutRootView}/>
+        <GestureHandlerRootView>
+            <AppNavigator onReady = {onLayoutRootView}/>
+        </GestureHandlerRootView>
     );
 }

@@ -23,6 +23,7 @@ import {
 import {AddTaskCard, FloatingActionButton} from "../../components";
 import {useNotesData, useLabelsData, useTasksData} from "../../controllers";
 import StorageService from "../../services/DAO/StorageService";
+import {useDataModal} from "../../contexts/DataModalContext";
 
 type Props = DrawerScreenProps<RootStackParamList, 'Home'>;
 
@@ -59,39 +60,27 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
         });
     }, []);
 
-    const [ modalNoteId, setModalNoteId ] = React.useState<Note['_id']>();
-    const [ modalTaskId, setModalTaskId ] = React.useState<Task['_id']>();
-    const [ currentModal, setCurrentModal ] = React.useState<'note' | 'task' | 'none'>('none');
-    const [ currentMode, setCurrentMode ] = React.useState<'add' | 'edit'>('edit');
+    const { showModal, setDataModal, updateProps } = useDataModal({});
 
-    const taskModalRef = React.useRef<TaskModalRef>(null);
-
-
-    const onPressNoteInTask = React.useCallback((note: Note) => {
-        taskModalRef.current?.close().then(( alertButtonResult ) => {
-            if (alertButtonResult === undefined) return;
-            setModalNoteId(note._id);
-            setCurrentModal('note');
-            setCurrentMode('edit');
-        })
-    }, [taskModalRef.current, setCurrentModal, setModalNoteId, setCurrentMode]);
+    const onPressNoteInTask = React.useCallback((note: Note) => { //TODO: text this function
+        setDataModal('note', note._id, 'edit');
+        showModal('note');
+    }, [setDataModal, showModal]);
 
     const onPressAddNote = React.useCallback(() => {
-        setModalNoteId(undefined);
-        setCurrentModal('note');
-        setCurrentMode('add');
-    }, [setModalNoteId, setCurrentModal, setCurrentMode]);
+        setDataModal('note', undefined, 'add');
+        showModal('note');
+    }, [setDataModal, showModal]);
 
     const onPressAddTask = React.useCallback(() => {
-        setModalTaskId(undefined);
-        setCurrentModal('task');
-        setCurrentMode('add');
-    }, [setModalTaskId, setCurrentModal, setCurrentMode]);
+        setDataModal('task', undefined, 'add');
+        showModal('task');
+    }, [setDataModal, showModal]);
 
     const onAddedUpdatedNote = React.useCallback((note: Note) => {
         getAllNotes({limit: LIMIT_FETCH_NOTE, sortBy: 'createdAt', sortOrder: 'desc'}).then(setAllNotes);
-        setCurrentModal('none');
-    }, [getAllNotes, setAllNotes, setCurrentModal]);
+        showModal('none');
+    }, [getAllNotes, setAllNotes, showModal]);
 
     const onAddedUpdatedTask = React.useCallback((task: Task) => {
         Promise.all([
@@ -108,77 +97,24 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                 }
             }
             setTaskByLabel(_tasksByLabel);
-            setCurrentModal('none');
+            showModal('none');
         });
-    }, [getAllTasksGroupByLabels, setTaskByLabel, getAllLabels, setAllLabels, setCurrentModal]);
+    }, [getAllTasksGroupByLabels, setTaskByLabel, getAllLabels, setAllLabels, showModal]);
 
-    const onCancelTaskModal = React.useCallback((draftTask: Partial<Task>,  isEdited: boolean,  alert: AlertFunctionType) => {
-        if (!isEdited) {
-            setCurrentModal('none');
-            return Promise.resolve();
-        }
 
-        return alert({
-            ...ALERT_OPTION_NOT_SAVED_FOR_TASK_MODAL,
-
-            primaryButton: {
-                ...ALERT_OPTION_NOT_SAVED_FOR_TASK_MODAL.primaryButton,
-                onPress: () => {
-                    addTask(draftTask).then((task) => {
-                        onAddedUpdatedTask(task);
-                    }).catch((error) => {
-                        alert({
-                            type: 'error', title: 'Error',
-                            message: error.message,
-                            secondaryButton: {text: 'OK', onPress: () => {}},
-                            primaryButton: {visible: false},
-                            useCancel: false,
-                        })
-                    });
-                },
+    React.useEffect(() => {
+        updateProps({
+            noteModalProps : {
+                onAddNote: onAddedUpdatedNote,
+                onUpdateNote: onAddedUpdatedNote
             },
-
-            secondaryButton: {
-                ...ALERT_OPTION_NOT_SAVED_FOR_TASK_MODAL.secondaryButton,
-                onPress: () => {
-                    setCurrentModal('none')
-                },
-            },
-        });
-    }, [setCurrentModal, addTask, onAddedUpdatedTask]);
-
-    const onCancelNoteModal = React.useCallback((draftNote: Partial<Note>, isEdited: boolean, alert: AlertFunctionType) => {
-        if (!isEdited) {
-            setCurrentModal('none');
-            return Promise.resolve();
-        }
-
-        return alert({
-            ...ALERT_OPTION_NOT_SAVED_FOR_NOTE_MODAL,
-            primaryButton: {
-                ...ALERT_OPTION_NOT_SAVED_FOR_NOTE_MODAL.primaryButton,
-                onPress: () => {
-                    addNote(draftNote).then((note) => {
-                        onAddedUpdatedNote(note);
-                    }).catch((error) => {
-                        alert({
-                            type: 'error', title: 'Error',
-                            message: error.message,
-                            secondaryButton: {text: 'OK', onPress: () => {}},
-                            primaryButton: {visible: false},
-                            useCancel: false,
-                        })
-                    });
-                }
-            },
-            secondaryButton: {
-                ...ALERT_OPTION_NOT_SAVED_FOR_NOTE_MODAL.secondaryButton,
-                onPress: () => {
-                    setCurrentModal('none');
-                }
+            taskModalProps : {
+                onAddTask: onAddedUpdatedTask,
+                onUpdateTask: onAddedUpdatedTask,
+                onPressNote: onPressNoteInTask
             }
-        });
-    }, [setCurrentModal, addNote, onAddedUpdatedNote]);
+        })
+    }, []);
 
     return (
         <SafeAreaView style={{position: 'relative'}}>
@@ -210,7 +146,7 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                             {
                                 allNotes.length > 0 && allNotes.map((note: Note, index: number) => (
                                     <NoteCard key={index} note={note} orientation={'landscape'} showLabels
-                                              onPress={(note) => {setModalNoteId(note._id); setCurrentModal('note'); setCurrentMode('edit')}}
+                                              onPress={(note) => {setDataModal('note', note._id, 'edit'); showModal('note')}}
                                     />)
                                     )
                             }
@@ -228,74 +164,47 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
                         </TouchableOpacity>
                     </View>
 
-                    <View style={[Layouts.fullWidthContainer]}>
-                        <View style={[styles.tasksScroller]}>
-                            {
-                                (allLabels.length > 0 || tasksByLabel[UNLABELED_KEY]?.length > 0) &&
-                                <View style={{marginBottom: 10}}>
-                                    {allLabels.map((label: Label, index: number) => (
-                                    <View key={index}>
-                                        <Text style={[ Typography.header.x40, { textTransform: 'uppercase', color: label.color } ]}>{label.name}</Text>
-                                        <TaskTree
-                                            tasks={ tasksByLabel[label._id] ?? [] }
-                                            onPressTask = { (task) => {setModalTaskId(task._id); setCurrentModal('task'); setCurrentMode('edit')} }
+                    <View style={[Layouts.fullWidthContainer, styles.tasksContainer]}>
+                        {
+                            (allLabels.length > 0 || tasksByLabel[UNLABELED_KEY]?.length > 0) &&
+                            <View style={{marginBottom: 10}}>
+                                {allLabels.map((label: Label, index: number) => (
+                                <View key={index}>
+                                    <Text style={[ Typography.header.x40, { textTransform: 'uppercase', color: label.color } ]}>{label.name}</Text>
+                                    <TaskTree
+                                        tasks={ tasksByLabel[label._id] ?? [] }
+                                        onPressTask = { (task) => {setDataModal('task', task._id, 'edit'); showModal('task')} }
 
-                                            showShowMoreButton={true}
-                                            onPressShowMore={ () => console.log('Task Tree (Home): Show More Tasks') }
+                                        showShowMoreButton={true}
+                                        onPressShowMore={ () => console.log('Task Tree (Home): Show More Tasks') }
 
-                                            colorTree={ label.color }
-                                            showLabel={false}
-                                        />
-                                    </View>)
-                                    )}
+                                        colorTree={ label.color }
+                                        showLabel={false}
+                                    />
+                                </View>)
+                                )}
 
-                                    { tasksByLabel[UNLABELED_KEY] && tasksByLabel[UNLABELED_KEY].length > 0 &&
-                                    <View>
-                                        <Text style={[ Typography.header.x40, { textTransform: 'uppercase', color: Colors.primary.teal } ]}>Not Labeled</Text>
-                                        <TaskTree
-                                            tasks={ tasksByLabel[UNLABELED_KEY] }
-                                            onPressTask = { (task) => {setModalTaskId(task._id); setCurrentModal('task'); setCurrentMode('edit')} }
+                                { tasksByLabel[UNLABELED_KEY] && tasksByLabel[UNLABELED_KEY].length > 0 &&
+                                <View>
+                                    <Text style={[ Typography.header.x40, { textTransform: 'uppercase', color: Colors.primary.teal } ]}>Not Labeled</Text>
+                                    <TaskTree
+                                        tasks={ tasksByLabel[UNLABELED_KEY] }
+                                        onPressTask = { (task) => {setDataModal('task', task._id, 'edit'); showModal('task')} }
 
-                                            showShowMoreButton={ true }
-                                            onPressShowMore={ () => console.log('Task Tree (Home): Show More Tasks') }
+                                        showShowMoreButton={ true }
+                                        onPressShowMore={ () => console.log('Task Tree (Home): Show More Tasks') }
 
-                                            colorTree={ Colors.primary.teal }
-                                            showLabel={false}
-                                        />
-                                    </View>
-                                    }
+                                        colorTree={ Colors.primary.teal }
+                                        showLabel={false}
+                                    />
                                 </View>
-                            }
-                            <AddTaskCard onPress={onPressAddTask}/>
-                        </View>
+                                }
+                            </View>
+                        }
+                        <AddTaskCard onPress={onPressAddTask}/>
                     </View>
 
                 </View>
-
-                {/*  Modals  */}
-                <SequentialModals
-                    currentIndex={ currentModal === 'note' ? 0 : currentModal === 'task' ? 1 : undefined }
-                    modals={[
-                        <NoteModal
-                            mode={ currentMode }
-                            noteId={ modalNoteId }
-                            onCancel={ onCancelNoteModal }
-                            onAddNote={ onAddedUpdatedNote }
-                            onUpdateNote={ onAddedUpdatedNote}
-                        />,
-
-                        <TaskModal
-                            ref={taskModalRef}
-
-                            mode={ currentMode }
-                            taskId={ modalTaskId }
-                            onPressNote={ onPressNoteInTask }
-                            onCancel={onCancelTaskModal}
-                            onAddTask={onAddedUpdatedTask}
-                            onUpdateTask={onAddedUpdatedTask}
-                        />
-                    ]}
-                />
             </ScrollView>
         </SafeAreaView>
     );
@@ -316,7 +225,7 @@ const styles = StyleSheet.create({
         gap: 20,
         flexDirection: 'row',
     },
-    tasksScroller: {
+    tasksContainer: {
         paddingHorizontal: Layouts.MARGIN_HORIZONTAL,
         marginTop: 10,
     },

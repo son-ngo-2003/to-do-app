@@ -33,3 +33,20 @@ export const ALERT_OPTION_NOT_SAVED_FOR_TASK_MODAL : AlertModalProps = {
     useCancel: true,
     onPressCancel: () => {},
 }
+
+export const ALERT_OPTION_NOT_SAVED_FOR_LABEL_MODAL : AlertModalProps = {
+    type: 'warning',
+    title: 'Label not saved!',
+    message: 'Do you want to save this label?',
+
+    primaryButton: {
+        text: 'Save',
+    },
+
+    secondaryButton: {
+        text: 'Discard',
+    },
+
+    useCancel: true,
+    onPressCancel: () => {},
+}

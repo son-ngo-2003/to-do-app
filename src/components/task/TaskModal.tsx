@@ -43,7 +43,7 @@ import {debounce} from "lodash";
 import {useTasksData} from "../../controllers";
 import {TITLE_MAX_LENGTH} from "../../constant";
 
-type TaskModalProps = {
+export type TaskModalProps = {
     mode: 'add' | 'edit', //TODO: add a noti text in case of create a new task but start time in the past
     taskId?: Task['_id'],
     visible?: boolean,

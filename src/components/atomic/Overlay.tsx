@@ -2,12 +2,12 @@ import { BlurView } from "expo-blur";
 import * as React from "react";
 import { Pressable, StyleSheet, Keyboard } from "react-native";
 import { Layouts } from "../../styles";
+import Animated, {FadeIn, FadeOut} from "react-native-reanimated";
 
 type OverlayProps = {
     background: "transparent" | "lowOpacity" | "highOpacity",
     isBlur?: boolean,
     onPress?: () => void,
-    opacity?: number,
 }
 
 const Overlay: React.FC<OverlayProps> = ({ background, onPress, isBlur = false }) => {
@@ -18,17 +18,20 @@ const Overlay: React.FC<OverlayProps> = ({ background, onPress, isBlur = false }
         Keyboard.addListener('keyboardDidHide', () => setIsKeyBoardOpen(false));
     }, []);
 
+    const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
+
     return (
-        <BlurView  style={[styles.overlay, 
+        <AnimatedBlurView  style={[styles.overlay,
                           background === "transparent" ?  {} 
                         : background === "lowOpacity"  ? styles.lowOpacity :
                                                          styles.highOpacity]}
                         tint={'dark'} intensity={isBlur ? 20 : 0}
+                           entering={FadeIn} exiting={FadeOut}
                         >
             {   !isKeyBoardOpen && //the properties keyboardShouldPersistTaps of ScrollView doesn't close Keyboard when
                                     //touching Pressable, so we need to hide Pressable to make this function works
                 <Pressable style={styles.overlay} onPress={onPress}></Pressable>}
-        </BlurView>
+        </AnimatedBlurView>
     );
 }
 
