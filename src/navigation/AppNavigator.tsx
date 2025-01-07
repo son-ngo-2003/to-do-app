@@ -7,23 +7,51 @@ import DrawerNavigation from './DrawerNavigation';
 
 //themes
 import { DarkTheme, LightTheme } from '../styles/colors';
-import {AlertProvider} from "../hooks/uiHooks/useAlert";
-import {DataModalProvider} from "../contexts/DataModalContext";
+import {AlertProvider} from "../hooks";
+import {DataModalProvider, useDataModal} from "../contexts/DataModalContext";
+import {FloatingActionButton} from "../components";
+import {Layouts} from "../styles";
 
 type AppNavigatorProps = {
     onReady: () => void,
 }
 
+const FAB : React.FC = () => {
+    const { showModal, setDataModal } = useDataModal({});
+
+    const onPressAddNote = React.useCallback(() => {
+        setDataModal('note', undefined, 'add');
+        showModal('note');
+    }, [setDataModal, showModal]);
+
+    const onPressAddTask = React.useCallback(() => {
+        setDataModal('task', undefined, 'add');
+        showModal('task');
+    }, [setDataModal, showModal]);
+
+    return (
+        <FloatingActionButton
+            initialPosition={{x: Layouts.screen.width - 50, y: Layouts.screen.height - 50}}
+            subButtons={[
+              {icon: {name: 'sticker-text-outline', library: 'MaterialCommunityIcons'}, onPress: onPressAddNote},
+              {icon: {name: 'checkbox-multiple-marked-outline', library: 'MaterialCommunityIcons'}, onPress: onPressAddTask},
+            ]}
+        />
+    )
+}
+
 const AppNavigator : React.FC<AppNavigatorProps> = ( {onReady} ) => {
     const scheme = useColorScheme();
+
     return (
         <NavigationContainer theme={ scheme === 'dark' ? DarkTheme : LightTheme}
                              onReady = {onReady}>
-            <DataModalProvider>
-                <AlertProvider>
+            <AlertProvider>
+                <DataModalProvider>
+                    <FAB />
                     <DrawerNavigation />
-                </AlertProvider>
-            </DataModalProvider>
+                </DataModalProvider>
+            </AlertProvider>
         </NavigationContainer>
     )
 }

@@ -24,8 +24,8 @@ const FloatingActionButton: React.FC<ActionButtonProps> = ({
     const [isOpened, setIsOpened] = useState<boolean>(false);
 
     const subButtonsContainerStyle = useAnimatedStyle(()=>({
-        bottom: -initialPosition.y - (SIZE_ACTION_BUTTON) / 2 + 69,
-        left: initialPosition.x + (SIZE_ACTION_BUTTON - SIZE_SUB_ACTION_BUTTON) / 2,
+        bottom: -initialPosition.y - (SIZE_ACTION_BUTTON + SIZE_SUB_ACTION_BUTTON) / 2 + 2,
+        left: initialPosition.x + 1,
         gap: buttonsGap.value,
     }), []);
 
@@ -36,7 +36,12 @@ const FloatingActionButton: React.FC<ActionButtonProps> = ({
             bottom: referencePositionBottom.value + (index + 1) * buttonsGap.value,
         }));
 
-        return <SubFloatingAction {...subBtn} animatedStyle={animatedStyles} key={index}/>
+        const onPress = () => {
+            setIsOpened(false);
+            subBtn.onPress?.();
+        }
+
+        return <SubFloatingAction {...subBtn} animatedStyle={animatedStyles} onPress={onPress} key={index}/>
     }
 
     const onMainButtonDrag = (_: {x: number, y: number}, change: {dx: number, dy: number}) => {
@@ -54,7 +59,7 @@ const FloatingActionButton: React.FC<ActionButtonProps> = ({
 
     return (
         <View style={{zIndex: 100, position:'absolute'}}>
-            <FloatingButton initialPosition={initialPosition} deltaPosition={{dx: 0, dy: HEADER_HEIGHT}}
+            <FloatingButton initialPosition={initialPosition} deltaPosition={{dx: 0, dy: 0}}
                             onDrag={onMainButtonDrag} onStartDrag={onMainButtonStartDrag} onPress={() => { setIsOpened(!isOpened) }} isOpened={isOpened}
             />
 
@@ -75,6 +80,7 @@ export default React.memo(FloatingActionButton);
 const styles = StyleSheet.create({
     subButtonsContainer: {
         backgroundColor: 'red',
-        position: 'absolute'
+        position: 'absolute',
+        zIndex: 50,
     }
 })

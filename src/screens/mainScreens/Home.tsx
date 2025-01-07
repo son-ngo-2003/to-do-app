@@ -118,13 +118,6 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
 
     return (
         <SafeAreaView style={{position: 'relative'}}>
-            <FloatingActionButton initialPosition={{x: Layouts.screen.width - 50, y: Layouts.screen.height - 50}}
-                subButtons={[
-                    {icon: {name: 'sticker-text-outline', library: 'MaterialCommunityIcons'}, onPress: onPressAddNote},
-                    {icon: {name: 'checkbox-multiple-marked-outline', library: 'MaterialCommunityIcons'}, onPress: onPressAddTask},
-                ]}
-            />
-
             <ScrollView style={[ Layouts.mainContainer ]} showsVerticalScrollIndicator={false}>
                 {/* Openning Titre */}
                 <View style={[ Layouts.sectionContainer ]}>
