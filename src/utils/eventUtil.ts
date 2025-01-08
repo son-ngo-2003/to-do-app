@@ -2,6 +2,7 @@ import { EventEmitter } from "expo-modules-core";
 
 export enum EventNames {
     DismissKeyboard = 'dismissKeyboard',
+    OpenFloatingActionButton = 'openFloatingActionButton',
 }
 
 type EventData = any;

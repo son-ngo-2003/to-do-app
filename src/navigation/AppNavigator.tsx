@@ -11,6 +11,7 @@ import {AlertProvider} from "../hooks";
 import {DataModalProvider, useDataModal} from "../contexts/DataModalContext";
 import {FloatingActionButton} from "../components";
 import {Layouts} from "../styles";
+import {eventEmitter, EventNames} from "../utils/eventUtil";
 
 type AppNavigatorProps = {
     onReady: () => void,
@@ -36,6 +37,9 @@ const FAB : React.FC = () => {
               {icon: {name: 'sticker-text-outline', library: 'MaterialCommunityIcons'}, onPress: onPressAddNote},
               {icon: {name: 'checkbox-multiple-marked-outline', library: 'MaterialCommunityIcons'}, onPress: onPressAddTask},
             ]}
+            onPress={() => {
+                eventEmitter.emit(EventNames.OpenFloatingActionButton);
+            }}
         />
     )
 }

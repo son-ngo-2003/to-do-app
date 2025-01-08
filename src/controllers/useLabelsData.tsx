@@ -114,6 +114,23 @@ const useLabelsData = (
         }
     };
 
+    const getStatusOfLabel = async (label: Label) => {
+        try {
+            setLoading(true);
+            const msg = await AppService.getStatusOfLabel(label);
+            if (!msg.getIsSuccess()) throw new Error(msg.getError());
+            return msg.getData();
+        } catch (e) {
+            console.error("useLabelsData.ts", e);
+            let errorMessage = "Error getting task status of label";
+            if (e instanceof Error) errorMessage = e.message;
+            setError(errorMessage);
+            throw e;
+        } finally {
+            setLoading(false);
+        }
+    }
+
     useEffect(() => {
         if (toFetchAllData) fetchLabels();
     }, []);
@@ -128,6 +145,7 @@ const useLabelsData = (
         getLabelById,
         fetchLabels,
         getAllLabels,
+        getStatusOfLabel,
     };
 };
 

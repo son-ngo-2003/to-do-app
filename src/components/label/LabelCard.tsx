@@ -7,18 +7,21 @@ import { Icon } from '../atomic';
 
 type LabelCardProps = {
     label: Label,
-    numberOfNotes: number,
-    numberOfTasks: number,
-    numberOfCompletedTasks: number,
+    numberOfNotes?: number,
+    numberOfTasks?: number,
+    numberOfCompletedTasks?: number,
+    onPress?: () => void,
 }
 
 export const LABEL_CARD_HEIGHT = 160;
+export const LABEL_CARD_WIDTH = 160;
 
 const LabelCard: React.FC<LabelCardProps> = ({
     label,
-    numberOfNotes,
-    numberOfTasks,
-    numberOfCompletedTasks,
+    numberOfNotes = 0,
+    numberOfTasks = 0,
+    numberOfCompletedTasks = 0,
+    onPress,
 }) => {
     const onPressCard = React.useCallback(() => {
         console.log(label); //TODO: do this

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import {StyleSheet, TouchableOpacity, ViewStyle} from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import { Bases, Outlines } from '../../styles';
 
@@ -10,6 +10,7 @@ import {LABEL_CARD_HEIGHT} from "./LabelCard";
 type AddLabelCardProps = {
     onPress?: () => void,
     type?: 'small' | 'medium',
+    style?: ViewStyle,
 }
 
 const HEIGHT = {
@@ -20,21 +21,25 @@ const HEIGHT = {
 const AddLabelCard: React.FC<AddLabelCardProps> = ({
     onPress,
     type = 'small',
+    style
 }) => {
     const { colors } = useTheme();
 
     return (
-        <Pressable style={[styles.container, {backgroundColor: colors.border, height: HEIGHT[type]}]}
+        <TouchableOpacity style={[styles.container, {borderColor: colors.border, height: HEIGHT[type]}, style]}
                     onPress={onPress}>
-            <Icon name="plus" size={HEIGHT[type] * 0.5} color={colors.text} library='Octicons'/>
-        </Pressable>
+            <Icon name="plus" size={HEIGHT[type] * 0.3} color={colors.border} library='Octicons'/>
+        </TouchableOpacity>
     )
 }
 export default AddLabelCard;
 
 const styles = StyleSheet.create({
     container: {
+        width: '100%',
         ...Bases.centerItem.all,
+        borderWidth: Outlines.borderWidth.thick,
         borderRadius: Outlines.borderRadius.large,
+        ...Outlines.shadow.base,
     },
 });

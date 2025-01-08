@@ -173,11 +173,14 @@ const LabelModal = React.forwardRef<LabelModalRef, LabelModalProps> (({
     }, [labelFormState]);
 
     return (
-        <BaseModal isVisible={visible} hasBackdrop={true} avoidKeyboard={true}
+        <BaseModal isVisible={visible}  avoidKeyboard={true}
                    animationIn={'fadeInUpBig'} animationInTiming={500} animationOut={'fadeOutDownBig'} animationOutTiming={500}
                    onModalHide={onModalHide} onModalWillHide={onModalWillHide} onModalShow={onModalShow} onModalWillShow={onModalWillShow}
 
-                   customBackdrop={<Overlay onPress={onPressCancel} background={'highOpacity'}/>}
+                   onBackdropPress={onPressCancel} onBackButtonPress={onPressCancel}
+                   hasBackdrop={true}
+                   backdropOpacity={0.6}
+                   // customBackdrop={<Overlay onPress={onPressCancel} background={'highOpacity'}/>}
         >
             <KeyboardDismissableView>
                 {/* Modal parts */}
@@ -207,7 +210,7 @@ const LabelModal = React.forwardRef<LabelModalRef, LabelModalProps> (({
                                         selectedColor={labelFormState.color}
                                         onPress={() => onChangeColor(color)}/>
                         ))}
-                        <ColorSelect key={-1} color={colors.background}
+                        <ColorSelect key={-1} color={'random'}
                                      selectedColor={labelFormState.color}
                                     onPress={() => onChangeColor(undefined)}/>
                     </View>
@@ -226,7 +229,7 @@ const LabelModal = React.forwardRef<LabelModalRef, LabelModalProps> (({
     )
 });
 
-export default LabelModal;
+export default React.memo(LabelModal);
 
 const styles = StyleSheet.create({
     container: {

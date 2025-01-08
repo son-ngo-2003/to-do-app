@@ -1,6 +1,9 @@
 import {Platform} from "react-native";
 import {ManipulateType} from "dayjs";
 
+export const LIMIT_FETCH_NOTE = 8;
+export const LIMIT_FETCH_TASK = 3;
+
 export const RANGE_TASK_INSTANCES_GENERATE =  { value: 1, unit: 'week' as ManipulateType };
 
 export const SWITCH_MODAL_GAP_TIME = Platform.OS === 'ios' ? 20 : 0;

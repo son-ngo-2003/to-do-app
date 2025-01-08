@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
 import { StyleSheet, TouchableOpacity, ViewStyle} from 'react-native';
-import { Colors, Outlines } from '../../styles';
+import {Bases, Colors, Outlines} from '../../styles';
 
 import { Icon } from '../atomic';
 
@@ -25,7 +25,7 @@ const AddTaskCard: React.FC<AddTaskCardProps> = ({
     return (
         <TouchableOpacity onPress={onPress} style={[styles.container, {borderColor: colors.border, height}, style]}
         >
-            <Icon name={'plus'} size={30} color={ Colors.neutral.white } library={'FontAwesome6'}/>
+            <Icon name={'plus'} size={30} color={ colors.border } library={'FontAwesome6'}/>
         </TouchableOpacity>
     )
 }
@@ -37,9 +37,6 @@ const styles = StyleSheet.create({
         borderWidth: Outlines.borderWidth.thick,
         borderRadius: Outlines.borderRadius.large,
         ...Outlines.shadow.base,
-
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
+        ...Bases.centerItem.all,
     }
 });

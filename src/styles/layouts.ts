@@ -11,7 +11,7 @@ export const screen: Record<Screen, number> = {
 export const MARGIN_HORIZONTAL = 20 //TODO: See if should move to constant file
 
 export const mainContainer: ViewStyle = {
-    marginHorizontal: MARGIN_HORIZONTAL,
+    paddingHorizontal: MARGIN_HORIZONTAL,
     paddingTop: 5,
 }
 

@@ -6,17 +6,18 @@ import FloatingButton from "./FloatingButton";
 import Animated, {useAnimatedStyle, useSharedValue} from "react-native-reanimated";
 import {BUTTONS_GAP, SIZE_ACTION_BUTTON, SIZE_SUB_ACTION_BUTTON} from "./constants";
 import SubFloatingAction, {type SubFloatingActionProps} from "./SubFloatingButton";
-import {HEADER_HEIGHT} from "../../constant/navigation";
 import {Overlay} from "../atomic";
 
 type ActionButtonProps = {
     initialPosition: {x: number, y: number} // position of the button; x,y will be the center of the button; x: top, y: left
-    subButtons: SubFloatingActionProps[]
+    subButtons: SubFloatingActionProps[],
+    onPress?: () => void,
 }
 
 const FloatingActionButton: React.FC<ActionButtonProps> = ({
     initialPosition,
-    subButtons
+    subButtons,
+    onPress,
 }) => {
     const referencePositionLeft = useSharedValue(0);
     const referencePositionBottom = useSharedValue(0);
@@ -60,7 +61,7 @@ const FloatingActionButton: React.FC<ActionButtonProps> = ({
     return (
         <View style={{zIndex: 100, position:'absolute'}}>
             <FloatingButton initialPosition={initialPosition} deltaPosition={{dx: 0, dy: 0}}
-                            onDrag={onMainButtonDrag} onStartDrag={onMainButtonStartDrag} onPress={() => { setIsOpened(!isOpened) }} isOpened={isOpened}
+                            onDrag={onMainButtonDrag} onStartDrag={onMainButtonStartDrag} onPress={() => { setIsOpened(!isOpened); onPress?.() }} isOpened={isOpened}
             />
 
             <Animated.View style={[styles.subButtonsContainer, subButtonsContainerStyle]}>
@@ -68,7 +69,7 @@ const FloatingActionButton: React.FC<ActionButtonProps> = ({
             </Animated.View>
             {
                 isOpened &&
-                <Overlay background={'lowOpacity'} onPress={() => {setIsOpened(false)}}/>
+                <Overlay background={'highOpacity'} onPress={() => {setIsOpened(false)}}/>
             }
 
         </View>

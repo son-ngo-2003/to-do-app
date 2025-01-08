@@ -1,34 +1,21 @@
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView} from 'react-native';
-import { useTheme } from '@react-navigation/native';
+import {useFocusEffect, useTheme} from '@react-navigation/native';
 import { DrawerScreenProps } from '@react-navigation/drawer';
 
 //components
-import {
-    NoteCard, NoteModal,
-    TaskModal, TaskTree,
-    SequentialModals, AddNoteCard
-} from '../../components/';
+import { NoteCard, TaskTree, AddNoteCard } from '../../components/';
 import { Colors, Typography, Layouts } from '../../styles';
 import { type RootStackParamList } from "../../navigation";
 
 //Services
-import {AlertFunctionType} from "../../hooks";
-import {TaskModalRef} from "../../components/task/TaskModal";
-import {
-    ALERT_OPTION_NOT_SAVED_FOR_NOTE_MODAL,
-    ALERT_OPTION_NOT_SAVED_FOR_TASK_MODAL,
-    UNLABELED_KEY
-} from "../../constant";
-import {AddTaskCard, FloatingActionButton} from "../../components";
+import {LIMIT_FETCH_NOTE, LIMIT_FETCH_TASK, UNLABELED_KEY} from "../../constant";
+import {AddTaskCard} from "../../components";
 import {useNotesData, useLabelsData, useTasksData} from "../../controllers";
 import StorageService from "../../services/DAO/StorageService";
 import {useDataModal} from "../../contexts/DataModalContext";
 
 type Props = DrawerScreenProps<RootStackParamList, 'Home'>;
-
-const LIMIT_FETCH_NOTE = 8;
-const LIMIT_FETCH_TASK = 3;
 
 const HomeScreen : React.FC<Props> = ({navigation}) => {
     const { colors } = useTheme();
@@ -102,19 +89,20 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
     }, [getAllTasksGroupByLabels, setTaskByLabel, getAllLabels, setAllLabels, showModal]);
 
 
-    React.useEffect(() => {
+    useFocusEffect(React.useCallback(() => {
         updateProps({
-            noteModalProps : {
+            noteModalProps: {
                 onAddNote: onAddedUpdatedNote,
                 onUpdateNote: onAddedUpdatedNote
             },
-            taskModalProps : {
+            taskModalProps: {
                 onAddTask: onAddedUpdatedTask,
                 onUpdateTask: onAddedUpdatedTask,
                 onPressNote: onPressNoteInTask
             }
         })
-    }, []);
+        }, [])
+    );
 
     return (
         <SafeAreaView style={{position: 'relative'}}>

@@ -3,7 +3,6 @@ import { Text, View, Pressable, StyleSheet } from 'react-native';
 import { Colors, Bases, Typography, Outlines } from '../../styles';
 
 //Components
-import { Icon } from '../atomic';
 import { useTheme } from '@react-navigation/native';
 
 type TaskProgressCardProps = {
@@ -14,12 +13,15 @@ type TaskProgressCardProps = {
     onPress?: () => void,
 }
 
+export const TASK_PROGRESS_CARD_HEIGHT = 135;
+export const TASK_PROGRESS_CARD_WIDTH = 220;
+
 const TaskProgressCard: React.FC<TaskProgressCardProps> = ({ 
     label,
     numberOfNotes,
     numberOfTasks,
     numberOfCompletedTasks,
-    onPress = () => TaskProgressCard,
+    onPress,
 }) => {
 
     const { colors } = useTheme();
@@ -57,8 +59,8 @@ export default TaskProgressCard;
 
 const styles = StyleSheet.create({
     container: {
-        width: 220,
-        height: 135,
+        width: TASK_PROGRESS_CARD_WIDTH,
+        height: TASK_PROGRESS_CARD_HEIGHT,
         paddingHorizontal: 23,
         paddingVertical: 10,
         borderRadius: Outlines.borderRadius.large,

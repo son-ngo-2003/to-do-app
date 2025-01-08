@@ -1,15 +1,25 @@
-import { View, StyleSheet } from 'react-native';
-import { useTheme } from '@react-navigation/native';
+import {StyleSheet, View} from 'react-native';
+import {DrawerActions, useTheme} from '@react-navigation/native';
 
-import {
-    DrawerContentScrollView,
-    type DrawerContentComponentProps,
-} from '@react-navigation/drawer';
+import {type DrawerContentComponentProps, DrawerContentScrollView,} from '@react-navigation/drawer';
 
 import {DrawerItemList, UserDrawerItem} from './components/';
+import React from "react";
+import {eventEmitter, EventNames} from "../../utils/eventUtil";
 
 function DrawerContent(props: DrawerContentComponentProps) {
     const { colors } = useTheme();
+
+    React.useEffect(() => {
+        const listener = eventEmitter.on(EventNames.OpenFloatingActionButton, () => {
+            props.navigation.dispatch(DrawerActions.closeDrawer());
+        })
+
+        return () => {
+            eventEmitter.remove(EventNames.OpenFloatingActionButton, listener);
+        }
+    }, []);
+
     return (
         <DrawerContentScrollView {...props}>
             <UserDrawerItem/>

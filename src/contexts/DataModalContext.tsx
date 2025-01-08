@@ -1,6 +1,5 @@
 import React from "react";
-import AlertModal, {AlertModalProps} from "../components/atomic/AlertModal";
-import {AlertFunctionType, useAlertProvider} from "../hooks";
+import {AlertFunctionType} from "../hooks";
 import {
     LabelModal,
     LabelModalProps,
@@ -16,9 +15,7 @@ import {
     ALERT_OPTION_NOT_SAVED_FOR_TASK_MODAL
 } from "../constant";
 import {useLabelsData, useNotesData, useTasksData} from "../controllers";
-import _ from "lodash";
-import {NoteModalRef} from "../components/note/NoteModal";
-import {TaskModalRef} from "../components/task/TaskModal";
+import {TaskModalRef, NoteModalRef, LabelModalRef} from "../components";
 
 type DataModalType = 'note' | 'task' | 'label' | 'none'
 
@@ -36,9 +33,9 @@ interface DataModalProviderProps {
 }
 
 export const DataModalProvider : React.FC<DataModalProviderProps>  = ({ children }) => {
-    const { addLabel, updateLabel, error: errorLabel } = useLabelsData();
-    const { addNote, updateNote, error: errorNote  } = useNotesData();
-    const { addTask, updateTask, error: errorTask } = useTasksData(false);
+    const { addLabel, updateLabel } = useLabelsData();
+    const { addNote, updateNote  } = useNotesData();
+    const { addTask, updateTask } = useTasksData(false);
 
     const [visibleModal, setVisibleModal] = React.useState<DataModalType>('none');
     const [mode, setMode] = React.useState<'edit' | 'add'>('add');
@@ -52,7 +49,7 @@ export const DataModalProvider : React.FC<DataModalProviderProps>  = ({ children
 
     const noteModalRef = React.useRef<NoteModalRef>(null);
     const taskModalRef = React.useRef<TaskModalRef>(null);
-    const labelModalRef = React.useRef<TaskModalRef>(null);
+    const labelModalRef = React.useRef<LabelModalRef>(null);
 
     const showModal = (modal?: DataModalType) => {
         if (visibleModal !== 'none' && modal && modal !== 'none') {
@@ -96,6 +93,7 @@ export const DataModalProvider : React.FC<DataModalProviderProps>  = ({ children
         //compare with previous props and update if needed
         setNoteModalProps(props.noteModalProps || {});
         setTaskModalProps(props.taskModalProps || {});
+        setLabelModalProps(props.labelModalProps || {});
     }
 
     const onCancelNoteModal = React.useCallback((draftNote: Partial<Note>, isEdited: boolean, alert: AlertFunctionType) => {
@@ -221,7 +219,7 @@ export const DataModalProvider : React.FC<DataModalProviderProps>  = ({ children
         <dataModalContext.Provider value={{visibleModal, showModal, setDataModal, updateProps}}>
             {children}
             <SequentialModals
-                currentIndex={ ['note', 'task'].findIndex( s => s === visibleModal) }
+                currentIndex={ ['note', 'task', 'label'].findIndex( s => s === visibleModal) }
                 modals={[
                     <NoteModal
                         {...noteModalProps}
@@ -242,7 +240,7 @@ export const DataModalProvider : React.FC<DataModalProviderProps>  = ({ children
                     />,
 
                     <LabelModal
-                        {...taskModalProps}
+                        {...labelModalProps}
                         ref={labelModalRef}
 
                         mode={ mode }
@@ -258,6 +256,7 @@ export const DataModalProvider : React.FC<DataModalProviderProps>  = ({ children
 interface useDataModalProps {
     noteModalProps?: Partial<NoteModalProps>,
     taskModalProps?: Partial<TaskModalProps>,
+    labelModalProps?: Partial<LabelModalProps>,
 }
 
 export const useDataModal = ( props : useDataModalProps ) => {
@@ -270,6 +269,6 @@ export const useDataModal = ( props : useDataModalProps ) => {
         context.updateProps(props);
     }, []);
 
-    const { updateProps, ...rest } = context;
+    // const { updateProps, ...rest } = context;
     return context;
 }

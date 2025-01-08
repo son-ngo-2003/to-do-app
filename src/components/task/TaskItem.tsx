@@ -61,7 +61,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
     });
 
     return (
-        <Pressable  onPress={onPressItem} style={[styles.container, {backgroundColor: colors.card}] }>
+        <TouchableOpacity  onPress={onPressItem} style={[styles.container, {backgroundColor: colors.card}] }>
             <View  style={[styles.infoPart]}>
                 <AnimatedPressable style={[styles.checkbox, checkboxAnimatedStyles]}
                         hitSlop={15}
@@ -88,7 +88,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
                     />
                 </View>
             }
-        </Pressable>
+        </TouchableOpacity>
     )
 }
 export default TaskItem;

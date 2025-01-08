@@ -9,6 +9,7 @@ import {addDate, getNearestDateOfRepeatTask, getRangeOfDate} from "../../utils/d
 interface AppServiceType {
     // LabelService methods
     getAllLabels:   (params?: BaseFilter) => Promise<Message<Label[]>>,
+    getStatusOfLabel: (label: Label) => Promise<Message<{taskTotal: number, taskCompleted: number, noteTotal: number}>>,
     getLabelById:   (id: string) => Promise<Message<Label>>,
     addLabel:       (label: Partial<Label>) => Promise<Message<Label>>,
     updateLabel:    (label: Partial<Label>) => Promise<Message<Label>>,
@@ -46,6 +47,28 @@ const AppService : AppServiceType = (() => {
                 throw new Error(msg.getError());
             }
             return Message.success(msg.getData());
+        } catch (error) {
+            console.error("AppService.ts: ", error);
+            return Message.failure(error);
+        }
+    }
+
+    async function getStatusOfLabel(label: Label): Promise<Message<{taskTotal: number, taskCompleted: number, noteTotal: number}>> {
+        try {
+            const tasksMsg: Message<Task[]> = await TaskService.getTasksByCriteria({labelIds: [label._id]});
+            if (!tasksMsg.getIsSuccess()) {
+                throw new Error(tasksMsg.getError());
+            }
+
+            const notesMsg: Message<Note[]> = await NoteService.getNotesByCriteria({labelIds: [label._id]});
+            if (!notesMsg.getIsSuccess()) {
+                throw new Error(notesMsg.getError());
+            }
+
+            const taskTotal = tasksMsg.getData().length;
+            const taskCompleted = tasksMsg.getData().filter(task => task.isCompleted).length;
+            const noteTotal = tasksMsg.getData().length;
+            return Message.success({taskTotal, taskCompleted, noteTotal});
         } catch (error) {
             console.error("AppService.ts: ", error);
             return Message.failure(error);
@@ -364,6 +387,7 @@ const AppService : AppServiceType = (() => {
         // LabelService methods
         getAllLabels,
         getLabelById,
+        getStatusOfLabel,
         addLabel,
         updateLabel,
         deleteLabel,

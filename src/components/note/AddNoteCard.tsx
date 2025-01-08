@@ -28,7 +28,7 @@ const AddNoteCard: React.FC<AddNoteCardProps> = ({
     return (
         <TouchableOpacity onPress={onPress} style={[styles.container, {borderColor: colors.border}, dimensions, style]}
         >
-            <Icon name={'plus'} size={35} color={ Colors.neutral.white } library={'FontAwesome6'}/>
+            <Icon name={'plus'} size={35} color={ colors.border } library={'FontAwesome6'}/>
         </TouchableOpacity>
     )
 }

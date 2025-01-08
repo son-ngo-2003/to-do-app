@@ -25,10 +25,10 @@ export const shadow: Record<Shadow, ViewStyle> = {
         shadowColor: Colors.neutral.s900,
         shadowOffset: {
             width: 0,
-            height: 3,
+            height: 2,
         },
-        shadowOpacity: 0.15,
-        shadowRadius: 4.65,
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
         elevation: 6,
     },
 
@@ -40,7 +40,7 @@ export const shadow: Record<Shadow, ViewStyle> = {
         },
         shadowOpacity: 0.15,
         shadowRadius: 2.32,
-        elevation: 4,
+        elevation: 3,
     }
 }
 
