@@ -1,5 +1,6 @@
 import {LabelFormState, NoteFormState, TaskFormState} from "../types/formStateType";
 import {getNextEntireHour} from "../utils/dateUtil";
+import {Colors} from "../styles";
 
 const createInitialTask = (task?: Partial<Task>): TaskFormState => ({
     _id: task?._id || '',
@@ -79,7 +80,7 @@ const isNoteStateEmpty = (noteState: NoteFormState): boolean => {
 const createInitialLabel = (label?: Partial<Label>): LabelFormState => ({
     _id: label?._id || '',
     name: label?.name || '',
-    color: label?.color || '',
+    color: Colors.findPrimaryColor(label?.color) || '',
 });
 
 const fromStateToLabel = (labelFormState: LabelFormState): Partial<Label> => ({
@@ -90,13 +91,11 @@ const fromStateToLabel = (labelFormState: LabelFormState): Partial<Label> => ({
 
 const isStateOfLabel = (labelState: LabelFormState, label: Label): boolean => {
     return labelState.name === label.name &&
-        labelState.color === label.color &&
         labelState._id === label._id;
 }
 
 const isLabelStateEmpty = (labelState: LabelFormState): boolean => {
     return labelState.name === '' &&
-        labelState.color === '' &&
         labelState._id === '';
 }
 

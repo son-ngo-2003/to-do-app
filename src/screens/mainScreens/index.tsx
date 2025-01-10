@@ -1,8 +1,8 @@
-export {default as HomeScreen} from './Home';
-export {default as NotesScreen} from './Notes';
-export {default as LabelsScreen} from './Labels';
-export {default as CalendarScreen} from './Calendar';
-export {default as TasksScreen} from './Tasks';
-export {default as HistoryScreen} from './History';
-export {default as TrashScreen} from './Trash';
-export {default as SearchScreen} from './Search';
+export {default as HomeScreen} from './HomeScreen';
+export {default as NotesScreen} from './NotesScreen';
+export {default as LabelsScreen} from './LabelsScreen';
+export {default as CalendarScreen} from './CalendarScreen';
+export {default as TasksScreen} from './TasksScreen';
+export {default as HistoryScreen} from './HistoryScreen';
+export {default as TrashScreen} from './TrashScreen';
+export {default as SearchScreen} from './SearchScreen';

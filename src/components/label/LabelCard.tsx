@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Text, View, Pressable, StyleSheet } from 'react-native';
+import {Text, View, Pressable, StyleSheet, ViewStyle, TouchableOpacity} from 'react-native';
 import { Colors, Bases, Typography, Outlines } from '../../styles';
 
 //Components
@@ -10,34 +10,43 @@ type LabelCardProps = {
     numberOfNotes?: number,
     numberOfTasks?: number,
     numberOfCompletedTasks?: number,
-    onPress?: () => void,
+
+    onPress?: (label: Label) => void,
+    onPressDelete?: (label: Label) => void,
+    onPressEdit?: (label: Label) => void,
+
+    style?: ViewStyle,
 }
 
 export const LABEL_CARD_HEIGHT = 160;
-export const LABEL_CARD_WIDTH = 160;
 
 const LabelCard: React.FC<LabelCardProps> = ({
     label,
     numberOfNotes = 0,
     numberOfTasks = 0,
     numberOfCompletedTasks = 0,
+
     onPress,
+    onPressDelete,
+    onPressEdit,
+
+    style
 }) => {
     const onPressCard = React.useCallback(() => {
-        console.log(label); //TODO: do this
-    },[label]);
+        onPress?.(label);
+    },[onPress, label]);
 
     const onPressDeleteButton = React.useCallback(() => {
-        console.log("delete label") //TODO: do this
-    },[]);
+        onPressDelete?.(label);
+    },[onPressDelete, label]);
 
     const onPressEditButton = React.useCallback(() => {
-        console.log("edit label") //TODO: do this
-    },[]);
+        onPressEdit?.(label);
+    },[onPressEdit, label]);
 
     return (
-        <Pressable  onPress={onPressCard}
-                    style={[styles.container, {backgroundColor: label.color}]}>
+        <TouchableOpacity  onPress={onPressCard}
+                    style={[styles.container, {backgroundColor: label.color}, style]}>
             <View style={[styles.buttonsContainer]}>
                 <Pressable  onPress={onPressEditButton}
                             style={Bases.flip.horizontal}  hitSlop={6}>
@@ -56,7 +65,7 @@ const LabelCard: React.FC<LabelCardProps> = ({
             <Text style={[Typography.body.x10, styles.info, ]}>{`${numberOfNotes} notes`}</Text>
             <Text style={[Typography.body.x10, styles.info, ]}>{`${numberOfTasks} tasks (${numberOfCompletedTasks} completed)`}</Text>
             <Text style={[Typography.body.x10, styles.info, ]}>{`Created: ${label.createdAt?.toLocaleDateString()}`}</Text>
-        </Pressable>
+        </TouchableOpacity>
     )
 }
 export default LabelCard;

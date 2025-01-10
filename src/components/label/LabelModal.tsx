@@ -86,6 +86,7 @@ const LabelModal = React.forwardRef<LabelModalRef, LabelModalProps> (({
 
             const label = fromStateToLabel(labelFormState);
             const newLabel = await addLabel(label);
+            console.log(newLabel.color);
             dispatchLabelForm({type: FormActionKind.UPDATE_ALL, payload: createInitialLabel(newLabel)});
             setOriginalLabel(newLabel);
             onAddLabel?.(newLabel);
@@ -108,6 +109,7 @@ const LabelModal = React.forwardRef<LabelModalRef, LabelModalProps> (({
             setButtonMode('loading');
 
             const label = fromStateToLabel(labelFormState);
+            console.log(label.color);
             // const oldLabel = await getLabelById(label._id);
             const newLabel = await updateLabel(label);
             dispatchLabelForm({type: FormActionKind.UPDATE_ALL, payload: createInitialLabel(newLabel)});

@@ -99,6 +99,8 @@ const LabelDAO : LabelDAOType = (() => {
     async function updateLabelById(id: string, newData: Partial<LabelEntity>): Promise<Message<LabelEntity>> {
         try {
             newData.updatedAt = new Date();
+            newData.color = Colors.primary[newData.color as Primary] ?? Colors.getRandomColor();
+
             return await StorageService.updateDataByTypeAndId<LabelEntity>('label', id, newData);
         } catch (error) {
             return Message.failure(error);

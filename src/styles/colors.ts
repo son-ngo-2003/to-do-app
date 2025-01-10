@@ -136,6 +136,12 @@ export const getRandomColor : () => string = () => {
     return primaryColors[randomIndex];
 }
 
+export const findPrimaryColor = (color?: string): Primary | undefined => {
+    if (!color) return undefined;
+    if (primary[color as Primary]) return color as Primary;
+    return Object.keys(primary).find((key) => primary[key as Primary] === color) as Primary | undefined;
+}
+
 type ColorsTheme = {
     primary: string,
     background: string,
