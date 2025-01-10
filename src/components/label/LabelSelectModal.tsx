@@ -32,7 +32,8 @@ const LabelSelectModal : React.FC<LabelSelectModalProps> = ({
     style,
     onPressCancel,
 }) => {
-    const { allLabels, loading, error } = useLabelsData();
+    const { getAllLabels } = useLabelsData();
+    const [ allLabels, setAllLabels ] = React.useState<Label[]>([]);
     const [ modalShow, setModalShow ] = React.useState<'listLabel' | 'addLabel' | 'none'>(visible ? 'listLabel' : 'none');
     const { colors } = useTheme();
     // const {
@@ -41,10 +42,12 @@ const LabelSelectModal : React.FC<LabelSelectModalProps> = ({
     // } = useAlertProvider();
 
     const onAddLabel = React.useCallback( (newLabel: Label) => {
-        allLabels.unshift(newLabel);
+        getAllLabels({}).then((labels) => {
+            setAllLabels(labels);
+        })
         onPressOnLabel(newLabel, false);
         setModalShow('listLabel');
-    }, [allLabels, onPressOnLabel, setModalShow]);
+    }, [onPressOnLabel, setModalShow, getAllLabels, setAllLabels]);
 
     const dataList : ListModalDataType[] = React.useMemo (() =>{
         if (allLabels.length === 0) {
@@ -70,7 +73,7 @@ const LabelSelectModal : React.FC<LabelSelectModalProps> = ({
         ))
     }
 
-    , [allLabels, onPressOnLabel, chosenLabelsList, onAddLabel]);
+    , [allLabels, onPressOnLabel, chosenLabelsList, setModalShow]);
 
     const Header : React.FC = () => {
         return (
@@ -86,8 +89,11 @@ const LabelSelectModal : React.FC<LabelSelectModalProps> = ({
     )};
 
     React.useEffect(() => {
-        //TODO: add alert for loading and error
-    }, [loading, error]);
+        if (!visible) return;
+        getAllLabels({}).then((labels) => {
+            setAllLabels(labels);
+        })
+    }, [visible])
 
     const getIndexOfModal = (modal: 'listLabel' | 'addLabel' | 'none') => {
         switch (modal) {

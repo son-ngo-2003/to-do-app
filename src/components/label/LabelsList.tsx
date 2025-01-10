@@ -83,7 +83,7 @@ const LabelsList : React.FC<LabelsListProps> = ({
             }
             {
                 withAddButton &&
-                <Pressable onPress={()=>{setIsShowModal(true); console.log('add button ', isShowModal)}}
+                <Pressable onPress={()=>{setIsShowModal(true)}}
                             ref={plusButtonRef}
                             onLayout={getLayoutPlusButton}
                             style = {{ paddingLeft: 6}}
@@ -97,7 +97,7 @@ const LabelsList : React.FC<LabelsListProps> = ({
                 visible={isShowModal}
                 chosenLabelsList={chosenLabelsList}
                 style = {{top: plusButtonPos.y - 85, right: Layouts.screen.width - plusButtonPos.x - 50, maxHeight: 300}}
-                onPressCancel = {() => {setIsShowModal(false); console.log('close button ', isShowModal)}}
+                onPressCancel = {() => {setIsShowModal(false)}}
                 onPressOnLabel = {onPressLabelInModal}
             />
         </View>

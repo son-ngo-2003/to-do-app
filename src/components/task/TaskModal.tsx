@@ -13,7 +13,7 @@ import Animated, {
 
 //components
 import {
-    BaseModal, ButtonMode,
+    BaseModal, ButtonMode, Checkbox,
     ColumnsWheelPicker,
     Icon,
     KeyboardDismissableView, ModalButton,
@@ -105,7 +105,6 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
         onChangeTask?.(fromStateToTask(newTaskFromState));
     },[dispatch, taskFormState, onChangeTask]);
 
-    let noteFormState;
     const verifyTask = React.useCallback( () => {
         if (!taskFormState.title) {
             alert({ type: 'error', title: 'Error',
@@ -129,6 +128,7 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
             dispatchTaskForm({type: FormActionKind.UPDATE_ALL, payload: createInitialTask(newTask)});
             setOriginalTask(newTask);
             onAddTask?.(newTask);
+            // console.log('new task', newTask.isCompleted);
 
             setButtonMode('added');
         } catch (e) {
@@ -193,6 +193,10 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
         setShowWheelPicker('none');
     }, [setShowWheelPicker, dispatchTaskForm]);
 
+    const onPressCompletedCheckbox = React.useCallback((isChecked: boolean) => {
+        dispatchTaskForm({type: FormActionKind.TOGGLE_CHECKBOX, payload: {field: 'isCompleted'}});
+    }, [dispatchTaskForm]);
+
     const onChangeRepeat = React.useCallback((isOn?: boolean, value?: RepeatAttributeType["value"], unit?: RepeatAttributeType["unit"]) => {
         if (isOn !== undefined) {
             repeatOpacity.value = Anim.timing<number>(isOn ? 1 : 0.3).easeIn.fast;
@@ -250,24 +254,10 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
 
     // ================================= UI PARTS =================================
     const { colors } = useTheme();
-    const colorProgress = useSharedValue<number>(  taskFormState.isCompleted ? 1 : 0);
     const rightSectionWidth = React.useRef(0);
     const heightPickerStart = useSharedValue<number>(0);
     const heightPickerEnd = useSharedValue<number>(0);
     const heightPickerRepeat = useSharedValue<number>(0);
-
-    const onPressCompletedCheckbox = () => {
-        dispatchTaskForm({type: FormActionKind.TOGGLE_CHECKBOX, payload: {field: 'isCompleted'}});
-        colorProgress.value = Anim.timing<number>(1-(taskFormState.isCompleted ? 0 : 1)).easeIn.fast;
-    }
-
-    const checkboxAnimatedStyles = useAnimatedStyle(() => {
-        return {
-            backgroundColor: interpolateColor( colorProgress.value, [ 0, 1 ],
-                [ colors.card, Colors.primary.yellow ], 'RGB',
-            ),
-        };
-    });
 
     React.useEffect(() => {
         switch (showWheelPicker) {
@@ -305,23 +295,20 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
 
     return (
 
-        <BaseModal isVisible={visible} hasBackdrop={true} avoidKeyboard={false}
+        <BaseModal isVisible={visible} avoidKeyboard={false}
                animationIn={'fadeInUpBig'} animationInTiming={500} animationOut={'fadeOutDownBig'} animationOutTiming={300}
                onModalHide={onModalHide} onModalWillHide={onModalWillHide} onModalShow={onModalShow} onModalWillShow={onModalWillShow}
 
-               customBackdrop={<Overlay onPress={onPressCancel} background={'highOpacity'}/>}
+               onBackdropPress={onPressCancel} onBackButtonPress={onPressCancel}
+               hasBackdrop={true}
+               backdropOpacity={0.6}
+               // customBackdrop={<Overlay onPress={onPressCancel} background={'highOpacity'}/>}
         >
             <KeyboardDismissableView>
                 <View style={[styles.modalContainer, {backgroundColor: colors.card}]}>
                     {/* Add/Edit and Close Buttons */}
                     <View style={[styles.twoItemsRow]}>
-                        <View style={{flexDirection: 'row', gap: 5, alignItems: 'center'}}>
-                            <AnimatedPressable style={[styles.checkbox, checkboxAnimatedStyles]}
-                                               hitSlop={15}
-                                               onPress={onPressCompletedCheckbox}
-                            />
-                            <Text style={[Typography.body.x30, {color: colors.text, opacity: 0.6}]}>Marked as completed</Text>
-                        </View>
+                        <Checkbox label={'Marked as completed'} onPress={onPressCompletedCheckbox} initialValue={taskFormState.isCompleted}/>
 
                         <View style={[styles.buttonsContainer]}>
                             <ModalButton mode={buttonMode}
@@ -563,15 +550,6 @@ const styles = StyleSheet.create({
         justifyContent:'flex-end',
         gap: 20,
     },
-
-    checkbox: {
-        width: 17,
-        height: 17,
-        borderRadius: Outlines.borderRadius.small,
-        borderWidth: 1,
-        borderColor: Colors.primary.yellow,
-    },
-
 
     title: {
         ...Typography.subheader.x50,

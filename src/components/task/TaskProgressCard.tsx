@@ -1,12 +1,13 @@
 import * as React from 'react';
 import { Text, View, Pressable, StyleSheet } from 'react-native';
-import { Colors, Bases, Typography, Outlines } from '../../styles';
+import { Colors, Typography, Outlines } from '../../styles';
 
 //Components
 import { useTheme } from '@react-navigation/native';
+import {UNLABELED_KEY} from "../../constant";
 
 type TaskProgressCardProps = {
-    label: Label,
+    label: Label | typeof UNLABELED_KEY,
     numberOfNotes : number,
     numberOfTasks : number,
     numberOfCompletedTasks : number,
@@ -25,6 +26,8 @@ const TaskProgressCard: React.FC<TaskProgressCardProps> = ({
 }) => {
 
     const { colors } = useTheme();
+    const cardTitle = React.useMemo(() => label === UNLABELED_KEY ? 'Not Labelled' : label.name, [label]);
+    const progressColor = React.useMemo(() => label === UNLABELED_KEY ? Colors.primary.teal : label.color, [label]);
 
     const finishPercent = numberOfTasks === 0
                             ? 0
@@ -36,7 +39,7 @@ const TaskProgressCard: React.FC<TaskProgressCardProps> = ({
             <View>
                 <View style={[styles.headingCover]}>
                     <Text style={[Typography.header.x40, styles.heading, {color: colors.text}]} numberOfLines={2}
-                    >{label.name}</Text>
+                    >{cardTitle}</Text>
                 </View>
 
                 <Text style={[Typography.body.x10, styles.info, {color: colors.text}]}>{`${numberOfNotes} notes`}</Text>
@@ -45,10 +48,10 @@ const TaskProgressCard: React.FC<TaskProgressCardProps> = ({
 
             <View style={[styles.progressBar]}>
                 <View style = {[styles.fillProgressBar, 
-                                {backgroundColor: label.color,
+                                {backgroundColor: progressColor,
                                 width: `${finishPercent}%`}]}/>
                 <View style = {[styles.progressBarNode, 
-                    {backgroundColor: label.color,
+                    {backgroundColor: progressColor,
                     left: `${finishPercent}%`}]}/>
             </View>
 

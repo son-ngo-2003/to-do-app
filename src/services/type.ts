@@ -3,6 +3,7 @@ export type BaseFilter = {
     sortOrder?: 'asc' | 'desc';
     limit?: number;
     offset?: number;
+    isDeleted?: boolean;
 }
 
 export type TaskFilter = {

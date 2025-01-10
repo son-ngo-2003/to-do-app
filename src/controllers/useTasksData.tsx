@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import AppService from "../services";
 import {BaseFilter} from "../services/type";
 
@@ -10,7 +10,7 @@ const useTasksData = (
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>();
 
-    const fetchTasks = async () => {
+    const fetchTasks = useCallback( async () => {
         try {
             setLoading(true);
             const msg = await AppService.getAllTasks();
@@ -24,9 +24,9 @@ const useTasksData = (
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const getAllTasks = async (params?: BaseFilter) => {
+    const getAllTasks = useCallback( async (params?: BaseFilter) => {
         try {
             setLoading(true);
             const msg = await AppService.getAllTasks(params);
@@ -41,9 +41,9 @@ const useTasksData = (
         } finally {
             setLoading(false);
         }
-    }
+    }, []);
 
-    const getAllTasksGroupByLabels = async (params?: {
+    const getAllTasksGroupByLabels = useCallback( async (params?: {
         //TODO: add limit number of tasks for each label, and fix bug: "when added or updated task, the new interface will become like before pressing the show more button"
         withTasksNoLabel?: boolean,
         date?: Date,
@@ -63,9 +63,9 @@ const useTasksData = (
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const getTaskById = async (id: string) => {
+    const getTaskById = useCallback( async (id: string) => {
         try {
             setLoading(true);
             const msg = await AppService.getTaskById(id);
@@ -80,9 +80,43 @@ const useTasksData = (
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const getRepeatTasks = async (params?: BaseFilter) => {
+    const getTasksByLabel = useCallback( async (label: Label, params?: {isCompleted?: boolean} & BaseFilter) => {
+        try {
+            setLoading(true);
+            const msg = await AppService.getTasksByLabel(label, params);
+            if (!msg.getIsSuccess()) throw new Error(msg.getError());
+            return msg.getData();
+        } catch (e) {
+            console.error("useTasksData.ts: ", e);
+            let errorMessage = "Error fetching task by label";
+            if (e instanceof Error) errorMessage = e.message;
+            setError(errorMessage);
+            throw e;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const getTasksWithoutLabel = useCallback( async (params?: {isCompleted?: boolean} & BaseFilter) => {
+        try {
+            setLoading(true);
+            const msg = await AppService.getTasksWithoutLabel(params);
+            if (!msg.getIsSuccess()) throw new Error(msg.getError());
+            return msg.getData();
+        } catch (e) {
+            console.error("useTasksData.ts: ", e);
+            let errorMessage = "Error fetching tasks without label";
+            if (e instanceof Error) errorMessage = e.message;
+            setError(errorMessage);
+            throw e;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const getRepeatTasks = useCallback( async (params?: BaseFilter) => {
         try {
             setLoading(true);
             const msg = await AppService.getRepeatTasks(params);
@@ -97,9 +131,9 @@ const useTasksData = (
         } finally {
             setLoading(false);
         }
-    }
+    }, []);
 
-    const addTask = async (task: Partial<Task>) => {
+    const addTask = useCallback( async (task: Partial<Task>) => {
         try {
             setLoading(true);
             const msg = await AppService.addTask(task);
@@ -120,9 +154,9 @@ const useTasksData = (
         } finally {
             setLoading(false);
         }
-    };
+    }, [allTasks]);
 
-    const updateTask = async (task: Partial<Task>) => {
+    const updateTask = useCallback( async (task: Partial<Task>) => {
         try {
             setLoading(true);
             const msg = await AppService.updateTask(task);
@@ -138,9 +172,9 @@ const useTasksData = (
         } finally {
             setLoading(false);
         }
-    };
+    }, [allTasks]);
 
-    const deleteTask = async (task: Task) => {
+    const deleteTask = useCallback( async (task: Task) => {
         try {
             setLoading(true);
             const msg = await AppService.deleteTask(task);
@@ -156,9 +190,9 @@ const useTasksData = (
         } finally {
             setLoading(false);
         }
-    };
+    }, [allTasks]);
 
-    const getTaskInstances = async (task: Task) => {
+    const getTaskInstances = useCallback( async (task: Task) => {
         try {
             setLoading(true);
             const msg = await AppService.getTaskInstances(task);
@@ -173,9 +207,9 @@ const useTasksData = (
         } finally {
             setLoading(false);
         }
-    }
+    }, []);
 
-    const generateTaskInstance = async (task: Task) => {
+    const generateTaskInstance = useCallback( async (task: Task) => {
         try {
             setLoading(true);
             const msg = await AppService.generateTaskInstances(task);
@@ -191,9 +225,9 @@ const useTasksData = (
         } finally {
             setLoading(false);
         }
-    }
+    }, [allTasks]);
 
-    const getTaskInstancesOverdue = async (task: Task) => {
+    const getTaskInstancesOverdue = useCallback( async (task: Task) => {
         try {
             setLoading(true);
             const msg = await AppService.getTaskInstancesOverdue(task);
@@ -208,9 +242,9 @@ const useTasksData = (
         } finally {
             setLoading(false);
         }
-    }
+    }, []);
 
-    const deleteForceTaskInstance = async (task: Task) => {
+    const deleteForceTaskInstance = useCallback( async (task: Task) => {
         try {
             setLoading(true);
             const msg = await AppService.deleteForceTaskInstance(task);
@@ -226,7 +260,7 @@ const useTasksData = (
         } finally {
             setLoading(false);
         }
-    }
+    }, [allTasks]);
 
     useEffect(() => {
         if (toFetchAllData) fetchTasks();
@@ -243,6 +277,8 @@ const useTasksData = (
 
         getTaskById,
         getAllTasksGroupByLabels,
+        getTasksByLabel,
+        getTasksWithoutLabel,
         getAllTasks,
         getRepeatTasks,
 

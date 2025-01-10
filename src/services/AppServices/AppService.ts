@@ -9,7 +9,7 @@ import {addDate, getNearestDateOfRepeatTask, getRangeOfDate} from "../../utils/d
 interface AppServiceType {
     // LabelService methods
     getAllLabels:   (params?: BaseFilter) => Promise<Message<Label[]>>,
-    getStatusOfLabel: (label: Label) => Promise<Message<{taskTotal: number, taskCompleted: number, noteTotal: number}>>,
+    getStatusOfLabel: (label: Label | typeof UNLABELED_KEY) => Promise<Message<{taskTotal: number, taskCompleted: number, noteTotal: number}>>,
     getLabelById:   (id: string) => Promise<Message<Label>>,
     addLabel:       (label: Partial<Label>) => Promise<Message<Label>>,
     updateLabel:    (label: Partial<Label>) => Promise<Message<Label>>,
@@ -26,6 +26,8 @@ interface AppServiceType {
     getAllTasks:                (params?: BaseFilter) => Promise<Message<Task[]>>,
     getAllTasksGroupByLabels:   (params?: { date?: Date, isCompleted?: boolean, withTasksNoLabel?: boolean } & BaseFilter)  => Promise<Message< Record<Label['_id'], Task[] >>>,
     getTaskById:                (id: string) => Promise<Message<Task>>,
+    getTasksByLabel:            (label: Label, params?: {isCompleted?: boolean} & BaseFilter) => Promise<Message<Task[]>>,
+    getTasksWithoutLabel:       (params?: {isCompleted?: boolean} & BaseFilter) => Promise<Message<Task[]>>,
     getRepeatTasks:             (params?: BaseFilter) => Promise<Message<Task[]>>,
     addTask:                    (task: Partial<Task>) => Promise<Message<Task>>,
     updateTask:                 (task: Partial<Task>) => Promise<Message<Task>>,
@@ -53,14 +55,15 @@ const AppService : AppServiceType = (() => {
         }
     }
 
-    async function getStatusOfLabel(label: Label): Promise<Message<{taskTotal: number, taskCompleted: number, noteTotal: number}>> {
+    async function getStatusOfLabel(label: Label | typeof UNLABELED_KEY): Promise<Message<{taskTotal: number, taskCompleted: number, noteTotal: number}>> {
         try {
-            const tasksMsg: Message<Task[]> = await TaskService.getTasksByCriteria({labelIds: [label._id]});
+            const labelId = label === UNLABELED_KEY ? UNLABELED_KEY : label._id;
+            const tasksMsg: Message<Task[]> = await TaskService.getTasksByCriteria({labelIds: [labelId]});
             if (!tasksMsg.getIsSuccess()) {
                 throw new Error(tasksMsg.getError());
             }
 
-            const notesMsg: Message<Note[]> = await NoteService.getNotesByCriteria({labelIds: [label._id]});
+            const notesMsg: Message<Note[]> = await NoteService.getNotesByCriteria({labelIds: [labelId]});
             if (!notesMsg.getIsSuccess()) {
                 throw new Error(notesMsg.getError());
             }
@@ -258,6 +261,32 @@ const AppService : AppServiceType = (() => {
         }
     }
 
+    async function getTasksByLabel(label: Label, params?: {isCompleted?: boolean} & BaseFilter): Promise<Message<Task[]>> {
+        try {
+            const msg: Message<Task[]> = await TaskService.getTasksByCriteria({labelIds: [label._id], ...params});
+            if (!msg.getIsSuccess()) {
+                throw new Error(msg.getError());
+            }
+            return Message.success(msg.getData());
+        } catch (error) {
+            console.error("AppService.ts: ", error);
+            return Message.failure(error);
+        }
+    }
+
+    async function getTasksWithoutLabel(params?: {isCompleted?: boolean} & BaseFilter): Promise<Message<Task[]>> {
+        try {
+            const msg: Message<Task[]> = await TaskService.getTasksByCriteria({labelIds: [UNLABELED_KEY], ...params});
+            if (!msg.getIsSuccess()) {
+                throw new Error(msg.getError());
+            }
+            return Message.success(msg.getData());
+        } catch (error) {
+            console.error("AppService.ts: ", error);
+            return Message.failure(error);
+        }
+    }
+
     async function getRepeatTasks(params?: BaseFilter): Promise<Message<Task[]>> {
         try {
             const msg: Message<Task[]> = await TaskService.getRepeatTasks(params);
@@ -404,6 +433,8 @@ const AppService : AppServiceType = (() => {
         getAllTasksGroupByLabels,
         getRepeatTasks,
         getTaskById,
+        getTasksByLabel,
+        getTasksWithoutLabel,
         addTask,
         updateTask,
         deleteTask,

@@ -125,6 +125,7 @@ const TaskDAO : TaskDAOType = (() => {
 
             const { searchTerm, labelIds, noteIds, date, isCompleted, isRepeat, parentTaskId, isOverdue,
                 limit, offset = 0, sortBy, sortOrder} = params;
+
             if ( sortBy && tasks[0] && !isKeyOf<TaskEntity>(sortBy, tasks[0]) ) {
                 throw new Error(`Invalid sortBy key: ${sortBy}`);
             }
