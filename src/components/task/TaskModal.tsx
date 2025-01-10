@@ -46,6 +46,7 @@ import {TITLE_MAX_LENGTH} from "../../constant";
 export type TaskModalProps = {
     mode: 'add' | 'edit', //TODO: add a noti text in case of create a new task but start time in the past
     taskId?: Task['_id'],
+    defaultTask?: Partial<Task>, //only use when mode is 'add'
     visible?: boolean,
     onPressNote?: (note: Note) => void,
 
@@ -72,6 +73,7 @@ const wheelPickerHeight = 90;
 const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
     mode,
     taskId,
+    defaultTask,
     visible = true,
     onPressNote,
 
@@ -87,7 +89,7 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
 }, ref) => {
     const { getTaskById, addTask, updateTask } = useTasksData(false);
     const [ originTask, setOriginalTask ] = React.useState<Task | undefined>(undefined);
-    const [ taskFormState, dispatch ] = React.useReducer(formReducer<TaskFormState>, undefined, createInitialTask);
+    const [ taskFormState, dispatch ] = React.useReducer(formReducer<TaskFormState>, defaultTask, createInitialTask);
     const [ taskRepeat, setTaskRepeat ] = React.useState<RepeatAttributeType>( {value: 1, unit: 'day'} );
     const [ isEdited, setIsEdited ] = React.useState<boolean>(false);
     const [ buttonMode, setButtonMode ] = React.useState<ButtonMode>(mode);
@@ -233,7 +235,7 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
                 setOriginalTask(task);
             });
         } else {
-            dispatchTaskForm({type: FormActionKind.UPDATE_ALL, payload: createInitialTask()});
+            dispatchTaskForm({type: FormActionKind.UPDATE_ALL, payload: createInitialTask(defaultTask)});
         }
     }, [taskId, mode, visible]);
 

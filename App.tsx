@@ -22,18 +22,18 @@ export default function App() {
         }
     }, [fontsLoaded, fontError]);
 
-    // React.useEffect(() => {
+    React.useEffect(() => {
+        if (!fontsLoaded && !fontError) {
+            // TODO: show loading screen and announce error if needed
+        }
+
     //     //TODO: to delete clearAllData under
     //     StorageService.clearAllData('label');
     //     StorageService.clearAllData('note');
     //     StorageService.clearAllData('task');
     //
 
-    // }, [fontsLoaded, fontError]);
-
-    if (!fontsLoaded && !fontError) {
-        return null;// TODO: show loading screen and announce error if needed
-    }
+    }, [fontsLoaded, fontError]);
 
     React.useEffect(() => {
         // Update instances of repeat tasks if needed

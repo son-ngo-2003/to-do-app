@@ -26,8 +26,8 @@ interface AppServiceType {
     getAllTasks:                (params?: BaseFilter) => Promise<Message<Task[]>>,
     getAllTasksGroupByLabels:   (params?: { date?: Date, isCompleted?: boolean, withTasksNoLabel?: boolean } & BaseFilter)  => Promise<Message< Record<Label['_id'], Task[] >>>,
     getTaskById:                (id: string) => Promise<Message<Task>>,
-    getTasksByLabel:            (label: Label, params?: {isCompleted?: boolean} & BaseFilter) => Promise<Message<Task[]>>,
-    getTasksWithoutLabel:       (params?: {isCompleted?: boolean} & BaseFilter) => Promise<Message<Task[]>>,
+    getTasksByLabel:            (label: Label, params?: {isCompleted?: boolean, date?: Date} & BaseFilter) => Promise<Message<Task[]>>,
+    getTasksWithoutLabel:       (params?: {isCompleted?: boolean, date?: Date} & BaseFilter) => Promise<Message<Task[]>>,
     getRepeatTasks:             (params?: BaseFilter) => Promise<Message<Task[]>>,
     addTask:                    (task: Partial<Task>) => Promise<Message<Task>>,
     updateTask:                 (task: Partial<Task>) => Promise<Message<Task>>,
@@ -261,7 +261,7 @@ const AppService : AppServiceType = (() => {
         }
     }
 
-    async function getTasksByLabel(label: Label, params?: {isCompleted?: boolean} & BaseFilter): Promise<Message<Task[]>> {
+    async function getTasksByLabel(label: Label, params?: {isCompleted?: boolean, date?: Date} & BaseFilter): Promise<Message<Task[]>> {
         try {
             const msg: Message<Task[]> = await TaskService.getTasksByCriteria({labelIds: [label._id], ...params});
             if (!msg.getIsSuccess()) {
@@ -274,7 +274,7 @@ const AppService : AppServiceType = (() => {
         }
     }
 
-    async function getTasksWithoutLabel(params?: {isCompleted?: boolean} & BaseFilter): Promise<Message<Task[]>> {
+    async function getTasksWithoutLabel(params?: {isCompleted?: boolean, date?: Date} & BaseFilter): Promise<Message<Task[]>> {
         try {
             const msg: Message<Task[]> = await TaskService.getTasksByCriteria({labelIds: [UNLABELED_KEY], ...params});
             if (!msg.getIsSuccess()) {

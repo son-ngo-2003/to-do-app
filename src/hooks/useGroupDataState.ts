@@ -22,18 +22,7 @@ function useGroupDataState<T> ({
     const _keyExtractor = React.useCallback((key: any) => keyExtractor ? keyExtractor(key) : key, [keyExtractor]);
 
     React.useEffect(() => {
-        setExtractedKeys(keys.map(_keyExtractor));
-
-        Promise.all(keys.map(key => fetcher(key, limitFetch + 1, 0))).then((results) => {
-            const _data : Record<string, any[]> = {};
-            const _hasMore : Record<string, boolean> = {};
-            extractedKeys.forEach((key, index) => {
-                _data[key] = results[index].slice(0, limitFetch);
-                _hasMore[key] = results[index].length > limitFetch;
-            });
-            setData(_data);
-            setHasMore(_hasMore);
-        });
+        resetData();
     }, []);
 
     const updateGroup = React.useCallback((key: any, limit: number = limitFetch) => {
@@ -74,6 +63,22 @@ function useGroupDataState<T> ({
             });
     }, [keys, extractedKeys, fetcher, data, limitFetch]);
 
+    const resetData = React.useCallback(() => {
+        const _extractedKeys = keys.map(_keyExtractor);
+        setExtractedKeys(_extractedKeys);
+
+        Promise.all(keys.map(key => fetcher(key, limitFetch + 1, 0))).then((results) => {
+            const _data : Record<string, any[]> = {};
+            const _hasMore : Record<string, boolean> = {};
+            _extractedKeys.forEach((key, index) => {
+                _data[key] = results[index].slice(0, limitFetch);
+                _hasMore[key] = results[index].length > limitFetch;
+            });
+            setData(_data);
+            setHasMore(_hasMore);
+        });
+    }, [keys, fetcher, limitFetch, setData, setHasMore]);
+
     React.useEffect(() => {
         const newExtractedKeys = keys.map(_keyExtractor);
         if (_.isEqual(newExtractedKeys, extractedKeys)) return;
@@ -104,6 +109,7 @@ function useGroupDataState<T> ({
         getData,
         getHasMore,
         refreshData,
+        resetData,
     }
 }
 

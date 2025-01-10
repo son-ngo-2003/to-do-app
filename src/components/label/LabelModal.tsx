@@ -26,6 +26,7 @@ import {debounce} from "lodash";
 export type LabelModalProps = {
     mode: 'add' | 'edit',
     labelId?: Label['_id'],
+    defaultLabel?: Partial<Label>,
     visible?: boolean,
 
     onAddLabel?: (label: Label) => void,
@@ -48,6 +49,7 @@ const sizeButton : number = 23;
 const LabelModal = React.forwardRef<LabelModalRef, LabelModalProps> (({
     mode, 
     labelId,
+    defaultLabel,
     visible = true,
 
     onAddLabel,
@@ -63,7 +65,7 @@ const LabelModal = React.forwardRef<LabelModalRef, LabelModalProps> (({
     const { getLabelById, addLabel, updateLabel } = useLabelsData(false);
     const [ originalLabel, setOriginalLabel ] = React.useState<Label | undefined>(undefined);
     const [ isEdited, setIsEdited ] = React.useState<boolean>(false);
-    const [ labelFormState, dispatch ] = React.useReducer(formReducer<LabelFormState>, undefined, createInitialLabel);
+    const [ labelFormState, dispatch ] = React.useReducer(formReducer<LabelFormState>, defaultLabel, createInitialLabel);
     const [ buttonMode, setButtonMode ] = React.useState<ButtonMode>(mode);
     const { colors } = useTheme();
 
@@ -153,7 +155,7 @@ const LabelModal = React.forwardRef<LabelModalRef, LabelModalProps> (({
                 dispatchLabelForm({type: FormActionKind.UPDATE_ALL, payload: createInitialLabel(label)});
             });
         } else {
-            dispatchLabelForm({type: FormActionKind.UPDATE_ALL, payload: createInitialLabel()});
+            dispatchLabelForm({type: FormActionKind.UPDATE_ALL, payload: createInitialLabel(defaultLabel)});
         }
     }, [labelId, mode, visible]);
 

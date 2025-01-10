@@ -16,8 +16,11 @@ import {
     TaskTree
 } from "../../components";
 import {useGroupDataState} from "../../hooks";
+import dayjs from "dayjs";
 
 type Props = DrawerScreenProps<RootStackParamList, 'Tasks'>;
+
+const FORMAT_DATE_STRING = 'DD-MM-YYYY';
 
 const TasksScreen : React.FC<Props> = ({navigation}) => {
     const { colors } = useTheme();
@@ -28,14 +31,16 @@ const TasksScreen : React.FC<Props> = ({navigation}) => {
 
     const [ allLabels, setAllLabels ] = React.useState<(Label | typeof UNLABELED_KEY)[]>([UNLABELED_KEY]);
     const [ labelProgress, setLabelProgress ] = React.useState<Record<Label['_id'], {taskTotal: number, taskCompleted: number, noteTotal: number}>>({});
+    const [ dateShowTasks, setDateShowTasks ] = React.useState<string>( dayjs().format(FORMAT_DATE_STRING) ) //format string to optimize render of component
+
     const { showModal, setDataModal, updateProps, hideModal } = useDataModal({});
-    const { updateGroup, getHasMore, getData, refreshData } = useGroupDataState({
+    const { updateGroup, getHasMore, getData, refreshData, resetData } = useGroupDataState({
         keys: allLabels,
         keyExtractor: (label) => label === UNLABELED_KEY ? UNLABELED_KEY : label._id,
         fetcher: (label, limit, offset) =>
             label === UNLABELED_KEY
-                ? getTasksWithoutLabel({isCompleted: false, limit, offset, sortBy: 'start', sortOrder: 'desc'})
-                : getTasksByLabel(label, {isCompleted: false, limit, offset, sortBy: 'start', sortOrder: 'desc'}),
+                ? getTasksWithoutLabel({isCompleted: false, limit, offset, sortBy: 'start', sortOrder: 'desc', date: dayjs(dateShowTasks, FORMAT_DATE_STRING).toDate()})
+                : getTasksByLabel(label, {isCompleted: false, limit, offset, sortBy: 'start', sortOrder: 'desc', date: dayjs(dateShowTasks, FORMAT_DATE_STRING).toDate()}),
         limitFetch: LIMIT_FETCH_TASK,
     })
 
@@ -49,9 +54,10 @@ const TasksScreen : React.FC<Props> = ({navigation}) => {
                 });
                 setAllLabels([...labels, UNLABELED_KEY]);
                 setLabelProgress(_labelProgress);
+                refreshData();
             });
         });
-    }, [getAllLabels, setAllLabels, setLabelProgress, labelProgress, getStatusOfLabel]);
+    }, [getAllLabels, setAllLabels, setLabelProgress, labelProgress, getStatusOfLabel, refreshData]);
 
     const onPressNoteInTask = React.useCallback((note: Note) => { //TODO: text this function
         setDataModal('note', note._id, 'edit');
@@ -81,11 +87,40 @@ const TasksScreen : React.FC<Props> = ({navigation}) => {
         updateData();
     }, [updateData]);
 
+    const getDateString = React.useCallback((date: string) => {
+        if (date === dayjs().format(FORMAT_DATE_STRING)) return 'Today';
+        if (date === dayjs().add(1, 'day').format(FORMAT_DATE_STRING)) return 'Tomorrow';
+        if (date === dayjs().subtract(1, 'day').format(FORMAT_DATE_STRING)) return 'Yesterday';
+        return date;
+    }, []);
+
+    const onPressLeft = React.useCallback(() => {
+        const newDate = dayjs(dateShowTasks, FORMAT_DATE_STRING, true).subtract(1, 'day');
+        setDateShowTasks(newDate.format(FORMAT_DATE_STRING));
+    }, [dateShowTasks, setDateShowTasks]);
+
+    const onPressRight = React.useCallback(() => {
+        const newDate = dayjs(dateShowTasks, FORMAT_DATE_STRING, true).add(1, 'day');
+        setDateShowTasks(newDate.format(FORMAT_DATE_STRING));
+    }, [dateShowTasks, setDateShowTasks]);
+
+    React.useEffect(() => {
+        resetData();
+    }, [dateShowTasks]);
+
     React.useEffect(() => {
         if (!isScreenFocused) return;
 
+        const currentTime = dayjs();
+        const defaultStartDateTask = dayjs(dateShowTasks, FORMAT_DATE_STRING)
+            .hour(currentTime.hour())
+            .minute(currentTime.minute())
+            .second(currentTime.second())
+            .toDate();
+
         updateProps({
             taskModalProps: {
+                defaultTask: {start: defaultStartDateTask},
                 onAddTask: onAddedUpdatedTask,
                 onUpdateTask: onAddedUpdatedTask,
                 onPressNote: onPressNoteInTask
@@ -95,7 +130,7 @@ const TasksScreen : React.FC<Props> = ({navigation}) => {
                 onUpdateLabel: onAddedUpdatedLabel
             }
         });
-    }, [updateProps, onAddedUpdatedTask, onPressNoteInTask, onAddedUpdatedLabel, updateData, isScreenFocused]);
+    }, [updateProps, onAddedUpdatedTask, onPressNoteInTask, onAddedUpdatedLabel, updateData, isScreenFocused, dateShowTasks]);
 
     React.useEffect(() => {
         if (!isScreenFocused) return;
@@ -149,13 +184,19 @@ const TasksScreen : React.FC<Props> = ({navigation}) => {
                     </ScrollView>
                 </View>
 
-                {/* Today's Tasks */}
+                {/* Date's Tasks */}
                 <View style={[Layouts.sectionContainer]}>
                     <View style={[styles.sectionTitleContainer]}>
-                        <Text style={[ Typography.subheader.x40, {color: colors.text}, { textTransform: 'uppercase' } ]}>Today's Tasks</Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('Tasks') /*TODO: Press View All will navigate to Tasks Screen with today tasks filter*/}>
-                            <Text style={[Typography.body.x40, {color: colors.text}, { opacity: 0.6, }]}>View All</Text>
-                        </TouchableOpacity>
+                        <Text style={[ Typography.subheader.x40, {color: colors.text}, { textTransform: 'uppercase' } ]}>{getDateString(dateShowTasks)} 's Tasks</Text>
+                        <View style={[styles.buttonsChangeDateContainer]}>
+                            <TouchableOpacity onPress={onPressLeft}>
+                                <Icon name="chevron-left" size={20} color={colors.text} library='FontAwesome5'/>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity onPress={onPressRight}>
+                                <Icon name="chevron-right" size={20} color={colors.text} library='FontAwesome5'/>
+                            </TouchableOpacity>
+                        </View>
                     </View>
 
                     <View style={[Layouts.fullWidthContainer, styles.tasksContainer]}>
@@ -214,6 +255,12 @@ const styles = StyleSheet.create({
     tasksContainer: {
         paddingHorizontal: Layouts.MARGIN_HORIZONTAL,
         marginTop: 10,
+    },
+    buttonsChangeDateContainer: {
+        flexDirection: 'row',
+        gap: 15,
+        alignItems: 'center',
+        justifyContent: 'flex-end',
     },
 });
 

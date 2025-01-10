@@ -82,7 +82,12 @@ const useTasksData = (
         }
     }, []);
 
-    const getTasksByLabel = useCallback( async (label: Label, params?: {isCompleted?: boolean} & BaseFilter) => {
+    const getTasksByLabel = useCallback( async (
+        label: Label,
+        params?: {
+            isCompleted?: boolean
+            date?: Date,
+    } & BaseFilter) => {
         try {
             setLoading(true);
             const msg = await AppService.getTasksByLabel(label, params);
@@ -99,7 +104,10 @@ const useTasksData = (
         }
     }, []);
 
-    const getTasksWithoutLabel = useCallback( async (params?: {isCompleted?: boolean} & BaseFilter) => {
+    const getTasksWithoutLabel = useCallback( async (params?: {
+        isCompleted?: boolean,
+        date?: Date,
+    } & BaseFilter) => {
         try {
             setLoading(true);
             const msg = await AppService.getTasksWithoutLabel(params);

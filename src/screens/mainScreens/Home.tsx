@@ -1,17 +1,17 @@
 import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView} from 'react-native';
+import {SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {useIsFocused, useTheme} from '@react-navigation/native';
-import { DrawerScreenProps } from '@react-navigation/drawer';
+import {DrawerScreenProps} from '@react-navigation/drawer';
 
 //components
-import { NoteCard, TaskTree, AddNoteCard } from '../../components/';
-import { Typography, Layouts } from '../../styles';
-import { type RootStackParamList } from "../../navigation";
+import {AddNoteCard, NoteCard, TaskTree} from '../../components/';
+import {Layouts, Typography} from '../../styles';
+import {type RootStackParamList} from "../../navigation";
 
 //Services
 import {LIMIT_FETCH_NOTE, LIMIT_FETCH_TASK, UNLABELED_KEY} from "../../constant";
 import {AddTaskCard} from "../../components";
-import {useNotesData, useLabelsData, useTasksData} from "../../controllers";
+import {useLabelsData, useNotesData, useTasksData} from "../../controllers";
 import {useDataModal} from "../../contexts/DataModalContext";
 import {useGroupDataState} from "../../hooks";
 import StorageService from "../../services/DAO/StorageService";
@@ -84,7 +84,7 @@ const HomeScreen : React.FC<Props> = ({navigation}) => {
             getAllLabels()
         ]).then(([notes, labels]) => {
             setAllNotes(notes);
-            setAllLabels(labels);
+            setAllLabels([...labels, UNLABELED_KEY]);
         });
         refreshData();
     }, [isScreenFocused]);

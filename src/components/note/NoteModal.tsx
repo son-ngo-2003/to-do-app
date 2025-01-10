@@ -25,6 +25,7 @@ import {TITLE_MAX_LENGTH} from "../../constant";
 export type NoteModalProps = {
     mode: 'add' | 'edit',
     noteId?: Note['_id'],
+    defaultNote?: Partial<Note>,
     visible?: boolean,
 
     onAddNote?: (note: Note) => void, //only Partial<Note> cause id, createdAt, updatedAt, completedAt will be added by service, not by user
@@ -50,6 +51,7 @@ const sizeButton : number = 25;
 const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
     mode,
     noteId,
+    defaultNote,
     visible = true,
 
     onAddNote,
@@ -64,7 +66,7 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
 }, ref) => {
     const { getNoteById, addNote, updateNote } = useNotesData(false);
     const [ originalNote, setOriginalNote ] = React.useState<Note | undefined>(undefined);
-    const [ noteFormState, dispatch ] = React.useReducer(formReducer<NoteFormState>, undefined, createInitialNote);
+    const [ noteFormState, dispatch ] = React.useReducer(formReducer<NoteFormState>, defaultNote, createInitialNote);
     const [ isEdited, setIsEdited ] = React.useState<boolean>(false);
     const [ buttonMode, setButtonMode ] = React.useState<ButtonMode>(mode);
     const { colors } = useTheme();
@@ -182,7 +184,7 @@ const NoteModal = React.forwardRef<NoteModalRef, NoteModalProps>(({
                 setOriginalNote(note);
             });
         } else {
-            dispatchNoteForm({type: FormActionKind.UPDATE_ALL, payload: createInitialNote()});
+            dispatchNoteForm({type: FormActionKind.UPDATE_ALL, payload: createInitialNote(defaultNote)});
             setOriginalNote(undefined);
         }
     }, [noteId, mode, visible]);

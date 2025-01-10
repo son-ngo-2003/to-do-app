@@ -1,13 +1,13 @@
 import {LabelFormState, NoteFormState, TaskFormState} from "../types/formStateType";
 import {getNextEntireHour} from "../utils/dateUtil";
 
-const createInitialTask = (task?: Task): TaskFormState => ({
+const createInitialTask = (task?: Partial<Task>): TaskFormState => ({
     _id: task?._id || '',
     title: task?.title || '',
     note: task?.note,
     labels: task?.labels || [],
     startDate: task?.start || new Date(),
-    endDate: task?.end || getNextEntireHour(new Date()),
+    endDate: task?.end || getNextEntireHour(task?.start || new Date()),
     isAllDay: task?.isAllDay || false,
     repeat: task?.repeat || undefined,
     isAnnouncement: task?.isAnnouncement || false,
@@ -48,7 +48,7 @@ const isTaskStateEmpty = (taskState: TaskFormState): boolean => {
         taskState._id === '';
 }
 
-const createInitialNote = (note?: Note): NoteFormState => ({
+const createInitialNote = (note?: Partial<Note>): NoteFormState => ({
     _id: note?._id || '',
     title: note?.title || '',
     content: note?.content || '',
@@ -76,7 +76,7 @@ const isNoteStateEmpty = (noteState: NoteFormState): boolean => {
         noteState._id === '';
 }
 
-const createInitialLabel = (label?: Label): LabelFormState => ({
+const createInitialLabel = (label?: Partial<Label>): LabelFormState => ({
     _id: label?._id || '',
     name: label?.name || '',
     color: label?.color || '',
