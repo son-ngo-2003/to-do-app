@@ -89,10 +89,6 @@ const DateItem: React.FC<DateItemProps> = (props) => {
         }    
     }, [selectedType])
 
-    // React.useEffect(() => {
-    //     console.log('DateItem' + thisDay.format('DD/MM'))
-    // });
-
     return (
         <Pressable 
             style={[styles.dateContainer]}

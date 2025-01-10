@@ -11,6 +11,7 @@ export { Icon,
         SequentialModals,
         ModalButton, type ButtonMode,
         BaseModal,
+        Checkbox,
 } from './atomic';
 export { LabelTag, 
         LabelCard, AddLabelCard,

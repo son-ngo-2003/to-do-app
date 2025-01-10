@@ -1,70 +1,75 @@
 import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
 import {Text, View, StyleSheet, TouchableOpacity} from 'react-native';
-import { Typography, Outlines } from '../../styles';
+import {Typography, Outlines, Colors} from '../../styles';
 import {TaskItem} from "./index";
+import {UNLABELED_KEY} from "../../constant";
 
 const TASKTREE_CIRCLE_RADIUS = 6;
 
 type TaskTreeProps = {
-    tasks: (Task|null)[],               //if showShowMoreButton is not specified, the tasks end is null will indicate that there are more tasks
+    tasks: Task[],               //if showShowMoreButton is not specified, the tasks end is null will indicate that there are more tasks
+    label: Label | typeof UNLABELED_KEY,
+
     onPressTask?: (task: Task) => void,
+    onPressDeleteTask?: (task: Task) => void,
+    onChangeCompletedStatusTask?: (task: Task, isFinished: boolean) => void,
 
     showShowMoreButton?: boolean,
     onPressShowMore?: () => void,
 
-    colorTree: string,
     showLabel?: boolean,
 }
 
 const TaskTree: React.FC<TaskTreeProps> = ({
     tasks,
-    onPressTask,
+    label,
 
-    showShowMoreButton,
+    onPressTask,
+    onPressDeleteTask,
+    onChangeCompletedStatusTask,
+
+    showShowMoreButton = false,
     onPressShowMore,
 
-    colorTree,
     showLabel = true,
 }) => {
     const { colors } = useTheme();
-    const [ isShowMoreVisible, setIsShowMoreVisible ] = React.useState(showShowMoreButton === undefined ? tasks[tasks.length-1] === null : showShowMoreButton);
-
-    React.useEffect(() => {
-        if (showShowMoreButton !== undefined) setIsShowMoreVisible(showShowMoreButton);
-        setIsShowMoreVisible(tasks[tasks.length-1] === null);
-    }, [showShowMoreButton, tasks]);
+    const colorTree = React.useMemo(() => label === UNLABELED_KEY ? Colors.primary.teal : label.color, [label]);
+    const treeTitle = React.useMemo(() => label === UNLABELED_KEY ? 'Not Labeled' : label.name, [label]);
 
     return (
-        <View style={[styles.container]}>
-            { tasks.map((task: Task | null, index: number) => (
-                task &&
-                <View key={index} style={[styles.treeItem, { backgroundColor: colors.background }]}>
-                    <View style={[styles.line, { backgroundColor: colorTree },
-                        index === 0 && { borderTopLeftRadius: Outlines.borderRadius.base / 2, borderTopRightRadius: Outlines.borderRadius.base / 2 },
-                        index === tasks.length-1 && { borderBottomLeftRadius: Outlines.borderRadius.base / 2, borderBottomRightRadius: Outlines.borderRadius.base / 2 },
-                    ]}></View>
-                    <View style={[styles.milestone, { backgroundColor: colorTree, borderColor: colors.background }]}></View>
+        <View>
+            <Text style={[ Typography.header.x40, { textTransform: 'uppercase', color: colorTree } ]}>{treeTitle}</Text>
+            <View style={[styles.container]}>
+                { tasks.map((task: Task, index: number) => (
+                    <View key={index} style={[styles.treeItem, { backgroundColor: colors.background }]}>
+                        <View style={[styles.line, { backgroundColor: colorTree },
+                            index === 0 && { borderTopLeftRadius: Outlines.borderRadius.base / 2, borderTopRightRadius: Outlines.borderRadius.base / 2 },
+                            index === tasks.length-1 && { borderBottomLeftRadius: Outlines.borderRadius.base / 2, borderBottomRightRadius: Outlines.borderRadius.base / 2 },
+                        ]}></View>
+                        <View style={[styles.milestone, { backgroundColor: colorTree, borderColor: colors.background }]}></View>
 
-                    <View style={[styles.leaf]}>
-                        <TaskItem
-                            task={task}
-                            onPress={ (task) => onPressTask?.(task) } //TODO
-                            onChangeCompletedStatus={ () => console.log('Task Tree: callback when task is pressed at finish button') } //TODO: add to task tree, or think more about this
-                            onPressDelete={ () => console.log('Task Tree: onPressDeleteTask')} //TODO: add to task tree, or think more about this
-                            showLabel={showLabel}
-                        />
+                        <View style={[styles.leaf]}>
+                            <TaskItem
+                                task={task}
+                                onPress={onPressTask}
+                                onChangeCompletedStatus={ onChangeCompletedStatusTask }
+                                onPressDelete={onPressDeleteTask}
+                                showLabel={showLabel}
+                            />
+                        </View>
                     </View>
-                </View>
-            ))}
+                ))}
 
 
-            { isShowMoreVisible && (
-                <TouchableOpacity onPress={onPressShowMore} style={{paddingTop: 4, paddingLeft: 5}}>
-                    <Text style={[Typography.subheader.x30, { color: colorTree }]}>Show More</Text>
-                </TouchableOpacity>
-            )}
+                { showShowMoreButton && (
+                    <TouchableOpacity onPress={onPressShowMore} style={{paddingTop: 4, paddingLeft: 5}}>
+                        <Text style={[Typography.subheader.x30, { color: colorTree }]}>Show More</Text>
+                    </TouchableOpacity>
+                )}
 
+            </View>
         </View>
     )
 }

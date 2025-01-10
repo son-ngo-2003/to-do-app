@@ -2,11 +2,11 @@ import React from 'react';
 import {View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView} from 'react-native';
 import {DrawerScreenProps} from "@react-navigation/drawer";
 import type {RootStackParamList} from "../../navigation";
-import {useFocusEffect, useTheme} from "@react-navigation/native";
+import {useIsFocused, useTheme} from "@react-navigation/native";
 import {useLabelsData, useTasksData} from "../../controllers";
 import {LIMIT_FETCH_TASK, UNLABELED_KEY} from "../../constant";
 import {useDataModal} from "../../contexts/DataModalContext";
-import {Colors, Layouts, Typography} from "../../styles";
+import {Layouts, Typography} from "../../styles";
 import {
     AddLabelCard,
     AddTaskCard,
@@ -15,41 +15,43 @@ import {
     TaskProgressCard,
     TaskTree
 } from "../../components";
+import {useGroupDataState} from "../../hooks";
 
 type Props = DrawerScreenProps<RootStackParamList, 'Tasks'>;
 
-const TasksScreen : React.FC<Props> = ({navigation, route}) => {
+const TasksScreen : React.FC<Props> = ({navigation}) => {
     const { colors } = useTheme();
+    const isScreenFocused = useIsFocused();
 
     const { getAllLabels, getStatusOfLabel, addLabel, error: errorLabel } = useLabelsData();
-    const { getAllTasksGroupByLabels, addTask, error: errorTask } = useTasksData(false);
+    const { getTasksByLabel, getTasksWithoutLabel, error: errorTask } = useTasksData(false);
 
-    const [ tasksByLabel, setTaskByLabel ] = React.useState<Record<Label['_id'], (Task | null)[]>>({});
-    const [ allLabels, setAllLabels ] = React.useState<Label[]>([]);
+    const [ allLabels, setAllLabels ] = React.useState<(Label | typeof UNLABELED_KEY)[]>([UNLABELED_KEY]);
     const [ labelProgress, setLabelProgress ] = React.useState<Record<Label['_id'], {taskTotal: number, taskCompleted: number, noteTotal: number}>>({});
+    const { showModal, setDataModal, updateProps, hideModal } = useDataModal({});
+    const { updateGroup, getHasMore, getData, refreshData } = useGroupDataState({
+        keys: allLabels,
+        keyExtractor: (label) => label === UNLABELED_KEY ? UNLABELED_KEY : label._id,
+        fetcher: (label, limit, offset) =>
+            label === UNLABELED_KEY
+                ? getTasksWithoutLabel({isCompleted: false, limit, offset, sortBy: 'start', sortOrder: 'desc'})
+                : getTasksByLabel(label, {isCompleted: false, limit, offset, sortBy: 'start', sortOrder: 'desc'}),
+        limitFetch: LIMIT_FETCH_TASK,
+    })
 
     const updateData = React.useCallback(() => {
-        Promise.all([
-            getAllTasksGroupByLabels({date: new Date(), limit: LIMIT_FETCH_TASK + 1, withTasksNoLabel: true, sortBy: 'start', sortOrder: 'desc'}),
-            getAllLabels()
-        ]).then(([tasksByLabel, labels]) => {
-            setTaskByLabel(tasksByLabel);
+        getAllLabels().then((labels) => {
+            const _allLabels : (Label | typeof UNLABELED_KEY)[] = [...labels, UNLABELED_KEY];
             const _labelProgress : typeof labelProgress = {}
-            Promise.all( labels.map(label => getStatusOfLabel(label)) ).then((progress) => {
-                labels.forEach((label, index) => {
-                    _labelProgress[label._id] = progress[index];
+            Promise.all( _allLabels.map(label => getStatusOfLabel(label)) ).then((progress) => {
+                _allLabels.forEach((label, index) => {
+                    _labelProgress[label === UNLABELED_KEY ? UNLABELED_KEY : label._id] = progress[index];
                 });
-                setAllLabels(labels);
+                setAllLabels([...labels, UNLABELED_KEY]);
                 setLabelProgress(_labelProgress);
             });
         });
-    }, [getAllTasksGroupByLabels, getAllLabels, setTaskByLabel, setAllLabels, setLabelProgress, labelProgress, getStatusOfLabel]);
-
-    React.useEffect(() => {
-        updateData();
-    }, []);
-
-    const { showModal, setDataModal, updateProps } = useDataModal({});
+    }, [getAllLabels, setAllLabels, setLabelProgress, labelProgress, getStatusOfLabel]);
 
     const onPressNoteInTask = React.useCallback((note: Note) => { //TODO: text this function
         setDataModal('note', note._id, 'edit');
@@ -66,15 +68,22 @@ const TasksScreen : React.FC<Props> = ({navigation, route}) => {
         showModal('label');
     }, [setDataModal, showModal]);
 
-    const onAddedUpdatedTask = React.useCallback((task: Task) => {
+    const onAddedUpdatedTask = React.useCallback((_task: Task) => {
+        try {
+            updateData();
+            hideModal();
+        } catch (error) {
+            console.error('Error on Add/Update Task', error);
+        }
+    }, [updateData, hideModal]);
+
+    const onAddedUpdatedLabel = React.useCallback((_label: Label) => {
         updateData();
     }, [updateData]);
 
-    const onAddedUpdatedLabel = React.useCallback((label: Label) => {
-        updateData();
-    }, [updateData]);
+    React.useEffect(() => {
+        if (!isScreenFocused) return;
 
-    useFocusEffect(React.useCallback(() => {
         updateProps({
             taskModalProps: {
                 onAddTask: onAddedUpdatedTask,
@@ -85,14 +94,18 @@ const TasksScreen : React.FC<Props> = ({navigation, route}) => {
                 onAddLabel: onAddedUpdatedLabel,
                 onUpdateLabel: onAddedUpdatedLabel
             }
-        })
-    }, [])
-    );
+        });
+    }, [updateProps, onAddedUpdatedTask, onPressNoteInTask, onAddedUpdatedLabel, updateData, isScreenFocused]);
+
+    React.useEffect(() => {
+        if (!isScreenFocused) return;
+        updateData();
+    }, [isScreenFocused])
 
     return (
         <SafeAreaView style={{position: 'relative'}}>
             <ScrollView style={[ Layouts.mainContainer ]} showsVerticalScrollIndicator={false}>
-                {/* Openning Titre */}
+                {/* Opening Titre */}
                 <View style={[ Layouts.sectionContainer, styles.headerSection ]}>
                     <Icon name={'checkbox-multiple-marked-outline'} size={30} color={colors.text} library={'MaterialCommunityIcons'}/>
                     <Text style={[ Typography.header.x60, {color: colors.text} ]}>Tasks</Text>
@@ -110,14 +123,23 @@ const TasksScreen : React.FC<Props> = ({navigation, route}) => {
                     <ScrollView style={[styles.labelProgressScroller]} horizontal={true}>
                         <View style={[styles.noteCardsContainer]}>
                             {
-                                allLabels.length > 0 && allLabels.map((label: Label, index: number) =>
-                                    (<TaskProgressCard
+                                allLabels.length > 0 && allLabels.map((label: Label | typeof UNLABELED_KEY, index: number) =>
+                                    label !== UNLABELED_KEY
+                                    ? (<TaskProgressCard
                                         key={index}
                                         label={label}
                                         numberOfCompletedTasks={labelProgress[label._id]?.taskCompleted}
                                         numberOfTasks={labelProgress[label._id]?.taskTotal}
                                         numberOfNotes={labelProgress[label._id]?.noteTotal}
-                                        onPress={() => navigation.navigate('Search')}
+                                        onPress={() => navigation.navigate('Search')} //TODO: add params to search screen
+                                    />)
+                                    : (<TaskProgressCard
+                                        key={index}
+                                        label={label}
+                                        numberOfCompletedTasks={labelProgress[UNLABELED_KEY]?.taskCompleted}
+                                        numberOfTasks={labelProgress[UNLABELED_KEY]?.taskTotal}
+                                        numberOfNotes={labelProgress[UNLABELED_KEY]?.noteTotal}
+                                        onPress={() => navigation.navigate('Search')} //TODO: add params to search screen
                                     />)
                                 )
                             }
@@ -138,39 +160,26 @@ const TasksScreen : React.FC<Props> = ({navigation, route}) => {
 
                     <View style={[Layouts.fullWidthContainer, styles.tasksContainer]}>
                         {
-                            (allLabels.length > 0 || tasksByLabel[UNLABELED_KEY]?.length > 0) &&
+                            (allLabels.length > 0) && //|| tasksByLabel[UNLABELED_KEY]?.length > 0) &&
                             <View style={{marginBottom: 10}}>
-                                {allLabels.map((label: Label, index: number) => (
-                                    <View key={index}>
-                                        <Text style={[ Typography.header.x40, { textTransform: 'uppercase', color: label.color } ]}>{label.name}</Text>
-                                        <TaskTree
-                                            tasks={ tasksByLabel[label._id] ?? [] }
-                                            onPressTask = { (task) => {setDataModal('task', task._id, 'edit'); showModal('task')} }
+                                {allLabels.map((label: Label | typeof UNLABELED_KEY, index: number) => (
+                                    !!getData(label)?.length &&
+                                    <TaskTree
+                                        key={index}
 
-                                            showShowMoreButton={true}
-                                            onPressShowMore={ () => console.log('Task Tree (Home): Show More Tasks') }
+                                        tasks={ getData(label) ?? [] }
+                                        label={label}
 
-                                            colorTree={ label.color }
-                                            showLabel={false}
-                                        />
-                                    </View>)
-                                )}
+                                        onPressTask = { (task) => {setDataModal('task', task._id, 'edit'); showModal('task')} }
+                                        onPressDeleteTask={ () => refreshData() }
+                                        onChangeCompletedStatusTask={ () => refreshData() }
 
-                                { tasksByLabel[UNLABELED_KEY] && tasksByLabel[UNLABELED_KEY].length > 0 &&
-                                    <View>
-                                        <Text style={[ Typography.header.x40, { textTransform: 'uppercase', color: Colors.primary.teal } ]}>Not Labeled</Text>
-                                        <TaskTree
-                                            tasks={ tasksByLabel[UNLABELED_KEY] }
-                                            onPressTask = { (task) => {setDataModal('task', task._id, 'edit'); showModal('task')} }
+                                        showShowMoreButton={ getHasMore(label) }
+                                        onPressShowMore={ () => updateGroup(label) }
 
-                                            showShowMoreButton={ true }
-                                            onPressShowMore={ () => console.log('Task Tree (Home): Show More Tasks') }
-
-                                            colorTree={ Colors.primary.teal }
-                                            showLabel={false}
-                                        />
-                                    </View>
-                                }
+                                        showLabel={false}
+                                    />
+                                ))}
                             </View>
                         }
                         <AddTaskCard onPress={onPressAddTask}/>

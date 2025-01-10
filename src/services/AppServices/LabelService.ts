@@ -15,6 +15,7 @@ interface LabelServiceType {
 }
 
 const LabelService : LabelServiceType = (() => {
+
     async function getAllLabels(params?: BaseFilter): Promise<Message<Label[]>> {
         try {
             const msg: Message<LabelEntity[]> = await LabelDAO.getAllLabels(params);

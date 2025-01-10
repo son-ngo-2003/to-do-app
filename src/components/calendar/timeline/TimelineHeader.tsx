@@ -96,10 +96,6 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ( props ) => {
         return dates;
     }, [onPressDate, taskListAllDay, numberOfDays, selectedDate, dateNameType, showTaskList, startDayjs]);
 
-    // React.useEffect(() => {
-    //     console.log('TimelineHeader' + startDate);
-    // });
-
     return (
         <View style={[styles.headerContainer]}>
             {   showMonth && 

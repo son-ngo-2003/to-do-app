@@ -57,7 +57,6 @@ const NoteCard: React.FC<NoteCardProps> = ({
 
     const onPressEditButton = React.useCallback(() => {
         onPressEdit?.(note)
-        console.log('noteContent: ', note?.content);
     },[onPressEdit, note]);
 
     return (

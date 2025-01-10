@@ -21,7 +21,8 @@ type DataModalType = 'note' | 'task' | 'label' | 'none'
 
 type DataModalContextProps = {
     visibleModal: DataModalType,
-    showModal: (modal?: DataModalType) => void,
+    showModal: (modal: Exclude<DataModalType, 'none'>) => void,
+    hideModal: () => void,
     setDataModal: (modal: Exclude<DataModalType, 'none'>, dataId: string | undefined, mode: 'edit' | 'add') => void,
 
     updateProps: (props: useDataModalProps) => void,
@@ -51,8 +52,8 @@ export const DataModalProvider : React.FC<DataModalProviderProps>  = ({ children
     const taskModalRef = React.useRef<TaskModalRef>(null);
     const labelModalRef = React.useRef<LabelModalRef>(null);
 
-    const showModal = (modal?: DataModalType) => {
-        if (visibleModal !== 'none' && modal && modal !== 'none') {
+    const showModal = React.useCallback( (modal: Exclude<DataModalType, 'none'>) => {
+        if (visibleModal !== 'none') {
             let promise: Promise<any> | undefined;
             switch (visibleModal) {
                 case 'note':
@@ -71,10 +72,14 @@ export const DataModalProvider : React.FC<DataModalProviderProps>  = ({ children
             });
             return;
         }
-        setVisibleModal(modal || 'none');
-    }
+        setVisibleModal(modal);
+    }, [visibleModal, setVisibleModal]);
 
-    const setDataModal = (modal: Exclude<DataModalType, 'none'>, id: string | undefined, mode: 'edit' | 'add') => {
+    const hideModal = React.useCallback(() => {
+        setVisibleModal('none');
+    }, [setVisibleModal]);
+
+    const setDataModal = React.useCallback( (modal: Exclude<DataModalType, 'none'>, id: string | undefined, mode: 'edit' | 'add') => {
         switch (modal) {
             case 'note':
                 setNoteId(id);
@@ -87,14 +92,14 @@ export const DataModalProvider : React.FC<DataModalProviderProps>  = ({ children
                 break;
         }
         setMode(mode);
-    }
+    }, [setMode, setNoteId, setTaskId, setLabelId]);
 
-    const updateProps = (props: useDataModalProps) => {
+    const updateProps = React.useCallback( (props: useDataModalProps) => {
         //compare with previous props and update if needed
         setNoteModalProps(props.noteModalProps || {});
         setTaskModalProps(props.taskModalProps || {});
         setLabelModalProps(props.labelModalProps || {});
-    }
+    }, [setNoteModalProps, setTaskModalProps, setLabelModalProps]);
 
     const onCancelNoteModal = React.useCallback((draftNote: Partial<Note>, isEdited: boolean, alert: AlertFunctionType) => {
         if (!isEdited) {
@@ -215,8 +220,9 @@ export const DataModalProvider : React.FC<DataModalProviderProps>  = ({ children
         });
     }, [setVisibleModal, mode, addLabel, labelModalProps, updateLabel]);
 
+    const contextValue = React.useMemo(() => ({visibleModal, showModal, hideModal, setDataModal, updateProps}), [visibleModal, showModal, hideModal, setDataModal, updateProps]);
     return (
-        <dataModalContext.Provider value={{visibleModal, showModal, setDataModal, updateProps}}>
+        <dataModalContext.Provider value={contextValue}>
             {children}
             <SequentialModals
                 currentIndex={ ['note', 'task', 'label'].findIndex( s => s === visibleModal) }

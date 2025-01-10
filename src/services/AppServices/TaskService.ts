@@ -18,6 +18,7 @@ interface TaskServiceType {
 }
 
 const TaskService : TaskServiceType = (() => {
+
     async function getAllTasks(params?: BaseFilter): Promise<Message<Task[]>> {
         try {
             const msg: Message<TaskEntity[]> = await TaskDAO.getAllTasks(params);

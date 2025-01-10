@@ -1,18 +1,20 @@
 import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
-import {Text, View, Pressable, StyleSheet, TouchableOpacity} from 'react-native';
+import {Text, View, StyleSheet, TouchableOpacity} from 'react-native';
 import { Colors, Typography, Outlines, Animations as Anim } from '../../styles';
 import { useSharedValue, useAnimatedStyle, interpolateColor } from 'react-native-reanimated';
 import { LabelsList } from '../label';
 
 import { Icon } from '../atomic';
 import {AnimatedPressable} from "../../helpers/animated";
+import {useTasksData} from "../../controllers";
+import {useAlert} from "../../hooks";
 
 type TaskItemProps = {
     task: Task,
-    onPress: (task: Task) => void,
-    onChangeCompletedStatus: (task: Task, isFinished: boolean) => void,
-    onPressDelete: (task: Task) => void,
+    onPress?: (task: Task) => void,
+    onChangeCompletedStatus?: (task: Task, isFinished: boolean) => void,
+    onPressDelete?: (task: Task) => void,
     showLabel?: boolean,
 }
 
@@ -23,34 +25,51 @@ const TaskItem: React.FC<TaskItemProps> = ({
     onPressDelete,
     showLabel = true,
 }) => {
+    const { deleteTask, updateTask } = useTasksData(false);
+    const { alert } = useAlert();
     const [ isCompleted, setIsCompleted ] = React.useState<boolean>(task.isCompleted); 
     const { colors } = useTheme();
     const colorProgress = useSharedValue<number>( isCompleted ? 1 : 0);
     const lastSetTimeOut = React.useRef<NodeJS.Timeout>();
 
-    const onPressItem = () => {
-        //TODO: show Task Modal
-        console.log('TaskItem: onPressItem');
-        onPress(task);
-    }
+    const onPressItem = React.useCallback( () => {
+        onPress?.(task);
+    }, [onPress, task]);
 
-    const onPressCompletedItem = () => {
+    const onPressCompletedItem = React.useCallback( () => {
         const completed = !isCompleted;
         setIsCompleted(completed);
         colorProgress.value = Anim.timing<number>(1-(completed ? 0 : 1)).easeIn.fast;
 
         lastSetTimeOut.current && clearTimeout(lastSetTimeOut.current);
-        lastSetTimeOut.current = setTimeout(() => { 
-            //maybe user want to cancel "finished" after
-            onChangeCompletedStatus(task, completed);
+        lastSetTimeOut.current = setTimeout(async () => {
+            try {
+                const updatedTask = await updateTask({_id:task._id, isCompleted: completed});
+                onChangeCompletedStatus?.(updatedTask, completed);
+            } catch (e) {
+                console.error('TaskItem.tsx: ', e);
+                alert({
+                    type: 'error',
+                    title: 'Error',
+                    message: 'An error occurred while updating task as completed',
+                });
+            }
         }, 1000); //TODO: number here can be created at a constant, or a context (so can be modified in setting)
-    }
+    }, [isCompleted, updateTask, onChangeCompletedStatus, alert, setIsCompleted, lastSetTimeOut.current, task._id]);
 
-    const onPressDeleteItem = () => {
-        task.isDeleted = true;
-        //TO DO: call service delete this 
-        onPressDelete(task);
-    }
+    const onPressDeleteItem = React.useCallback( async () => {
+        try {
+            const deletedTask = await deleteTask(task);
+            onPressDelete?.(deletedTask);
+        } catch (e) {
+            console.error('TaskItem.tsx: ', e);
+            await alert({
+                type: 'error',
+                title: 'Error',
+                message: 'An error occurred while deleting task',
+            });
+        }
+    }, [task, onPressDelete, deleteTask, alert]);
 
     const checkboxAnimatedStyles = useAnimatedStyle(() => {
         return {

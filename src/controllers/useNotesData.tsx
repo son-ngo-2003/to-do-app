@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import AppService from "../services";
 import {BaseFilter} from "../services/type";
 
@@ -10,7 +10,7 @@ const useNotesData = (
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>();
 
-    const fetchNotes = async () => {
+    const fetchNotes = useCallback( async () => {
         try {
             setLoading(true);
             const msg = await AppService.getAllNotes();
@@ -24,9 +24,9 @@ const useNotesData = (
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const getAllNotes = async (params?: BaseFilter) => {
+    const getAllNotes = useCallback( async (params?: BaseFilter) => {
         try {
             setLoading(true);
             const msg = await AppService.getAllNotes(params);
@@ -41,9 +41,9 @@ const useNotesData = (
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const getNoteById = async (id: string) => {
+    const getNoteById = useCallback( async (id: string) => {
         try {
             setLoading(true);
             const msg = await AppService.getNoteById(id);
@@ -58,9 +58,9 @@ const useNotesData = (
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const addNote = async (note: Partial<Note>) => {
+    const addNote = useCallback( async (note: Partial<Note>) => {
         try {
             setLoading(true);
             const msg = await AppService.addNote(note);
@@ -76,9 +76,9 @@ const useNotesData = (
         } finally {
             setLoading(false);
         }
-    };
+    }, [allNotes]);
 
-    const updateNote = async (note: Partial<Note>) => {
+    const updateNote = useCallback( async (note: Partial<Note>) => {
         try {
             setLoading(true);
             const msg = await AppService.updateNote(note);
@@ -94,9 +94,9 @@ const useNotesData = (
         } finally {
             setLoading(false);
         }
-    };
+    }, [allNotes]);
 
-    const deleteNote = async (note: Note) => {
+    const deleteNote = useCallback( async (note: Note) => {
         try {
             setLoading(true);
             const msg = await AppService.deleteNote(note);
@@ -112,7 +112,7 @@ const useNotesData = (
         } finally {
             setLoading(false);
         }
-    };
+    }, [allNotes]);
 
     useEffect(() => {
         if (toFetchAllData) fetchNotes();

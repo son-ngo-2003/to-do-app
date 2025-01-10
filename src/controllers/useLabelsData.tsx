@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import AppService from "../services";
 import {BaseFilter} from "../services/type";
+import {UNLABELED_KEY} from "../constant";
 
 const useLabelsData = (
     toFetchAllData: boolean = true
@@ -10,7 +11,7 @@ const useLabelsData = (
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>();
 
-    const fetchLabels = async () => {
+    const fetchLabels = useCallback(async () => {
         try {
             setLoading(true);
             const msg = await AppService.getAllLabels();
@@ -24,9 +25,9 @@ const useLabelsData = (
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const getAllLabels = async (params?: BaseFilter) => {
+    const getAllLabels = useCallback(async (params?: BaseFilter) => {
         try {
             setLoading(true);
             const msg = await AppService.getAllLabels(params);
@@ -41,9 +42,9 @@ const useLabelsData = (
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const getLabelById = async (id: string) => {
+    const getLabelById = useCallback(async (id: string) => {
         try {
             setLoading(true);
             const msg = await AppService.getLabelById(id);
@@ -58,14 +59,14 @@ const useLabelsData = (
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const addLabel = async (label: Partial<Label>) => {
+    const addLabel = useCallback(async (label: Partial<Label>) => {
         try {
             setLoading(true);
             const msg = await AppService.addLabel(label);
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
-            setAllLabels([...allLabels, msg.getData()]);
+            setAllLabels((prev) => [...prev, msg.getData()]);
             return msg.getData();
         } catch (e) {
             console.error("useLabelsData.ts", e);
@@ -76,14 +77,16 @@ const useLabelsData = (
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const updateLabel = async (label: Partial<Label>) => {
+    const updateLabel = useCallback(async (label: Partial<Label>) => {
         try {
             setLoading(true);
             const msg = await AppService.updateLabel(label);
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
-            setAllLabels(allLabels.map((item) => (item._id === msg.getData()._id ? msg.getData() : item)));
+            setAllLabels((prev) =>
+                prev.map((item) => (item._id === msg.getData()._id ? msg.getData() : item))
+            );
             return msg.getData();
         } catch (e) {
             console.error("useLabelsData.ts", e);
@@ -94,14 +97,14 @@ const useLabelsData = (
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const deleteLabel = async (label: Label) => {
+    const deleteLabel = useCallback(async (label: Label) => {
         try {
             setLoading(true);
             const msg = await AppService.deleteLabel(label);
             if (!msg.getIsSuccess()) throw new Error(msg.getError());
-            setAllLabels(allLabels.filter((item) => item._id !== label._id));
+            setAllLabels((prev) => prev.filter((item) => item._id !== label._id));
             return msg.getData();
         } catch (e) {
             console.error("useLabelsData.ts", e);
@@ -112,9 +115,9 @@ const useLabelsData = (
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const getStatusOfLabel = async (label: Label) => {
+    const getStatusOfLabel = useCallback(async (label: Label | typeof UNLABELED_KEY) => {
         try {
             setLoading(true);
             const msg = await AppService.getStatusOfLabel(label);
@@ -129,7 +132,7 @@ const useLabelsData = (
         } finally {
             setLoading(false);
         }
-    }
+    }, []);
 
     useEffect(() => {
         if (toFetchAllData) fetchLabels();

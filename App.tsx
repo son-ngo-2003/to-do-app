@@ -9,6 +9,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 import fonts from './src/assets/fonts/'
 import {useTasksData} from "./src/controllers";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
+import StorageService from "./src/services/DAO/StorageService";
 
 export default function App() {
     dayjsSetup();
@@ -21,11 +22,18 @@ export default function App() {
         }
     }, [fontsLoaded, fontError]);
 
-    React.useEffect(() => {
-        if (!fontsLoaded && !fontError) {
-            // TODO: show loading screen and announce error if needed
-        }
-    }, [fontsLoaded, fontError]);
+    // React.useEffect(() => {
+    //     //TODO: to delete clearAllData under
+    //     StorageService.clearAllData('label');
+    //     StorageService.clearAllData('note');
+    //     StorageService.clearAllData('task');
+    //
+
+    // }, [fontsLoaded, fontError]);
+
+    if (!fontsLoaded && !fontError) {
+        return null;// TODO: show loading screen and announce error if needed
+    }
 
     React.useEffect(() => {
         // Update instances of repeat tasks if needed

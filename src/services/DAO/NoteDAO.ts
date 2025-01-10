@@ -7,6 +7,7 @@ import { generateId } from "../../utils/generator";
 import { slugInclude } from "../../utils/slugUtil";
 import {BaseFilter, isKeyOf, NoteFilter} from "../type";
 import {generalCompare} from "../../utils/sortUtil";
+import {UNLABELED_KEY} from "../../constant";
 
 interface NoteDAOType {
     addNote:           (note: Partial<NoteEntity>) => Promise<Message<NoteEntity>>,
@@ -57,7 +58,7 @@ const NoteDAO : NoteDAOType = (() => {
 
     async function getAllNotes(params?: BaseFilter): Promise<Message<NoteEntity[]>> {
         try {
-            return await StorageService.getAllDataByType<NoteEntity>('note', params);
+            return  await StorageService.getAllDataByType<NoteEntity>('note', params);
         } catch (error) {
             return Message.failure(error);
         }
@@ -89,7 +90,8 @@ const NoteDAO : NoteDAOType = (() => {
                     || slugInclude(note.title, searchTerm)
                     || slugInclude(note.content, searchTerm)) &&
                 (!labelIds
-                    || note.labelIds.some(labelId => labelIds.includes(labelId)))
+                    || note.labelIds.some(labelId => labelIds.includes(labelId))
+                    || (labelIds.includes(UNLABELED_KEY) && note.labelIds.length === 0))
             )
                 .sort((a, b) => {
                     if (!sortBy) return 0;

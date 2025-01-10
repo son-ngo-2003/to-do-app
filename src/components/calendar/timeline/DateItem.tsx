@@ -75,10 +75,6 @@ const DateItem: React.FC<DateItemProps> = (props) => {
             : colorProgress.value = Anim.timing<number>(0).easeIn.fast;
     }, [isSelected])
 
-    // React.useEffect(() => {
-    //     console.log('DateItem rendered' + thisDay.format());
-    // })
-
     return (
         <AnimatedPressable 
             style={[
