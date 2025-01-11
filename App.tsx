@@ -11,6 +11,15 @@ import {useTasksData} from "./src/controllers";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 import StorageService from "./src/services/DAO/StorageService";
 
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
+
+// Set the animation options. This is optional.
+SplashScreen.setOptions({
+    duration: 1000,
+    fade: true,
+});
+
 export default function App() {
     dayjsSetup();
     const [fontsLoaded, fontError] = useFonts(fonts);
@@ -18,21 +27,12 @@ export default function App() {
     
     const onLayoutRootView = useCallback(async () => {
         if (fontsLoaded || fontError) {
+
+            // await SplashScreen.hideAsync();
+        }
+        setTimeout(async () => {
             await SplashScreen.hideAsync();
-        }
-    }, [fontsLoaded, fontError]);
-
-    React.useEffect(() => {
-        if (!fontsLoaded && !fontError) {
-            // TODO: show loading screen and announce error if needed
-        }
-
-    //     //TODO: to delete clearAllData under
-    //     StorageService.clearAllData('label');
-    //     StorageService.clearAllData('note');
-    //     StorageService.clearAllData('task');
-    //
-
+        }, 1000);
     }, [fontsLoaded, fontError]);
 
     React.useEffect(() => {

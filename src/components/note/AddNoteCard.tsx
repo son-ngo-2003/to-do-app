@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { StyleSheet, ViewStyle, TouchableOpacity} from 'react-native';
 import { useTheme } from '@react-navigation/native';
-import { Icon } from '../atomic';
+import {Icon, InsetShadowCard} from '../atomic';
 import {Outlines, Colors} from '../../styles';
 import {CARD_DIMENSIONS, LABEL_HEIGHT} from "./NoteCard";
 
@@ -26,8 +26,14 @@ const AddNoteCard: React.FC<AddNoteCardProps> = ({
     }, [orientation, heightSameAsCardWithLabel]);
 
     return (
-        <TouchableOpacity onPress={onPress} style={[styles.container, {borderColor: colors.border}, dimensions, style]}
+        <TouchableOpacity onPress={onPress} style={[styles.container, {borderColor: colors.border, backgroundColor: colors.background}, dimensions, style]}
         >
+            <InsetShadowCard
+                offsetPercent={0.07}
+                shadowColor={Outlines.shadow.base.shadowColor as string}
+                shadowOpacity={0.105}
+                style={{borderRadius: Outlines.borderRadius.large - 3, overflow: 'hidden'}}
+            />
             <Icon name={'plus'} size={35} color={ colors.border } library={'FontAwesome6'}/>
         </TouchableOpacity>
     )

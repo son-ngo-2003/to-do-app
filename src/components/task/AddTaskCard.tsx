@@ -3,7 +3,7 @@ import { useTheme } from '@react-navigation/native';
 import { StyleSheet, TouchableOpacity, ViewStyle} from 'react-native';
 import {Bases, Colors, Outlines} from '../../styles';
 
-import { Icon } from '../atomic';
+import {Icon, InsetShadowCard} from '../atomic';
 
 type AddTaskCardProps = {
     onPress?: () => void,
@@ -25,6 +25,12 @@ const AddTaskCard: React.FC<AddTaskCardProps> = ({
     return (
         <TouchableOpacity onPress={onPress} style={[styles.container, {borderColor: colors.border, height}, style]}
         >
+            <InsetShadowCard
+                offsetPercent={0.07}
+                shadowColor={Outlines.shadow.base.shadowColor as string}
+                shadowOpacity={0.105}
+                style={{borderRadius: Outlines.borderRadius.large - 3, overflow: 'hidden'}}
+            />
             <Icon name={'plus'} size={30} color={ colors.border } library={'FontAwesome6'}/>
         </TouchableOpacity>
     )

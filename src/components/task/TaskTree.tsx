@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
 import {Text, View, StyleSheet, TouchableOpacity} from 'react-native';
 import {Typography, Outlines, Colors} from '../../styles';
-import {TaskItem} from "./index";
+import TaskItem from './TaskItem';
 import {UNLABELED_KEY} from "../../constant";
 
 const TASKTREE_CIRCLE_RADIUS = 6;

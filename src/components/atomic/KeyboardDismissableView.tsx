@@ -3,7 +3,7 @@ import {
     KeyboardAvoidingView,
     Platform,
     ViewProps,
-    KeyboardAvoidingViewProps,
+    KeyboardAvoidingViewProps, Keyboard,
 } from 'react-native';
 
 import {eventEmitter, EventNames} from "../../utils/eventUtil";
@@ -28,6 +28,7 @@ function KeyboardOptimizeHOC (
         // </TouchableWithoutFeedback>
         <TapGestureHandler onHandlerStateChange={({ nativeEvent }) => {
             if (nativeEvent.state === 5) { // 5: GestureHandlerStates.END
+                Keyboard.dismiss();
                 eventEmitter.emit(EventNames.DismissKeyboard);
             }
         }}>

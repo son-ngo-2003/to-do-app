@@ -2,10 +2,10 @@ import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
 import {Pressable, View, StyleSheet, Text, ActivityIndicator, Modal} from 'react-native';
 import {Typography, Outlines, Layouts, Bases, Colors} from '../../styles';
-// import BaseModal from "./BaseModal";
 
 //components
-import { Icon, Overlay } from '../atomic';
+import Icon from './Icon';
+import Overlay from './Overlay';
 import { AlertType } from "../../hooks";
 
 const PRIMARY_BUTTON_TEXT = { //TODO: move to constant

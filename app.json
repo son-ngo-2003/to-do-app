@@ -1,43 +1,75 @@
 {
-  "expo": {
-    "name": "to-do-app",
-    "slug": "to-do-app",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
-    "ios": {
-      "supportsTablet": true,
-      "userInterfaceStyle": "automatic",
-      "newArchEnabled": true
-    },
-    "android": {
-      "newArchEnabled": true,
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "userInterfaceStyle": "automatic"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
-    "plugins": [
-      [
-        "expo-font",
-        {
-          "fonts": ["./assets/fonts/Inter-Black.otf"]
-        }
-      ]
-    ]
-
-  }
+    "expo": {
+        "name": "to-do-app",
+        "slug": "to-do-app",
+        "version": "1.0.0",
+        "orientation": "portrait",
+        "icon": "./assets/logo.png",
+        "userInterfaceStyle": "automatic",
+        "splash": {
+            "image": "./assets/avatar.png",
+            "resizeMode": "contain",
+            "backgroundColor": "#232323"
+        },
+        "assetBundlePatterns": [
+            "**/*"
+        ],
+        "ios": {
+            "supportsTablet": true,
+            "userInterfaceStyle": "automatic",
+            "newArchEnabled": true,
+            "bundleIdentifier": "com.anonymous.todoapp"
+        },
+        "android": {
+            "newArchEnabled": true,
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/adaptive-icon.png",
+                "backgroundColor": "#ffffff"
+            },
+            "userInterfaceStyle": "automatic",
+            "package": "com.anonymous.todoapp"
+        },
+        "web": {
+            "favicon": "./assets/favicon.png"
+        },
+        "plugins": [
+            [
+                "expo-font",
+                {
+                    "fonts": [
+                        "./src/assets/fonts/Aleo-ExtraBoldItalic.ttf",
+                        "./src/assets/fonts/Aleo-Regular.ttf",
+                        "./src/assets/fonts/Aleo-ExtraLight.ttf",
+                        "./src/assets/fonts/Aleo-SemiBold.ttf",
+                        "./src/assets/fonts/Aleo-ExtraLightItalic.ttf",
+                        "./src/assets/fonts/Aleo-SemiBoldItalic.ttf",
+                        "./src/assets/fonts/Aleo-Black.ttf",
+                        "./src/assets/fonts/Aleo-Italic.ttf",
+                        "./src/assets/fonts/Aleo-Light.ttf",
+                        "./src/assets/fonts/Aleo-Thin.ttf",
+                        "./src/assets/fonts/Aleo-BlackItalic.ttf",
+                        "./src/assets/fonts/Aleo-LightItalic.ttf",
+                        "./src/assets/fonts/Aleo-Medium.ttf",
+                        "./src/assets/fonts/Aleo-MediumItalic.ttf",
+                        "./src/assets/fonts/Aleo-Bold.ttf",
+                        "./src/assets/fonts/Aleo-BoldItalic.ttf",
+                        "./src/assets/fonts/Aleo-ExtraBold.ttf",
+                        "./src/assets/fonts/Aleo-ThinItalic.ttf"
+                    ]
+                }
+            ],
+            [
+                "expo-splash-screen",
+                {
+                    "backgroundColor": "#ffffff",
+                    "image": "./assets/avatar.png",
+                    "dark": {
+                        "image": "./assets/avatar.png",
+                        "backgroundColor": "#161617"
+                    },
+                    "imageWidth": 200
+                }
+            ]
+        ]
+    }
 }

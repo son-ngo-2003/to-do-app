@@ -108,8 +108,8 @@ const NotesScreen : React.FC<Props> = ({navigation}) => {
 
                     <View style={[Layouts.fullWidthContainer, styles.tasksContainer]}>
                         {
-                            (allLabels.length > 0) && //|| tasksByLabel[UNLABELED_KEY]?.length > 0) &&
-                            <View style={{marginBottom: 10}}>
+                            (allLabels.length > 0) && (getData(UNLABELED_KEY)?.length > 0)
+                            ? <View style={{marginBottom: 10}}>
                                 {allLabels.map((label: Label | typeof UNLABELED_KEY, index: number) => (
                                     !!getData(label)?.length &&
                                     <NotesGroup
@@ -127,6 +127,7 @@ const NotesScreen : React.FC<Props> = ({navigation}) => {
                                     />
                                 ))}
                             </View>
+                            : <AddNoteCard orientation={'portrait'} onPress={onPressAddNote} heightSameAsCardWithLabel={true}/>
                         }
                         {/*<AddTaskCard onPress={onPressAddTask}/>*/}
                     </View>
