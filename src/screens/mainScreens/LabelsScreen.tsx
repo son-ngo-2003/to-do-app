@@ -98,7 +98,7 @@ const LabelsScreen : React.FC<Props> = ({navigation}) => {
             <FlatList
                 // style={[Layouts.mainContainer]}
                 style={{marginHorizontal: 15}}
-                contentContainerStyle={[Layouts.sectionContainer, {display: 'flex', flexDirection: 'row', flexWrap: 'wrap'}]}
+                contentContainerStyle={[Layouts.sectionContainer, {display: 'flex', flexDirection: 'column'}]}
                 columnWrapperStyle={{ marginBottom: 10, flexGrow: 1 }}
                 ListHeaderComponent={
                     <View style={[ Layouts.sectionContainer, styles.headerSection]}>
@@ -120,7 +120,8 @@ const styles = StyleSheet.create({
     headerSection: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 10
+        gap: 10,
+        width: '100%',
     },
     sectionTitleContainer: {
         flexDirection: 'row',

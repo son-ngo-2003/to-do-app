@@ -24,6 +24,7 @@ export { NoteCard,
         AddNoteCard,
         NoteModal, type NoteModalProps, NoteModalRef,
         NoteInTaskItem,
+        NotesGroup,
 } from './note'
 export { TaskItem,
         TaskProgressCard, TASK_PROGRESS_CARD_HEIGHT, TASK_PROGRESS_CARD_WIDTH,

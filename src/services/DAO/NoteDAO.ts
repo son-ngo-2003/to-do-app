@@ -85,7 +85,7 @@ const NoteDAO : NoteDAOType = (() => {
             }
 
             const _sortBy = sortBy as keyof NoteEntity;
-            notes.filter(note =>
+            const results = notes.filter(note =>
                 (!searchTerm
                     || slugInclude(note.title, searchTerm)
                     || slugInclude(note.content, searchTerm)) &&
@@ -99,7 +99,7 @@ const NoteDAO : NoteDAOType = (() => {
                 })
                 .slice(offset, limit ? offset + limit : undefined);
 
-            return Message.success(notes);
+            return Message.success(results);
         } catch (error) {
             return Message.failure(error);
         }

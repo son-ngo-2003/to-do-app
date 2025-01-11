@@ -16,11 +16,13 @@ interface AppServiceType {
     deleteLabel:    (label: Label) => Promise<Message<Label>>,
 
     // NoteService methods
-    getAllNotes:    (params?: BaseFilter) => Promise<Message<Note[]>>,
-    getNoteById:    (id: string) => Promise<Message<Note>>,
-    addNote:        (note: Partial<Note>) => Promise<Message<Note>>,
-    updateNote:     (note: Partial<Note>) => Promise<Message<Note>>,
-    deleteNote:     (note: Note) => Promise<Message<Note>>,
+    getAllNotes:            (params?: BaseFilter) => Promise<Message<Note[]>>,
+    getNoteById:            (id: string) => Promise<Message<Note>>,
+    getNotesByLabel:        (label: Label, params?: BaseFilter) => Promise<Message<Note[]>>,
+    getNotesWithoutLabel:   (params?: BaseFilter) => Promise<Message<Note[]>>,
+    addNote:                (note: Partial<Note>) => Promise<Message<Note>>,
+    updateNote:             (note: Partial<Note>) => Promise<Message<Note>>,
+    deleteNote:             (note: Note) => Promise<Message<Note>>,
 
     // TaskService methods
     getAllTasks:                (params?: BaseFilter) => Promise<Message<Task[]>>,
@@ -148,6 +150,32 @@ const AppService : AppServiceType = (() => {
     async function getNoteById(id: string): Promise<Message<Note>> {
         try {
             const msg: Message<Note> = await NoteService.getNoteById(id);
+            if (!msg.getIsSuccess()) {
+                throw new Error(msg.getError());
+            }
+            return Message.success(msg.getData());
+        } catch (error) {
+            console.error("AppService.ts: ", error);
+            return Message.failure(error);
+        }
+    }
+
+    async function getNotesByLabel(label: Label, params?: BaseFilter): Promise<Message<Note[]>> {
+        try {
+            const msg: Message<Note[]> = await NoteService.getNotesByCriteria({labelIds: [label._id], ...params});
+            if (!msg.getIsSuccess()) {
+                throw new Error(msg.getError());
+            }
+            return Message.success(msg.getData());
+        } catch (error) {
+            console.error("AppService.ts: ", error);
+            return Message.failure(error);
+        }
+    }
+
+    async function getNotesWithoutLabel(params?: BaseFilter): Promise<Message<Note[]>> {
+        try {
+            const msg: Message<Note[]> = await NoteService.getNotesByCriteria({labelIds: [UNLABELED_KEY], ...params});
             if (!msg.getIsSuccess()) {
                 throw new Error(msg.getError());
             }
@@ -424,6 +452,8 @@ const AppService : AppServiceType = (() => {
         // NoteService methods
         getAllNotes,
         getNoteById,
+        getNotesByLabel,
+        getNotesWithoutLabel,
         addNote,
         updateNote,
         deleteNote,

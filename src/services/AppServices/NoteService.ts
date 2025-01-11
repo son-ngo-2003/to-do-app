@@ -42,7 +42,7 @@ const NoteService : NoteServiceType = (() => {
         }
     }
 
-    async function getNotesByCriteria(params: NoteFilter & BaseFilter = {}): Promise<Message<Note[]>> {
+    async function getNotesByCriteria(params?: NoteFilter & BaseFilter): Promise<Message<Note[]>> {
         try {
             const msg: Message<NoteEntity[]> = await NoteDAO.getNotesByCriteria(params);
             if (!msg.getIsSuccess()) {
@@ -76,7 +76,9 @@ const NoteService : NoteServiceType = (() => {
             if (!note._id) {
                 throw new Error('Note id is required');
             }
-            const msg: Message<NoteEntity> = await NoteDAO.updateNoteById(note._id, note);
+            const labelIds = note.labels ? note.labels.map(label => label._id) : [];
+            const { labels, ...noteWithoutLabels} = note;
+            const msg: Message<NoteEntity> = await NoteDAO.updateNoteById(note._id, { ...noteWithoutLabels, labelIds });
             if (!msg.getIsSuccess()) {
                 throw new Error(msg.getError());
             }

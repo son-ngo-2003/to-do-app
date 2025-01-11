@@ -212,8 +212,8 @@ const TasksScreen : React.FC<Props> = ({navigation}) => {
                                         label={label}
 
                                         onPressTask = { (task) => {setDataModal('task', task._id, 'edit'); showModal('task')} }
-                                        onPressDeleteTask={ () => refreshData() }
-                                        onChangeCompletedStatusTask={ () => refreshData() }
+                                        onPressDeleteTask={ () => updateData() }
+                                        onChangeCompletedStatusTask={ () => updateData() }
 
                                         showShowMoreButton={ getHasMore(label) }
                                         onPressShowMore={ () => updateGroup(label) }

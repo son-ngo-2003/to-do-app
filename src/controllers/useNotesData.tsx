@@ -60,6 +60,40 @@ const useNotesData = (
         }
     }, []);
 
+    const getNotesByLabel = useCallback( async (label: Label, params?: BaseFilter) => {
+        try {
+            setLoading(true);
+            const msg = await AppService.getNotesByLabel(label, params);
+            if (!msg.getIsSuccess()) throw new Error(msg.getError());
+            return msg.getData();
+        } catch (e) {
+            console.error("useNotesData.ts", e);
+            let errorMessage = "Error fetching notes by label";
+            if (e instanceof Error) errorMessage = e.message;
+            setError(errorMessage);
+            throw e;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const getNotesWithoutLabel = useCallback( async ( params?: BaseFilter ) => {
+        try {
+            setLoading(true);
+            const msg = await AppService.getNotesWithoutLabel(params);
+            if (!msg.getIsSuccess()) throw new Error(msg.getError());
+            return msg.getData();
+        } catch (e) {
+            console.error("useNotesData.ts", e);
+            let errorMessage = "Error fetching notes without label";
+            if (e instanceof Error) errorMessage = e.message;
+            setError(errorMessage);
+            throw e;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     const addNote = useCallback( async (note: Partial<Note>) => {
         try {
             setLoading(true);
@@ -128,6 +162,8 @@ const useNotesData = (
         getNoteById,
         getAllNotes,
         fetchNotes,
+        getNotesByLabel,
+        getNotesWithoutLabel,
     };
 };
 

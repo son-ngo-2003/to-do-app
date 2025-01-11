@@ -30,12 +30,14 @@ const Textarea: React.FC<TextareaProps> = ({
     const customCss = `
     ${Typography.fontStyleSheets.AleoFont}
     * {
-        background-color: ${colors.card};
+        background-color: ${ colors.card };
         color: ${colors.text};
         font-family: 'Aleo';
         text-align: justify;
         text-justify: inter-word;
         ${convertReactNativeStyleToCSS(textEditorStyle)[1]}
+        margin: 0;
+        padding: 0;
     }
     }
     img {
@@ -63,7 +65,7 @@ const Textarea: React.FC<TextareaProps> = ({
     });
 
     const _containerStyle = {
-        maxHeight: numberOfLines * ( textEditorStyle?.lineHeight ? textEditorStyle?.lineHeight * 1.2 : 20 ),
+        height: numberOfLines * ( textEditorStyle?.lineHeight ? textEditorStyle?.lineHeight : 20 ),
     }
 
     React.useEffect(() => {
@@ -88,15 +90,5 @@ const styles = StyleSheet.create({
     textEditorContainer: {
         width: '100%',
         height: '100%',
-    },
-    editor: {
-        paddingVertical: 10,
-        width: '100%',
-        height: '86%',
-    },
-    toolbar: {
-        position: 'absolute',
-        bottom: 0,
-        width: '100%',
     },
 });

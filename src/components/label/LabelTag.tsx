@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Text, View, Pressable, StyleSheet } from 'react-native';
+import {Text, View, Pressable, StyleSheet, ViewProps, ViewStyle} from 'react-native';
 import { Colors, Typography, Outlines } from '../../styles';
 
 //Components
@@ -7,19 +7,22 @@ import { Icon } from '../atomic';
 
 type LabelTagProps = {
     text: string,
+    textColor?: string,
     color: string,
     onPressDeleteButton?: () => void,
+    style?: ViewStyle,
 }
 
-const LabelTag: React.FC<LabelTagProps> = ({text, color, onPressDeleteButton, }) => {
+const LabelTag: React.FC<LabelTagProps> = ({text, color, onPressDeleteButton, textColor, style}) => {
+    const _textColor = textColor || Colors.neutral.white;
 
     return (
-        <View style={[styles.container, { backgroundColor: color  }]}>
-            <Text style={[styles.label, Typography.subheader.x10]}>{text.toLocaleUpperCase()}</Text>
+        <View style={[styles.container, { backgroundColor: color  }, style]}>
+            <Text style={[styles.label, Typography.subheader.x10, {color: _textColor}]}>{text.toLocaleUpperCase()}</Text>
 
             { onPressDeleteButton && (
                 <Pressable onPress={onPressDeleteButton} hitSlop={6}>
-                    <Icon name="close-circle" size={13} color={Colors.neutral.white} library='Ionicons'/>
+                    <Icon name="close-circle" size={13} color={_textColor} library='Ionicons'/>
                 </Pressable>
             )}
         </View>
@@ -41,6 +44,5 @@ const styles = StyleSheet.create({
     label: {
         textAlign: 'center',
         paddingRight: 4,
-        color: Colors.neutral.white,
     }
 });

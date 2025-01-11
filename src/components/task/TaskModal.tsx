@@ -130,7 +130,6 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
             dispatchTaskForm({type: FormActionKind.UPDATE_ALL, payload: createInitialTask(newTask)});
             setOriginalTask(newTask);
             onAddTask?.(newTask);
-            // console.log('new task', newTask.isCompleted);
 
             setButtonMode('added');
         } catch (e) {

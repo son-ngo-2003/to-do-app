@@ -143,37 +143,37 @@ export const subheader: Record<Subheader, TextStyle> = {
     x10: {
         ...fontSize.x10,
         ...lineHeight.x10,
-        ...fontWeight('Aleo').semibold,
+        ...fontWeight('Aleo').medium,
     },
     x20: {
         ...fontSize.x20,
         ...lineHeight.x20,
-        ...fontWeight('Aleo').semibold,
+        ...fontWeight('Aleo').medium,
     },
     x30: {
         ...fontSize.x30,
         ...lineHeight.x30,
-        ...fontWeight('Aleo').semibold,
+        ...fontWeight('Aleo').medium,
     },
     x40: {
         ...fontSize.x40,
         ...lineHeight.x40,
-        ...fontWeight('Aleo').semibold,
+        ...fontWeight('Aleo').medium,
     },
     x45: {
         ...fontSize.x45,
         ...lineHeight.x45,
-        ...fontWeight('Aleo').semibold,
+        ...fontWeight('Aleo').medium,
     },
     x50: {
         ...fontSize.x50,
         ...lineHeight.x50,
-        ...fontWeight('Aleo').semibold,
+        ...fontWeight('Aleo').medium,
     },
     x55: {
         ...fontSize.x55,
         ...lineHeight.x55,
-        ...fontWeight('Aleo').semibold,
+        ...fontWeight('Aleo').medium,
     }
 }
 

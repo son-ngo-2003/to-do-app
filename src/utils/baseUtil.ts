@@ -36,7 +36,8 @@ function convertReactNativeStyleToCSS(reactNativeStyles?: TextStyle) : [Record<s
         textTransform: "text-transform",
         includeFontPadding: null, // No equivalent in CSS
         textAlignVertical: "vertical-align", // Approximation
-        writingDirection: "direction"
+        writingDirection: "direction",
+        opacity: "opacity",
     };
 
     const cssStyles: Record<string, string> = {};
@@ -47,7 +48,10 @@ function convertReactNativeStyleToCSS(reactNativeStyles?: TextStyle) : [Record<s
 
         if (cssKey) {
             // Add the style to CSS if a mapping exists
-            cssStyles[cssKey] = typeof value === "number" ? `${value}px` : value;
+            cssStyles[cssKey] = value;
+            if (cssKey === "font-size" || cssKey === "line-height" || cssKey === "letter-spacing") {
+                cssStyles[cssKey] = typeof value === "number" ? `${value}px` : value;
+            }
         }
     });
 

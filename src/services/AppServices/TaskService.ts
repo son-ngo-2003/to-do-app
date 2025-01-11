@@ -107,8 +107,9 @@ const TaskService : TaskServiceType = (() => {
             }
             const labelIds = task.labels ? task.labels.map(label => label._id) : [];
             const noteId = task.note ? task.note._id : undefined;
-            const { note, labels, ...taskWithoutNoteLabels} = task;
-            const msg: Message<TaskEntity> = await TaskDAO.updateTaskById(task._id, { ...taskWithoutNoteLabels, labelIds, noteId });
+            const parentTaskId = task.parentTask ? task.parentTask._id : undefined;
+            const { note, labels, parentTask, ...taskWithoutNoteLabels} = task;
+            const msg: Message<TaskEntity> = await TaskDAO.updateTaskById(task._id, { ...taskWithoutNoteLabels, labelIds, noteId, parentTaskId });
             if (!msg.getIsSuccess()) {
                 throw new Error(msg.getError());
             }
