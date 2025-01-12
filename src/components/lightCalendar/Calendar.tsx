@@ -1,6 +1,6 @@
 import * as React from 'react';
 import dayjs from 'dayjs';
-import {View, StyleSheet, Text} from 'react-native';
+import {View, StyleSheet, Text, FlatList} from 'react-native';
 import {useTheme} from "@react-navigation/native";
 
 //components
@@ -38,23 +38,21 @@ const Calendar: React.FC<CalendarProps> = (props) => {
     const thisPeriod = React.useMemo( () => ( dayjs({ month: thisMonth, year: thisYear } )), [ thisMonth, thisYear ]);
     const firstDay = React.useMemo( () => thisPeriod.startOf('isoWeek'), [thisPeriod])
 
-    const renderDay = React.useCallback((week: number, dateOfWeek: number) : React.ReactNode =>{
-        const thisDay = firstDay.add(week * 7 + dateOfWeek, 'days');
-        return (      
-            <DateItem
-                key={dateOfWeek}
-                thisDate = { thisDay.format() }
-                isCurrentMonth={ thisDay.month() === thisMonth }
-                isSelected={ dayjs(selectedDate).isSame(thisDay, 'day') }
-                onPress={ onPressDate }
-            />
-        )
-    },[firstDay, thisMonth, selectedDate, onPressDate]);
+    // list of days in the month
+    const days = React.useMemo(() => {
+        const totalDays = LENGTH_WEEK_SHOWS * 7;
+        return [...Array(totalDays).keys()].map((index) => {
+            const thisDay = firstDay.add(index, 'days');
+            return {
+                key: `${index}`,
+                date: thisDay.format(),
+                isCurrentMonth: thisDay.month() === thisMonth,
+                isSelected: dayjs(selectedDate).isSame(thisDay, 'day'),
+            };
+        });
+    }, [firstDay, thisMonth, selectedDate]);
 
-
-    function renderHeader () : React.ReactNode[] {
-        const dates: React.ReactNode[] = [];
-
+    const renderHeader = React.useMemo(() => {
         let listDateName : string[];
         switch (dateNameType) {
             case 'full':
@@ -74,32 +72,39 @@ const Calendar: React.FC<CalendarProps> = (props) => {
                 break;
         }
 
-        for (let i = 0; i < 7; i++) {
-            dates.push(
-                <Text key={i} style={[styles.dayText,
-                    {...Typography.body.x30, color: colors.text}]}
-                >{listDateName[i]}</Text>
-            )
-        }
-        return dates;
-    }
+        return (
+            <View style={[styles.dateNameContainer]}>
+                {listDateName.map((name, index) => (
+                    <Text key={index} style={[styles.dayText,
+                        {...Typography.body.x30, color: colors.text}]}
+                    >{name}</Text>
+                ))}
+            </View>
+        );
+    }, [dateNameType, colors.text]);
 
     return (
         <View style={[styles.calendar]}>
             <View style={[styles.headerContainer]}>
-                <View style={[styles.dateNameContainer]}>
-                    {renderHeader()}
-                </View>
+                {renderHeader}
                 <View style={[styles.decorationLine, {backgroundColor: colors.border}]}/>
             </View>
 
-            {[...Array(LENGTH_WEEK_SHOWS).keys()].map((week) =>
-                <View key={week} style={[styles.weekContainer]}>
-                    {[...Array(7).keys()].map((dateOfWeek) =>
-                        renderDay(week, dateOfWeek)
-                    )}
-                </View>
-            )}
+            {/* FlatList */}
+            <FlatList
+                data={days}
+                renderItem={({ item }) => (
+                    <DateItem
+                        thisDate={item.date}
+                        isCurrentMonth={item.isCurrentMonth}
+                        isSelected={item.isSelected}
+                        onPress={onPressDate}
+                    />
+                )}
+                keyExtractor={(item) => item.key}
+                numColumns={7} // 7 days in a week
+                columnWrapperStyle={styles.weekContainer}
+            />
         </View>
     )
 }

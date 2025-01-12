@@ -10,6 +10,7 @@ import CalendarListHeader, {CalendarListHeaderProps} from "./CalendarListHeader"
 
 //hooks
 import { UseMonthCalendarPages } from "./hooks";
+import {debounce, throttle} from "lodash";
 // import { useTraceUpdate } from '../../../hooks';
 
 export interface CalendarListProps {
@@ -54,7 +55,7 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((
     const [ canScroll, setCanScroll ] = React.useState<ScrollType>({left: false, right: false});
 
     const {
-        pagesRef,
+        pages,
         isOutOfRange,
         isOnEdgePages,
         getIndexOfPage,
@@ -81,38 +82,67 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((
                         : {left: false, right: false};
     }, [selectedDate, isOnEdgePages, isOutOfRange]);
 
-    const scroll = useCallback( ( _arg: dayjs.Dayjs | number | Date | string ) : void => {
-        if (!flatListRef.current) {
-            onScroll && onScroll( false, {left: false, right: false});
-            setCanScroll({left: false, right: false});
+    const numberCumulative = useRef<number>(0);
+    const debouncedHandleScroll = React.useMemo(() =>
+        debounce((newMonth: dayjs.Dayjs) => {
+            let scrollDirection : ScrollType = getScrollStatus(newMonth);
+
+
+            setCurrentMonth(newMonth.format());
+            onScroll?.( true, scrollDirection, newMonth.toDate() );
+            setCanScroll(scrollDirection);
+        }, 200)
+    , [getScrollStatus, onScroll, setCanScroll]);
+
+    const debouncedScroll = React.useMemo(() =>
+        debounce(( _arg: dayjs.Dayjs | number | Date | string, force: boolean = false ) : void => {
+            // force = true: scroll to the date, if it is out of range, it will scroll to the edge
+            // force = false: scroll to the date, if it is out of range, it will not scroll
+
+            if (!flatListRef.current) {
+                onScroll?.( false, {left: false, right: false});
+                setCanScroll({left: false, right: false});
+                return;
+            }
+
+            const newMonth = (typeof _arg === 'number')
+                ? dayjs(currentMonth).add(_arg, 'months')
+                : dayjs(_arg);
+
+            if ( isOutOfRange(newMonth) !== 'none' && !force ) {
+                onScroll?.( false, getScrollStatus(newMonth) );
+                return;
+            }
+
+            flatListRef.current?.scrollToOffset({animated: true, offset: width * getIndexOfPage(newMonth)});
+            debouncedHandleScroll(newMonth);
+            numberCumulative.current = 0;
+        }, 300)
+    , [onScroll, setCanScroll, currentMonth, getScrollStatus, isOutOfRange, width, getIndexOfPage, debouncedHandleScroll]);
+
+    const scroll = useCallback( ( _arg: dayjs.Dayjs | number | Date | string ) => {
+        if (typeof _arg !== 'number') {
+            debouncedScroll(_arg, false);
             return;
         }
+        numberCumulative.current += _arg;
+        debouncedScroll(numberCumulative.current, true);
+    } , [debouncedScroll]);
 
-        const newMonth = (typeof _arg === 'number')
-            ? dayjs(currentMonth).add(_arg, 'months')
-            : dayjs(_arg);
-
-        let scrollDirection : ScrollType = getScrollStatus(newMonth);
-        if ( isOutOfRange(newMonth) !== 'none' ) {
-            onScroll && onScroll( false, scrollDirection );
-            return;
-        }
-
-        flatListRef.current?.scrollToOffset({animated: true, offset: width * getIndexOfPage(newMonth)});
-        setCurrentMonth(newMonth.format());
-        onScroll && onScroll( true, scrollDirection, newMonth.toDate() );
-        setCanScroll(scrollDirection);
-    }, [onScroll, currentMonth, isOutOfRange, width, getIndexOfPage, getScrollStatus, setCanScroll]);
+    const throttledOnScrollManuel = React.useMemo( () =>
+        throttle((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+            const ne = e.nativeEvent;
+            const deltaPage = Math.floor( ne.contentOffset.x / width );
+            const newMonth = dayjs(minMonth).add( deltaPage, 'months');
+            debouncedHandleScroll(newMonth);
+        }, 500)
+    , [minMonth, width, debouncedHandleScroll]);
 
     const onScrollManuel = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
-        const ne = e.nativeEvent;
-        if (ne.contentOffset.x % width !== 0) return;
-        const newMonth = dayjs(minMonth).add( ne.contentOffset.x / width, 'months');
-        setCurrentMonth(newMonth.format());
+        e.persist();
+        throttledOnScrollManuel(e);
+    }, [throttledOnScrollManuel]);
 
-        let scrollDirection : ScrollType = getScrollStatus(newMonth);
-        onScroll &&  onScroll( true, scrollDirection, newMonth.toDate() );
-    }, [width, minMonth, onScroll, getScrollStatus]);
 
     useEffect(() => {
         if (!dayjs(selectedDate).isSame(currentMonth, 'months')) {
@@ -143,16 +173,16 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((
         )
     },[selectedDate, _onPressDate, width, dateNameType]);
 
-    const getDataList = useCallback( () : DataItemType[] => {
-        return pagesRef.current.map((thisMonth) => ({thisMonth}));
-    }, [pagesRef.current]);
+    const getDataList = React.useMemo((): DataItemType[] => {
+        return pages.map((thisMonth) => ({ thisMonth }));
+    }, [pages]);
 
     return (
         <View>
             <CalendarListHeader
                 selectDateString={ dayjs(selectedDate).format('DD/MM') }
-                currentMonth={ dayjs(selectedDate).month() }
-                currentYear={ dayjs(selectedDate).year() }
+                currentMonth={ dayjs(currentMonth).month() }
+                currentYear={ dayjs(currentMonth).year() }
 
                 onPressLeft={() => scroll(-1)}
                 onPressRight={() => scroll(1)}
@@ -164,10 +194,10 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((
             <View style={{width}}>
                 <FlatList
                     ref={flatListRef}
-                    data={getDataList()}
+                    data={getDataList}
                     renderItem={renderItem}
 
-                    keyExtractor={(d, index) => d.thisMonth.format('YYYY-MM')}
+                    keyExtractor={(d, _) => d.thisMonth.format('YYYY-MM')}
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     onScroll = {onScrollManuel}

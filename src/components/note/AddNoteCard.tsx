@@ -28,12 +28,12 @@ const AddNoteCard: React.FC<AddNoteCardProps> = ({
     return (
         <TouchableOpacity onPress={onPress} style={[styles.container, {borderColor: colors.border, backgroundColor: colors.background}, dimensions, style]}
         >
-            <InsetShadowCard
-                offsetPercent={0.07}
-                shadowColor={Outlines.shadow.base.shadowColor as string}
-                shadowOpacity={0.105}
-                style={{borderRadius: Outlines.borderRadius.large - 3, overflow: 'hidden'}}
-            />
+            {/*<InsetShadowCard*/}
+            {/*    offsetPercent={0.07}*/}
+            {/*    shadowColor={Outlines.shadow.base.shadowColor as string}*/}
+            {/*    shadowOpacity={0.105}*/}
+            {/*    style={{borderRadius: Outlines.borderRadius.large - 3, overflow: 'hidden'}}*/}
+            {/*/>*/}
             <Icon name={'plus'} size={35} color={ colors.border } library={'FontAwesome6'}/>
         </TouchableOpacity>
     )

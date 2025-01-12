@@ -16,29 +16,20 @@ const UseMonthCalendarPages = ({
         return dayjs(date).startOf('month');
     }, []);
 
-    const _minDate = useMemo(() => getPeriod(minDate), [minDate]);
-    const _maxDate = useMemo(() => getPeriod(maxDate), [maxDate]);
+    const [_minDate, _maxDate] = useMemo(() => {
+        const start = getPeriod(minDate);
+        const end = getPeriod(maxDate);
+        return start.isAfter(end) ? [end, start] : [start, end]; // Hoán đổi nếu minDate > maxDate
+    }, [minDate, maxDate, getPeriod]);
 
-    const _generateListDate = useCallback(() => {
-        let pages : dayjs.Dayjs[] = [];
-        let thisDate = _minDate;
-
-        while (thisDate.isSameOrBefore(_maxDate)) {
-            pages.push( thisDate );
-            thisDate = thisDate.add(1, 'month');
-        }
-
-        return pages;
-    }, [_minDate, _maxDate]);
-
-    const pagesRef = useRef(_generateListDate());
-
-    useEffect(() => {
-        pagesRef.current = _generateListDate();
+    const pages = useMemo(() => {
+        const totalMonths = _maxDate.diff(_minDate, "month") + 1;
+        return Array.from({ length: totalMonths }, (_, i) => _minDate.add(i, "month"));
     }, [_minDate, _maxDate]);
 
     const getIndexOfPage = useCallback((date?: dayjs.Dayjs | string | Date) => {
-        return Math.floor(dayjs(date).diff(_minDate, 'months'));
+        // return Math.floor(dayjs(date).diff(_minDate, 'months'));
+        return Math.max(0, Math.min(pages.length - 1, dayjs(date).diff(_minDate, "months")));
     }, []);
 
     const isOutOfRange = useCallback((date?: dayjs.Dayjs | string | Date) : 'left' | 'right' | 'none' => {
@@ -46,12 +37,15 @@ const UseMonthCalendarPages = ({
     }, []);
 
     const isOnEdgePages = useCallback((date?: dayjs.Dayjs | string | Date) : 'left' | 'right' | 'none' => {
-        return getIndexOfPage(date) === 0 ? 'left' : getIndexOfPage(date) === pagesRef.current.length - 1 ? 'right' : 'none';
+        const index = getIndexOfPage(date);
+        if (index === 0) return "left";
+        if (index === pages.length - 1) return "right";
+        return "none";
     }, []);
 
     return {
         getPeriod,
-        pagesRef,
+        pages,
         isOutOfRange,
         isOnEdgePages,
         getIndexOfPage,

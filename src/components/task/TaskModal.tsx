@@ -26,13 +26,9 @@ import formReducer, {FormAction, FormActionKind} from "../../reducers/formReduce
 import { TaskFormState } from "../../types/formStateType";
 import { LightCalendar } from "../lightCalendar";
 
-
-import { CALENDAR_BODY_HEIGHT } from "../lightCalendar/constants";
 import { Typography, Outlines, Colors, Animations as Anim} from '../../styles';
 import {paddedNumber, toPrintAsPlural} from "../../utils/baseUtil";
-import {AnimatedPressable} from "../../helpers/animated";
 import {
-    createInitialNote,
     createInitialTask,
     fromStateToTask,
     isStateOfTask, isTaskStateEmpty
@@ -68,7 +64,8 @@ export type TaskModalRef = {
 }
 
 const sizeButton = 25;
-const wheelPickerHeight = 90;
+const WHEEL_PICKER_HEIGHT = 90;
+const CALENDAR_BODY_HEIGHT = 260
 
 const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
     mode,
@@ -263,13 +260,13 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
     React.useEffect(() => {
         switch (showWheelPicker) {
             case 'pick-start':
-                heightPickerStart.value = Anim.spring<number>(wheelPickerHeight).base.glacial;
+                heightPickerStart.value = Anim.spring<number>(WHEEL_PICKER_HEIGHT).base.glacial;
                 heightPickerEnd.value = Anim.timing<number>(0).easeOut.fast;
                 heightPickerRepeat.value = Anim.timing<number>(0).easeOut.fast;
                 break;
             case 'pick-end':
                 heightPickerStart.value = Anim.timing<number>(0).easeOut.fast;
-                heightPickerEnd.value = Anim.spring<number>(wheelPickerHeight).base.glacial;
+                heightPickerEnd.value = Anim.spring<number>(WHEEL_PICKER_HEIGHT).base.glacial;
                 heightPickerRepeat.value = Anim.timing<number>(0).easeOut.fast;
                 break;
             case "lightCalendar-start":
@@ -285,7 +282,7 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
             case 'restart':
                 heightPickerStart.value = Anim.timing<number>(0).easeOut.fast;
                 heightPickerEnd.value = Anim.timing<number>(0).easeOut.fast;
-                heightPickerRepeat.value = Anim.spring<number>(wheelPickerHeight).base.glacial;
+                heightPickerRepeat.value = Anim.spring<number>(WHEEL_PICKER_HEIGHT).base.glacial;
                 break;
             case 'none':
                 heightPickerStart.value = Anim.timing<number>(0).easeOut.fast;
@@ -328,7 +325,7 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
                     <TextInput style={[styles.title, {color: colors.text}]} multiline={true} maxLength={TITLE_MAX_LENGTH}
                                 onChangeText={(text) => dispatchTaskForm({type: FormActionKind.UPDATE_TEXT, payload: {field: 'title', value: text}})}
                                 value={taskFormState.title}
-                                placeholder='Press here to add title to your note'/>
+                                placeholder='Add title to your task'/>
 
                     {/* Labels */}
                     <LabelsList
@@ -377,7 +374,7 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
                                         onChangeTime={onChangeTime}
 
                                         itemTextStyle={{...Typography.body.x40, color: colors.text}}
-                                        wrapperHeight={ wheelPickerHeight }
+                                        wrapperHeight={ WHEEL_PICKER_HEIGHT }
                                         itemHeight={ 40 }
                                         selectedIndicatorStyle={{backgroundColor: colors.border, opacity: 0.5}}
                                     />
@@ -417,7 +414,7 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
                                         onChangeTime={onChangeTime}
 
                                         itemTextStyle={{...Typography.body.x40, color: colors.text}}
-                                        wrapperHeight={ wheelPickerHeight }
+                                        wrapperHeight={ WHEEL_PICKER_HEIGHT }
                                         itemHeight={ 40 }
                                         selectedIndicatorStyle={{backgroundColor: colors.border, opacity: 0.5}}
                                     />
@@ -481,7 +478,7 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
                                         separator={''}
                                         gapSize={10}
                                         itemTextStyle={{...Typography.body.x40, color: colors.text}}
-                                        wrapperHeight={ wheelPickerHeight }
+                                        wrapperHeight={ WHEEL_PICKER_HEIGHT }
                                         itemHeight={ 40 }
                                         selectedIndicatorStyle={{backgroundColor: colors.border, opacity: 0.5}}
                                     />

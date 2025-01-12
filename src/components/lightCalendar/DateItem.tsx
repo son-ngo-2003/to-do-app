@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import * as React from 'react';
 import { useTheme } from '@react-navigation/native';
-import { Text, Pressable, StyleSheet } from 'react-native';
+import {Text, Pressable, StyleSheet, TextStyle, InteractionManager} from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, interpolateColor } from 'react-native-reanimated';
 
 //constants
@@ -43,22 +43,29 @@ const DateItem: React.FC<DateItemProps> = (props) => {
     );
 
     React.useEffect(() => {
-        isSelected
-            ? (progress.value = Anim.timing<number>(1).easeIn.fast)
-            : (progress.value = Anim.timing<number>(0).easeOut.fast)
-    }, [isSelected])
+        const task = InteractionManager.runAfterInteractions(() => {
+            isSelected
+                ? (progress.value = Anim.timing<number>(1).easeIn.fast)
+                : (progress.value = Anim.timing<number>(0).easeOut.fast);
+        });
+
+        return () => task.cancel();
+    }, [isSelected]);
+
+    const textStyle : TextStyle[] = React.useMemo(() => {
+        let baseStyle : TextStyle[] =  [];
+        if (!isCurrentMonth) baseStyle.push({opacity: 0.4});
+        if (isToday) baseStyle.push({ ...Typography.subheader.x30, color: Colors.primary.blue });
+        if (isSelected) baseStyle.push({ ...Typography.subheader.x30, color: Colors.neutral.white });
+        return baseStyle;
+    }, [isCurrentMonth, isToday, isSelected]);
 
     return (
         <AnimatedPressable
             style={[styles.dateContainer, containerAnimatedStyles]}
             onPress = {onPressDate}
         >
-            <Text style={[styles.dayText,
-                {...Typography.body.x30, color: colors.text},
-                (!isCurrentMonth) && {opacity: 0.4},
-                (isToday)         && {...Typography.subheader.x30, opacity: 1, color: Colors.primary.blue},
-                (isSelected)      && {...Typography.subheader.x30, opacity: 1, color: Colors.neutral.white},
-            ]}>{ thisDay.format('DD')  }</Text>
+            <Text style={[styles.dayText, textStyle]}>{ thisDay.format('DD')  }</Text>
         </AnimatedPressable>
     )
 }
@@ -76,6 +83,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     dayText: {
+        ...Typography.body.x30,
         textAlign: 'center',
     }
 });
