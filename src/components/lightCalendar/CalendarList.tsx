@@ -86,8 +86,6 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((
     const debouncedHandleScroll = React.useMemo(() =>
         debounce((newMonth: dayjs.Dayjs) => {
             let scrollDirection : ScrollType = getScrollStatus(newMonth);
-
-
             setCurrentMonth(newMonth.format());
             onScroll?.( true, scrollDirection, newMonth.toDate() );
             setCanScroll(scrollDirection);
