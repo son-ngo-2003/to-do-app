@@ -13,7 +13,7 @@ export { Icon,
         BaseModal,
         Checkbox,
         InsetShadowCard,
-        InfinityList,
+        InfinityList, type ScrollEvent,
 } from './atomic';
 export { LabelTag, 
         LabelCard, AddLabelCard,

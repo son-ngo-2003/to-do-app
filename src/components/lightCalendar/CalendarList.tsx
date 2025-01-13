@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import dayjs from 'dayjs';
-import { ListRenderItem, FlatList, View, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import {ListRenderItem, FlatList, View, NativeSyntheticEvent, NativeScrollEvent, Text} from 'react-native';
 
 //components
 import Calendar, { CalendarProps } from './Calendar';
@@ -11,6 +11,8 @@ import CalendarListHeader, {CalendarListHeaderProps} from "./CalendarListHeader"
 //hooks
 import { UseMonthCalendarPages } from "./hooks";
 import {debounce, throttle} from "lodash";
+import {InfinityList, ScrollEvent} from "../atomic";
+import {CALENDAR_BODY_HEIGHT} from "./constants";
 // import { useTraceUpdate } from '../../../hooks';
 
 export interface CalendarListProps {
@@ -48,23 +50,30 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((
     // * --------------------------------------- variables part --------------------------------------------------------------
 
     //useTraceUpdate(props);
-    const flatListRef = useRef<FlatList<DataItemType>>(null);
+    const infinityRef = useRef<any>(null);
+    const safeInitialDate = React.useMemo(() => {
+        return dayjs(initialDate).isValid() ? dayjs(initialDate) : dayjs();
+    }, [initialDate]);
 
-    const [ currentMonth, setCurrentMonth ] = useState<string>( dayjs(initialDate).format() );
+    const [ currentMonth, setCurrentMonth ] = useState<string>( safeInitialDate.format() );
     const [ selectedDate, setSelectedDate ] = useState<string>( currentMonth );
-    const [ canScroll, setCanScroll ] = React.useState<ScrollType>({left: false, right: false});
+    // const [ canScroll, setCanScroll ] = React.useState<ScrollType>({left: false, right: false});
 
     const {
         pages,
+        extendPages,
+
         isOutOfRange,
         isOnEdgePages,
         getIndexOfPage,
-    } = UseMonthCalendarPages({minDate: minMonth, maxDate: maxMonth} );
+    } = UseMonthCalendarPages( {initialMonth: safeInitialDate} );
+
+    const pagesString = React.useMemo( () => pages.map( (page) => page.format('YYYY-MM') ), [pages]);
 
     // * --------------------------------------- functionality part ----------------------------------------------------
 
     React.useImperativeHandle(ref, () => ({
-        ...flatListRef.current,
+        ...infinityRef.current,
         scroll,
     }), [selectedDate, currentMonth]);
 
@@ -88,18 +97,16 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((
             let scrollDirection : ScrollType = getScrollStatus(newMonth);
             setCurrentMonth(newMonth.format());
             onScroll?.( true, scrollDirection, newMonth.toDate() );
-            setCanScroll(scrollDirection);
+            // setCanScroll(scrollDirection);
         }, 200)
-    , [getScrollStatus, onScroll, setCanScroll]);
+    , [getScrollStatus, onScroll]);
 
     const debouncedScroll = React.useMemo(() =>
         debounce(( _arg: dayjs.Dayjs | number | Date | string, force: boolean = false ) : void => {
-            // force = true: scroll to the date, if it is out of range, it will scroll to the edge
-            // force = false: scroll to the date, if it is out of range, it will not scroll
 
-            if (!flatListRef.current) {
+            if (!infinityRef.current) {
                 onScroll?.( false, {left: false, right: false});
-                setCanScroll({left: false, right: false});
+                // setCanScroll({left: false, right: false});
                 return;
             }
 
@@ -112,11 +119,11 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((
                 return;
             }
 
-            flatListRef.current?.scrollToOffset({animated: true, offset: width * getIndexOfPage(newMonth)});
+            infinityRef.current?.scrollToIndex(getIndexOfPage(newMonth), true);
             debouncedHandleScroll(newMonth);
             numberCumulative.current = 0;
         }, 300)
-    , [onScroll, setCanScroll, currentMonth, getScrollStatus, isOutOfRange, width, getIndexOfPage, debouncedHandleScroll]);
+    , [onScroll, currentMonth, getScrollStatus, isOutOfRange, getIndexOfPage, debouncedHandleScroll]);
 
     const scroll = useCallback( ( _arg: dayjs.Dayjs | number | Date | string ) => {
         if (typeof _arg !== 'number') {
@@ -128,19 +135,17 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((
     } , [debouncedScroll]);
 
     const throttledOnScrollManuel = React.useMemo( () =>
-        throttle((e: NativeSyntheticEvent<NativeScrollEvent>) => {
-            const ne = e.nativeEvent;
-            const deltaPage = Math.floor( ne.contentOffset.x / width );
-            const newMonth = dayjs(minMonth).add( deltaPage, 'months');
+        throttle((_rawEvent: ScrollEvent, offsetX: number, _offsetY: number) => {
+            const deltaPage = Math.floor( offsetX / width );
+            const newMonth = pages[deltaPage];
             debouncedHandleScroll(newMonth);
-        }, 500)
-    , [minMonth, width, debouncedHandleScroll]);
+        }, 200)
+    , [width, debouncedHandleScroll, pages]);
 
-    const onScrollManuel = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
-        e.persist();
-        throttledOnScrollManuel(e);
+    const onScrollManuel = useCallback((rawEvent: ScrollEvent, offsetX: number, offsetY: number, isScrollByUser: boolean) => {
+        if (!isScrollByUser) return;
+        throttledOnScrollManuel(rawEvent, offsetX, offsetY);
     }, [throttledOnScrollManuel]);
-
 
     useEffect(() => {
         if (!dayjs(selectedDate).isSame(currentMonth, 'months')) {
@@ -151,12 +156,12 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((
 
     // * -------------------------------------------------- UI part ----------------------------------------------------
 
-    const  renderItem  = useCallback<ListRenderItem<DataItemType>>(({ item }) => {
-        const {  thisMonth } = item;
-        const selectedDateInMonth = thisMonth.isSame( selectedDate, 'month' );
+    const  renderItem  = useCallback((_type: string | number, month: string) => {
+        const thisMonth = dayjs(month, 'YYYY-MM');
+        const isSelectedDateInMonth = thisMonth.isSame( selectedDate, 'month' );
 
         const calendarProps : CalendarProps = {
-            selectedDate:           selectedDateInMonth ? selectedDate : undefined,
+            selectedDate:           isSelectedDateInMonth ? selectedDate : undefined,
             onPressDate:            _onPressDate,
 
             thisMonth:              thisMonth.month(),
@@ -169,11 +174,17 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((
                 <Calendar {...calendarProps}/>
             </View>
         )
-    },[selectedDate, _onPressDate, width, dateNameType]);
+    },[width, dateNameType, selectedDate, _onPressDate]);
 
-    const getDataList = React.useMemo((): DataItemType[] => {
-        return pages.map((thisMonth) => ({ thisMonth }));
-    }, [pages]);
+    const reloadData = useCallback( (index: number) => {
+        if (index < 2) {
+            extendPages('left');
+            return;
+        }
+        if (index >= pages.length - 2) {
+            extendPages('right');
+        }
+    }, [extendPages, pages.length]);
 
     return (
         <View>
@@ -185,25 +196,36 @@ const CalendarList = React.forwardRef<CalenderListRef, CalendarListProps>((
                 onPressLeft={() => scroll(-1)}
                 onPressRight={() => scroll(1)}
 
-                canScroll={canScroll}
+                // canScroll={canScroll}
                 styleNumber={styleNumber}
             />
 
-            <View style={{width}}>
-                <FlatList
-                    ref={flatListRef}
-                    data={getDataList}
-                    renderItem={renderItem}
+            <View style={{width, height: CALENDAR_BODY_HEIGHT}}>
+                {
+                    width > 0 &&
+                    <InfinityList
+                        style={{flex: 1}}
+                        ref={infinityRef}
 
-                    keyExtractor={(d, _) => d.thisMonth.format('YYYY-MM')}
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    onScroll = {onScrollManuel}
+                        data={pagesString}
+                        pageSize={{width, height: CALENDAR_BODY_HEIGHT}}
 
-                    pagingEnabled={true}
-                    getItemLayout={(_, index) => ({length: width, offset: width * index, index})}
-                    initialScrollIndex={getIndexOfPage()}
-                />
+                        reloadData={reloadData}
+                        rowRenderer={renderItem}
+
+                        pagingEnabled={true}
+                        isHorizontal={true}
+                        showIndicator={false}
+
+                        onScroll = {onScrollManuel}
+                        extendedState={{selectedDate}}
+
+                        onFrontReachedThreshold={width * 2}
+                        onEndReachedThreshold={width * 2}
+                        renderAheadOffset={width * 5}
+                    />
+                }
+
             </View>
         </View>
 )

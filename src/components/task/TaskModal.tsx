@@ -65,7 +65,9 @@ export type TaskModalRef = {
 
 const sizeButton = 25;
 const WHEEL_PICKER_HEIGHT = 90;
-const CALENDAR_BODY_HEIGHT = 260
+const CALENDAR_BODY_HEIGHT = 260;
+
+type WheelPickerType = 'none' | 'pick-start' | 'pick-end' | 'lightCalendar-start' | 'lightCalendar-end' | 'restart';
 
 const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
     mode,
@@ -90,7 +92,7 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
     const [ taskRepeat, setTaskRepeat ] = React.useState<RepeatAttributeType>( {value: 1, unit: 'day'} );
     const [ isEdited, setIsEdited ] = React.useState<boolean>(false);
     const [ buttonMode, setButtonMode ] = React.useState<ButtonMode>(mode);
-    const [ showWheelPicker, setShowWheelPicker ] = React.useState<'none' | 'pick-start' | 'pick-end' | 'lightCalendar-start' | 'lightCalendar-end' | 'restart'>('none');
+    const [ showWheelPicker, setShowWheelPicker ] = React.useState<WheelPickerType>('none');
     const repeatOpacity = useSharedValue<number>( taskFormState.repeat ? 1 : 0.3 );
 
     const {
@@ -257,6 +259,14 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
     const heightPickerEnd = useSharedValue<number>(0);
     const heightPickerRepeat = useSharedValue<number>(0);
 
+    const toggleWheelPicker = React.useCallback((picker: WheelPickerType) => {
+        if (showWheelPicker === picker) {
+            setShowWheelPicker('none');
+            return;
+        }
+        setShowWheelPicker(picker);
+    }, [showWheelPicker, setShowWheelPicker]);
+
     React.useEffect(() => {
         switch (showWheelPicker) {
             case 'pick-start':
@@ -357,10 +367,10 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
                                 <View style={[styles.twoItemsRow, styles.rowHeightConfig]}>
                                     <Text style={[Typography.body.x40, {color: colors.text}]}>Start:</Text>
                                     <View style={{gap: 10, flexDirection: 'row'}}>
-                                        <TouchableOpacity onPress={() => setShowWheelPicker('pick-start')}>
+                                        <TouchableOpacity onPress={() => toggleWheelPicker('pick-start')}>
                                             <Text style={[Typography.body.x40, {color: colors.text, textDecorationLine: 'underline'}]}>{dayjs(taskFormState.startDate).format('HH:mm')}</Text>
                                         </TouchableOpacity>
-                                        <TouchableOpacity onPress={() => setShowWheelPicker('lightCalendar-start')}>
+                                        <TouchableOpacity onPress={() => toggleWheelPicker('lightCalendar-start')}>
                                             <Text style={[Typography.body.x40, {color: colors.text, textDecorationLine: 'underline'}]}>{dayjs(taskFormState.startDate).format('DD/MM/YYYY')}</Text>
                                         </TouchableOpacity>
                                     </View>
@@ -397,10 +407,10 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
                                 <View style={[styles.twoItemsRow, styles.rowHeightConfig]}>
                                     <Text style={[Typography.body.x40, {color: colors.text}]}>End:</Text>
                                     <View style={{gap: 10, flexDirection: 'row'}}>
-                                        <TouchableOpacity onPress={() => setShowWheelPicker('pick-end')}>
+                                        <TouchableOpacity onPress={() => toggleWheelPicker('pick-end')}>
                                             <Text style={[Typography.body.x40, {color: colors.text, textDecorationLine: 'underline'}]}>{dayjs(taskFormState.endDate).format('HH:mm')}</Text>
                                         </TouchableOpacity>
-                                        <TouchableOpacity onPress={() => setShowWheelPicker('lightCalendar-end')}>
+                                        <TouchableOpacity onPress={() => toggleWheelPicker('lightCalendar-end')}>
                                             <Text style={[Typography.body.x40, {color: colors.text, textDecorationLine: 'underline'}]}>{dayjs(taskFormState.endDate).format('DD/MM/YYYY')}</Text>
                                         </TouchableOpacity>
                                     </View>
@@ -452,11 +462,11 @@ const TaskModal = React.forwardRef<TaskModalRef, TaskModalProps> (({
                                 <Animated.View style={[{gap: 10, flexDirection: 'row', justifyContent: 'flex-end'}, styles.rowHeightConfig,
                                             {opacity: repeatOpacity}
                                 ]}>
-                                    <TouchableOpacity onPress={() => setShowWheelPicker('restart')} disabled={!taskFormState.repeat}>
+                                    <TouchableOpacity onPress={() => toggleWheelPicker('restart')} disabled={!taskFormState.repeat}>
                                         <Text style={[Typography.body.x40, {color: colors.text, textDecorationLine: 'underline'}]}>{paddedNumber(taskRepeat.value)}</Text>
                                     </TouchableOpacity>
 
-                                    <TouchableOpacity onPress={() => setShowWheelPicker('restart')} disabled={!taskFormState.repeat}>
+                                    <TouchableOpacity onPress={() => toggleWheelPicker('restart')} disabled={!taskFormState.repeat}>
                                         <Text style={[Typography.body.x40, {color: colors.text, textDecorationLine: 'underline'}]}
                                         >{ toPrintAsPlural(taskRepeat.value, taskRepeat.unit )}</Text>
                                     </TouchableOpacity>

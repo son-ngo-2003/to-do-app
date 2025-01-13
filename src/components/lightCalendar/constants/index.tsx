@@ -14,3 +14,7 @@ export const DATE_NAME_1 = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 export const MONTH_NAME_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 export const MONTH_NAME_3 = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// infinityList
+export const NUMBER_PAGES_ONE_SIZE_INITIAL_RENDER = 3; // x months before initial month, x months after initial month
+export const NUMBER_PAGES_TO_LOAD = 3;

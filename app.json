@@ -57,18 +57,6 @@
                         "./src/assets/fonts/Aleo-ThinItalic.ttf"
                     ]
                 }
-            ],
-            [
-                "expo-splash-screen",
-                {
-                    "backgroundColor": "#ffffff",
-                    "image": "./assets/avatar.png",
-                    "dark": {
-                        "image": "./assets/avatar.png",
-                        "backgroundColor": "#161617"
-                    },
-                    "imageWidth": 200
-                }
             ]
         ]
     }

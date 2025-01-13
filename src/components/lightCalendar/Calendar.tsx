@@ -109,9 +109,7 @@ const Calendar: React.FC<CalendarProps> = (props) => {
     )
 }
 
-export default React.memo(Calendar, (prev, next) => {
-    return prev.selectedDate === next.selectedDate;
-});
+export default React.memo(Calendar);
 
 const styles = StyleSheet.create({
     calendar : {

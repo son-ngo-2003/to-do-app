@@ -70,9 +70,7 @@ const DateItem: React.FC<DateItemProps> = (props) => {
     )
 }
 
-export default React.memo(DateItem, (prev, next) => {
-    return prev.isSelected === next.isSelected;
-});
+export default React.memo(DateItem);
 
 const styles = StyleSheet.create({
     dateContainer: {
